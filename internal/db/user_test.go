@@ -1,11 +1,11 @@
-package models_test
+package db_test
 
 import (
 	"errors"
 	"fmt"
 	"testing"
 
-	"github.com/xopoww/wishes/internal/models"
+	"github.com/xopoww/wishes/internal/db"
 )
 
 func TestCheckUsername(t *testing.T) {
@@ -15,7 +15,7 @@ func TestCheckUsername(t *testing.T) {
 			testMigrationVersionStart,
 		),
 	)
-	if err := models.Connect(dbs); err != nil {
+	if err := db.Connect(dbs); err != nil {
 		t.Fatalf("connect: %s", err)
 	}
 
@@ -27,10 +27,10 @@ func TestCheckUsername(t *testing.T) {
 
 	for _, username := range usernames {
 		t.Run(username, func(t *testing.T) {
-			err := models.CheckUsername(username)
+			err := db.CheckUsername(username)
 			if username == "user" {
-				if !errors.Is(err, models.ErrNameTaken) {
-					t.Fatalf("want %#v, got %#v", models.ErrNameTaken, err)
+				if !errors.Is(err, db.ErrNameTaken) {
+					t.Fatalf("want %#v, got %#v", db.ErrNameTaken, err)
 				}	
 			} else {
 				if err != nil {
@@ -45,11 +45,11 @@ func TestCheckUsername(t *testing.T) {
 
 func TestRegister(t *testing.T) {
 	dbs := newTestDatabase(t)
-	if err := models.Connect(dbs); err != nil {
+	if err := db.Connect(dbs); err != nil {
 		t.Fatalf("connect: %s", err)
 	}
 
-	user, err := models.Register("user", "password")
+	user, err := db.Register("user", "password")
 	if err != nil {
 		t.Fatalf("register: got %s", err)
 	}
@@ -57,23 +57,23 @@ func TestRegister(t *testing.T) {
 		t.Fatalf("register user: got %+v", user)
 	}
 
-	if err := models.CheckUsername("user"); !errors.Is(err, models.ErrNameTaken) {
-		t.Fatalf("check username: want %#v, got %#v", models.ErrNameTaken, err)
+	if err := db.CheckUsername("user"); !errors.Is(err, db.ErrNameTaken) {
+		t.Fatalf("check username: want %#v, got %#v", db.ErrNameTaken, err)
 	}
 
-	_, err = models.Register("user", "password")
-	if !errors.Is(err, models.ErrNameTaken) {
-		t.Fatalf("register dupe: want %#v, got %#v", models.ErrNameTaken, err)
+	_, err = db.Register("user", "password")
+	if !errors.Is(err, db.ErrNameTaken) {
+		t.Fatalf("register dupe: want %#v, got %#v", db.ErrNameTaken, err)
 	}
 }
 
 func TestLogin(t *testing.T) {
 	dbs := newTestDatabase(t)
-	if err := models.Connect(dbs); err != nil {
+	if err := db.Connect(dbs); err != nil {
 		t.Fatalf("connect: %s", err)
 	}
 
-	want, err := models.Register("user", "password")
+	want, err := db.Register("user", "password")
 	if err != nil {
 		t.Fatalf("register: %s", err)
 	}
@@ -89,7 +89,7 @@ func TestLogin(t *testing.T) {
 	}
 	for _, tc := range tcs {
 		t.Run(fmt.Sprintf("(%s:%s)", tc.username, tc.password), func(t *testing.T) {
-			got, err := models.Login(tc.username, tc.password)
+			got, err := db.Login(tc.username, tc.password)
 			if err != nil {
 				t.Fatalf("login: %s", err)
 			}

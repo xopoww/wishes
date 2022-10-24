@@ -1,4 +1,4 @@
-package models_test
+package db_test
 
 import (
 	"embed"

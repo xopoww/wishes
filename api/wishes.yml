@@ -1,0 +1,75 @@
+swagger: '2.0'
+
+info:
+  title: Wishes API
+  version: 0.0.1
+
+basePath: /api
+
+securityDefinitions:
+  KeySecurity:
+    type: apiKey
+    in: header
+    name: x-token
+
+security:
+  - KeySecurity: []
+
+paths:
+  /login:
+    post:
+      description: Return api token for authorized User
+      operationId: Login
+      security: []
+      consumes:
+        - "application/json"
+      parameters:
+        - name: 'login'
+          in: 'body'
+          required: true
+          description: 'Login Payload'
+          schema:
+            $ref: '#/definitions/UserCredentials'
+      responses:
+        200:
+          description: Login result
+          schema:
+            type: object
+            required: [ok]
+            properties:
+              ok:
+                type: boolean
+              token:
+                type: string
+        500:
+          schema:
+            type: string
+          description: Server error
+
+  /foo:
+    get:
+      summary: Response with schema
+      responses:
+        '200':
+          description: Successful response
+          schema:
+            type: string
+
+definitions:
+
+  UserName:
+    type: string
+
+  UserCredentials:
+    type: object
+    required: [username, password]
+    properties:
+      username:
+        $ref: "#/definitions/UserName"
+      password:
+        type: string
+        format: password
+
+  principal:
+    type: string
+      
