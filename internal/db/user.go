@@ -7,7 +7,6 @@ import (
 	"fmt"
 
 	"github.com/mattn/go-sqlite3"
-	"golang.org/x/crypto/bcrypt"
 )
 
 type User struct {
@@ -15,12 +14,15 @@ type User struct {
 	Name string
 }
 
-var ErrNameTaken = errors.New("username already taken")
+var (
+	ErrNameTaken = errors.New("username already taken")
+	ErrNotFound  = errors.New("not found")
+)
 
-// CheckUsername returns nil if username is not found in the database.
+// CheckUser returns nil if username is not found in the database.
 // It returns ErrNameTaken if username is found in the database. All other
 // return values indicate internal error during check.
-func CheckUsername(username string) error {
+func CheckUser(username string) error {
 	if db == nil {
 		return ErrNotConnected
 	}
@@ -37,17 +39,12 @@ func CheckUsername(username string) error {
 	return err
 }
 
-func Register(username, password string) (*User, error) {
+func AddUser(username string, passHash []byte) (*User, error) {
 	if db == nil {
 		return nil, ErrNotConnected
 	}
 
-	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.MinCost)
-	if err != nil {
-		return nil, fmt.Errorf("hash: %w", err)
-	}
-	hashString := base64.RawStdEncoding.EncodeToString(hash)
-
+	hashString := base64.RawStdEncoding.EncodeToString(passHash)
 	r, err := db.Exec(
 		`INSERT INTO Users (user_name, pwd_hash) VALUES ($1, $2)`,
 		username, hashString,
@@ -64,42 +61,37 @@ func Register(username, password string) (*User, error) {
 		return nil, fmt.Errorf("get id: %w", err)
 	}
 	return &User{
-		ID: int(id),
+		ID:   int(id),
 		Name: username,
 	}, nil
 }
 
-// Login checks user credentials. Non-nil error indicates internal error during check.
-// Credentials validity should be checked by user != nil.
-func Login(username, password string) (*User, error) {
+// GetFullUser retrieves user and their passHash from database.
+func GetFullUser(username string) (user *User, passHash []byte, err error) {
 	if db == nil {
-		return nil, ErrNotConnected
+		return nil, nil, ErrNotConnected
 	}
 
 	var (
-		id int64
+		id         int64
 		hashString string
 	)
 	row := db.QueryRow(`SELECT user_id, pwd_hash FROM Users WHERE user_name = $1`, username)
-	err := row.Scan(&id, &hashString)
+	err = row.Scan(&id, &hashString)
 	if errors.Is(err, sql.ErrNoRows) {
-		return nil, nil
+		return nil, nil, ErrNotFound
 	}
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	hash, err := base64.RawStdEncoding.DecodeString(hashString)
+	passHash, err = base64.RawStdEncoding.DecodeString(hashString)
 	if err != nil {
-		return nil, fmt.Errorf("invalid base64 in database: %w", err)
+		return nil, nil, fmt.Errorf("invalid base64 in database: %w", err)
 	}
 
-	err = bcrypt.CompareHashAndPassword(hash, []byte(password))
-	if err != nil {
-		return nil, nil
-	}
 	return &User{
 		ID: int(id),
 		Name: username,
-	}, nil
+	}, passHash, nil
 }

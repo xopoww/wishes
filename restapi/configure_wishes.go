@@ -11,7 +11,9 @@ import (
 	"github.com/go-openapi/runtime"
 	"github.com/go-openapi/runtime/middleware"
 
+	"github.com/xopoww/wishes/internal/auth"
 	"github.com/xopoww/wishes/internal/db"
+	"github.com/xopoww/wishes/internal/handlers"
 	"github.com/xopoww/wishes/models"
 	"github.com/xopoww/wishes/restapi/operations"
 )
@@ -27,13 +29,16 @@ func configureAPI(api *operations.WishesAPI) http.Handler {
 	if err := db.Connect("devdata/db.sqlite3"); err != nil {
 		log.Fatalf("connect: %s", err)
 	}
-	if db.CheckUsername("test") != db.ErrNameTaken {
-		_, err := db.Register("test", "test")
+	if db.CheckUser("test") != db.ErrNameTaken {
+		hash, err := auth.HashPassword("test")
 		if err != nil {
-			log.Fatalf("register test: %s", err)
+			log.Fatalf("hash test pwd: %s", err)
+		}
+		_, err = db.AddUser("test", hash)
+		if err != nil {
+			log.Fatalf("add test user: %s", err)
 		}
 	}
-
 
 	// configure the api here
 	api.ServeError = errors.ServeError
@@ -54,7 +59,7 @@ func configureAPI(api *operations.WishesAPI) http.Handler {
 
 	// Applies when the "x-token" header is set
 	api.KeySecurityAuth = func(token string) (*models.Principal, error) {
-		if token == "foobarbazquux" {
+		if auth.ValidateToken(token) {
 			prin := models.Principal(token)
 			return &prin, nil
 		}
@@ -73,22 +78,7 @@ func configureAPI(api *operations.WishesAPI) http.Handler {
 			return middleware.NotImplemented("operation operations.GetFoo has not yet been implemented")
 		})
 	}
-	api.LoginHandler = operations.LoginHandlerFunc(func(params operations.LoginParams) middleware.Responder {
-		username := string(*params.Login.Username)
-		password := string(*params.Login.Password)
-		user, err := db.Login(username, password)
-		if err != nil {
-			return operations.NewLoginInternalServerError().WithPayload(err.Error())
-		}
-		
-		payload := &operations.LoginOKBody{}
-		ok := user != nil
-		payload.Ok = &ok
-		if ok {
-			payload.Token = "foobarbazquux"
-		}
-		return operations.NewLoginOK().WithPayload(payload)
-	})
+	api.LoginHandler = handlers.Login()
 
 	api.PreServerShutdown = func() {}
 

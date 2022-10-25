@@ -2,13 +2,12 @@ package db_test
 
 import (
 	"errors"
-	"fmt"
 	"testing"
 
 	"github.com/xopoww/wishes/internal/db"
 )
 
-func TestCheckUsername(t *testing.T) {
+func TestCheckUser(t *testing.T) {
 	dbs := newTestDatabase(t,
 		upMigrationFromString(t,
 			`INSERT INTO Users (user_name, pwd_hash) VALUES ("user", "cGFzc3dvcmQ=")`,
@@ -27,11 +26,11 @@ func TestCheckUsername(t *testing.T) {
 
 	for _, username := range usernames {
 		t.Run(username, func(t *testing.T) {
-			err := db.CheckUsername(username)
+			err := db.CheckUser(username)
 			if username == "user" {
 				if !errors.Is(err, db.ErrNameTaken) {
 					t.Fatalf("want %#v, got %#v", db.ErrNameTaken, err)
-				}	
+				}
 			} else {
 				if err != nil {
 					t.Fatalf("want nil, got %#v", err)
@@ -43,13 +42,13 @@ func TestCheckUsername(t *testing.T) {
 
 }
 
-func TestRegister(t *testing.T) {
+func TestAddUser(t *testing.T) {
 	dbs := newTestDatabase(t)
 	if err := db.Connect(dbs); err != nil {
 		t.Fatalf("connect: %s", err)
 	}
 
-	user, err := db.Register("user", "password")
+	user, err := db.AddUser("user", []byte("password"))
 	if err != nil {
 		t.Fatalf("register: got %s", err)
 	}
@@ -57,51 +56,43 @@ func TestRegister(t *testing.T) {
 		t.Fatalf("register user: got %+v", user)
 	}
 
-	if err := db.CheckUsername("user"); !errors.Is(err, db.ErrNameTaken) {
+	if err := db.CheckUser("user"); !errors.Is(err, db.ErrNameTaken) {
 		t.Fatalf("check username: want %#v, got %#v", db.ErrNameTaken, err)
 	}
 
-	_, err = db.Register("user", "password")
+	_, err = db.AddUser("user", []byte("password"))
 	if !errors.Is(err, db.ErrNameTaken) {
 		t.Fatalf("register dupe: want %#v, got %#v", db.ErrNameTaken, err)
 	}
 }
 
-func TestLogin(t *testing.T) {
+func TestGetFullUser(t *testing.T) {
 	dbs := newTestDatabase(t)
 	if err := db.Connect(dbs); err != nil {
 		t.Fatalf("connect: %s", err)
 	}
 
-	want, err := db.Register("user", "password")
+	want, err := db.AddUser("user", []byte("password"))
 	if err != nil {
 		t.Fatalf("register: %s", err)
 	}
-
-	tcs := []struct{
-		username string
-		password string
-	}{
-		{"user", "password"},
-		{"User", "password"},
-		{"user", "PASSWORD"},
-		{"user", "password123"},
+	if want == nil {
+		t.Fatalf("register: nil user")
 	}
-	for _, tc := range tcs {
-		t.Run(fmt.Sprintf("(%s:%s)", tc.username, tc.password), func(t *testing.T) {
-			got, err := db.Login(tc.username, tc.password)
-			if err != nil {
-				t.Fatalf("login: %s", err)
-			}
-			if tc.username == "user" && tc.password == "password" {
-				if got == nil || *got != *want {
-					t.Fatalf("user: want %+v, got %+v", want, got)
-				}
-			} else {
-				if got != nil {
-					t.Fatalf("user: want nil, got %+v", got)
-				}
-			}
-		})
+
+	got, pwd, err := db.GetFullUser("user")
+	if err != nil {
+		t.Errorf("get user: %s", err)
+	}
+	if got == nil || *want != *got {
+		t.Errorf("get user: want %+v, got %+v", want, got)
+	}
+	if ws, gs := "password", string(pwd); gs != ws {
+		t.Errorf("get user pwd: want %q, got %q", ws, gs)
+	}
+
+	_, _, err = db.GetFullUser("foo")
+	if !errors.Is(err, db.ErrNotFound) {
+		t.Errorf("get foo: want %#v, got %#v", db.ErrNotFound, err)
 	}
 }
