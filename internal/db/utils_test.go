@@ -11,7 +11,8 @@ import (
 
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/source/iofs"
-	"github.com/xopoww/wishes/internal/db"
+	"github.com/rs/zerolog"
+	"github.com/xopoww/wishes/internal/log"
 
 	_ "github.com/golang-migrate/migrate/v4/database/sqlite3"
 )
@@ -64,12 +65,7 @@ func upMigrationFromString(t *testing.T, body string, version int) *migrate.Migr
 }
 
 func withTrace(t *testing.T) {
-	db.WithTrace(db.Trace{
-		OnCheckUser: func(info db.OnCheckUserStartInfo) func(db.OnCheckUserDoneInfo) {
-			t.Logf("check user start, username=%s", info.Username)
-			return func(info db.OnCheckUserDoneInfo) {
-				t.Logf("check user done, error=%v", info.Error)
-			}
-		},
-	})
+	output := zerolog.NewConsoleWriter(zerolog.ConsoleTestWriter(t))
+	logger := zerolog.New(output)
+	log.WithTraces(logger)
 }

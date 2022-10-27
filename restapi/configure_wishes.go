@@ -4,7 +4,6 @@ package restapi
 
 import (
 	"crypto/tls"
-	"log"
 	"net/http"
 
 	"github.com/go-openapi/errors"
@@ -14,6 +13,7 @@ import (
 	"github.com/xopoww/wishes/internal/auth"
 	"github.com/xopoww/wishes/internal/db"
 	"github.com/xopoww/wishes/internal/handlers"
+	"github.com/xopoww/wishes/internal/log"
 	"github.com/xopoww/wishes/internal/meta"
 	"github.com/xopoww/wishes/models"
 	"github.com/xopoww/wishes/restapi/operations"
@@ -26,32 +26,28 @@ func configureFlags(api *operations.WishesAPI) {
 }
 
 func configureAPI(api *operations.WishesAPI) http.Handler {
-	db.WithTrace(db.Trace{
-		OnCheckUser: func(info db.OnCheckUserStartInfo) func(db.OnCheckUserDoneInfo) {
-			log.Printf("check user start, username=%s", info.Username)
-			return func(info db.OnCheckUserDoneInfo) {
-				log.Printf("check user done, error=%v", info.Error)
-			}
-		},
-	})
+	l := log.Logger()
+	log.WithTraces(l)
 	
 	//TODO: move somewhere else
 	if err := db.Connect("devdata/db.sqlite3"); err != nil {
-		log.Fatalf("connect: %s", err)
+		l.Fatal().Err(err).Msg("connect failed")
 	}
 	if db.CheckUser("test") != db.ErrNameTaken {
 		hash, err := auth.HashPassword("test")
 		if err != nil {
-			log.Fatalf("hash test pwd: %s", err)
+			l.Fatal().Err(err).Msg("hash test pwd failed")
 		}
 		_, err = db.AddUser("test", hash)
 		if err != nil {
-			log.Fatalf("add test user: %s", err)
+			l.Fatal().Err(err).Msg("add test user failed")
 		}
 	}
 
-	log.Printf("build version: %s", meta.BuildVersion)
-	log.Printf("build date: %s", meta.BuildDate)
+	l.Debug().
+		Str("build version", meta.BuildVersion).
+		Time("build date", meta.BuildDate).
+		Send()
 
 	// configure the api here
 	api.ServeError = errors.ServeError
