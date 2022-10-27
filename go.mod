@@ -22,6 +22,7 @@ require (
 require (
 	github.com/mattn/go-colorable v0.1.12 // indirect
 	github.com/mattn/go-isatty v0.0.14 // indirect
+	github.com/rs/xid v1.4.0 // indirect
 )
 
 require (

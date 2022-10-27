@@ -5,6 +5,7 @@ package restapi
 import (
 	"crypto/tls"
 	"net/http"
+	"time"
 
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
@@ -17,6 +18,8 @@ import (
 	"github.com/xopoww/wishes/internal/meta"
 	"github.com/xopoww/wishes/models"
 	"github.com/xopoww/wishes/restapi/operations"
+
+	"github.com/rs/zerolog/hlog"
 )
 
 //go:generate swagger generate server --target ../../wishes --name Wishes --spec ../api/wishes.yml --principal models.Principal
@@ -116,13 +119,28 @@ func setupMiddlewares(handler http.Handler) http.Handler {
 // The middleware configuration happens before anything, this middleware also applies to serving the swagger.json document.
 // So this is a good place to plug in a panic handling middleware, logging and metrics.
 func setupGlobalMiddleware(handler http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	l := log.Logger()
+
+	wrapped := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		defer func() {
 			if r := recover(); r != nil {
-				log.Printf("recovered: %v", r)
+				l.Error().
+					Interface("reason", r).
+					Msg("recovered in global middleware")
 			}
 		}()
 
 		handler.ServeHTTP(w, r)
 	})
+
+	return hlog.AccessHandler(func(r *http.Request, status, size int, duration time.Duration) {
+		l.Debug().
+			Str("method", r.Method).
+			Str("path", r.URL.Path).
+			Str("raddr", r.RemoteAddr).
+			Int("status", status).
+			Dur("latency", duration).
+			Msg("request processed")
+
+	})(wrapped)
 }
