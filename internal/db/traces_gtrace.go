@@ -46,13 +46,12 @@ func (t Trace) onCheckUser(o OnCheckUserStartInfo) func(OnCheckUserDoneInfo) {
 	}
 	return res
 }
-func traceOnCheckUser(t Trace, username string) func(error) {
+func traceOnCheckUser(t Trace, username string) func() {
 	var p OnCheckUserStartInfo
 	p.Username = username
 	res := t.onCheckUser(p)
-	return func(e error) {
+	return func() {
 		var p OnCheckUserDoneInfo
-		p.Error = e
 		res(p)
 	}
 }

@@ -22,23 +22,22 @@ var (
 // CheckUser returns nil if username is not found in the database.
 // It returns ErrNameTaken if username is found in the database. All other
 // return values indicate internal error during check.
-func CheckUser(username string) (err error) {
+func CheckUser(username string) error {
 	onDone := traceOnCheckUser(t, username)
-	defer func() { onDone(err) }()
+	defer func() { onDone() }()
 
 	if db == nil {
-		err = ErrNotConnected
-		return err
+		return ErrNotConnected
 	}
 
 	row := db.QueryRow(`SELECT 1 FROM Users WHERE user_name = $1`, username)
 	var unused int
-	err = row.Scan(&unused)
+	err := row.Scan(&unused)
 	if err == nil {
-		err = ErrNameTaken
+		return ErrNameTaken
 	}
 	if errors.Is(err, sql.ErrNoRows) {
-		err = nil
+		return nil
 	}
 	return err
 }

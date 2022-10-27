@@ -1,7 +1,6 @@
 package log
 
 import (
-	"errors"
 	"time"
 
 	"github.com/rs/zerolog"
@@ -15,16 +14,9 @@ func Database(l zerolog.Logger) (t db.Trace) {
 			Msg("check user start")
 		start := time.Now()
 		return func(di db.OnCheckUserDoneInfo) {
-			if errors.Is(di.Error, db.ErrNotConnected) {
-				l.Error().
-					Err(di.Error).
-					Msg("check user failed")
-			} else {
-				l.Debug().
-					Dur("latency", time.Since(start)).
-					Err(di.Error).
-					Msg("check user done")
-			}
+			l.Debug().
+				TimeDiff("latency", time.Now(), start).
+				Msg("check user done")
 		}
 	}
 	return t

@@ -12,7 +12,5 @@ type (
 	OnCheckUserStartInfo struct {
 		Username string
 	}
-	OnCheckUserDoneInfo  struct {
-		Error error
-	}
+	OnCheckUserDoneInfo  struct {}
 )
