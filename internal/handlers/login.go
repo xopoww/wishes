@@ -4,9 +4,9 @@ import (
 	"errors"
 
 	"github.com/go-openapi/runtime/middleware"
+	"github.com/xopoww/wishes/internal/auth"
 	"github.com/xopoww/wishes/internal/db"
 	"github.com/xopoww/wishes/restapi/operations"
-	"github.com/xopoww/wishes/internal/auth"
 )
 
 type (
@@ -14,7 +14,7 @@ type (
 		Username string
 	}
 	OnLoginDoneInfo struct {
-		Ok bool
+		Ok    bool
 		Error error
 	}
 )
@@ -26,10 +26,10 @@ func Login(t Trace) operations.LoginHandler {
 
 		onDone := traceOnLogin(t, username)
 		var (
-			ok bool
+			ok  bool
 			err error
 		)
-		defer func(){
+		defer func() {
 			onDone(ok, err)
 		}()
 

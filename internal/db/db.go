@@ -9,7 +9,7 @@ import (
 
 var (
 	db *sqlx.DB
-	t Trace
+	t  Trace
 )
 
 var ErrNotConnected = errors.New("database not connected")

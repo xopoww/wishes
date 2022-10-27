@@ -12,11 +12,11 @@ import (
 
 type (
 	OnGetUserStartInfo struct {
-		Username string
+		Username  string
 		Principal *models.Principal
 	}
 	OnGetUserDoneInfo struct {
-		Ui	  *models.UserInfo
+		Ui    *models.UserInfo
 		Error error
 	}
 )
@@ -28,7 +28,7 @@ func GetUser(t Trace) operations.GetUserHandler {
 		onDone := traceOnGetUser(t, username, p)
 		payload := &models.UserInfo{}
 		var err error
-		defer func () {
+		defer func() {
 			onDone(payload, err)
 		}()
 
@@ -48,8 +48,8 @@ func GetUser(t Trace) operations.GetUserHandler {
 
 type (
 	OnPatchUserStartInfo struct {
-		Username string
-		Ui *models.UserInfo
+		Username  string
+		Ui        *models.UserInfo
 		Principal *models.Principal
 	}
 
@@ -74,9 +74,9 @@ func PatchUser(t Trace) operations.PatchUserHandler {
 		}
 
 		user := &db.User{
-			Name: username,
+			Name:      username,
 			FirstName: pup.User.Info.Fname,
-			LastName: pup.User.Info.Lname,
+			LastName:  pup.User.Info.Lname,
 		}
 		err = db.EditUser(user)
 		if errors.Is(err, db.ErrNotFound) {
@@ -95,7 +95,7 @@ type (
 		Username string
 	}
 	OnPostUserDoneInfo struct {
-		Ok bool
+		Ok    bool
 		Error error
 	}
 )
@@ -107,7 +107,7 @@ func PostUser(t Trace) operations.PostUserHandler {
 
 		onDone := traceOnPostUser(t, username)
 		var (
-			ok bool
+			ok  bool
 			err error
 		)
 		defer func() {
@@ -118,7 +118,7 @@ func PostUser(t Trace) operations.PostUserHandler {
 		if err != nil {
 			return operations.NewPostUserInternalServerError()
 		}
-		
+
 		_, err = db.AddUser(username, hash)
 		if err != nil && !errors.Is(err, db.ErrNameTaken) {
 			return operations.NewPostUserInternalServerError()

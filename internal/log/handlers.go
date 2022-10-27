@@ -72,7 +72,7 @@ func Handlers(l zerolog.Logger) (t handlers.Trace) {
 		}
 	}
 
-	t.OnKeySecurityAuth = func(si handlers.OnKeySecurityAuthStartInfo) func(handlers.OnKeySecurityAuthDoneInfo,) {
+	t.OnKeySecurityAuth = func(si handlers.OnKeySecurityAuthStartInfo) func(handlers.OnKeySecurityAuthDoneInfo) {
 		return func(di handlers.OnKeySecurityAuthDoneInfo) {
 			if di.Err != nil {
 				l.Warn().AnErr("validate-error", di.Err).Msg("invalid key auth")

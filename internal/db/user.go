@@ -13,8 +13,8 @@ type User struct {
 	ID   int
 	Name string
 
-	FirstName	string
-	LastName	string
+	FirstName string
+	LastName  string
 }
 
 var (

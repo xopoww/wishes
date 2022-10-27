@@ -8,12 +8,12 @@ import (
 
 var (
 	buildVersion string
-	buildDate	 string
+	buildDate    string
 )
 
 var (
 	BuildVersion string
-	BuildDate	 time.Time
+	BuildDate    time.Time
 )
 
 func init() {

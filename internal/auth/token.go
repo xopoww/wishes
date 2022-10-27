@@ -12,8 +12,8 @@ import (
 	"github.com/xopoww/wishes/models"
 )
 
-
 const TokenSecretVariableName = "WISHES_JWT_SECRET"
+
 var secret []byte
 
 func getKey() []byte {

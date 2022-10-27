@@ -7,10 +7,10 @@ import (
 )
 
 type (
-	OnKeySecurityAuthStartInfo struct {}
-	OnKeySecurityAuthDoneInfo struct {
+	OnKeySecurityAuthStartInfo struct{}
+	OnKeySecurityAuthDoneInfo  struct {
 		Principal *models.Principal
-		Err error
+		Err       error
 	}
 )
 

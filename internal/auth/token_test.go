@@ -38,9 +38,9 @@ func TestValidateToken(t *testing.T) {
 	user := "user"
 	wantPrincipal := models.Principal(user)
 
-	tcs := []struct{
-		name  	string
-		token 	string
+	tcs := []struct {
+		name    string
+		token   string
 		wantErr error
 	}{
 		{
@@ -115,7 +115,7 @@ func TestValidateToken(t *testing.T) {
 	for _, tc := range tcs {
 		t.Run(tc.name, func(t *testing.T) {
 			principal, err := auth.ValidateToken(tc.token)
-			
+
 			if !errors.Is(tc.wantErr, err) {
 				t.Fatalf("error: want %#v, got %#v", tc.wantErr, err)
 			}
