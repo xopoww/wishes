@@ -59,12 +59,12 @@ func configureAPI(api *operations.WishesAPI) http.Handler {
 
 	// Applies when the "x-token" header is set
 	api.KeySecurityAuth = func(token string) (*models.Principal, error) {
-		if auth.ValidateToken(token) {
-			prin := models.Principal(token)
-			return &prin, nil
+		principal, err := auth.ValidateToken(token)
+		if err != nil {
+			api.Logger("incorrect api token: %s (token=%s)", err, token)
+			return nil, errors.New(401, "incorrect api key auth")
 		}
-		api.Logger("Access attempt with incorrect api key auth: %s", token)
-		return nil, errors.New(401, "incorrect api key auth")
+		return principal, nil
 	}
 
 	// Set your custom authorizer if needed. Default one is security.Authorized()
@@ -73,11 +73,10 @@ func configureAPI(api *operations.WishesAPI) http.Handler {
 	// Example:
 	// api.APIAuthorizer = security.Authorized()
 
-	if api.GetFooHandler == nil {
-		api.GetFooHandler = operations.GetFooHandlerFunc(func(params operations.GetFooParams, principal *models.Principal) middleware.Responder {
-			return middleware.NotImplemented("operation operations.GetFoo has not yet been implemented")
-		})
-	}
+	api.GetFooHandler = operations.GetFooHandlerFunc(func(params operations.GetFooParams, principal *models.Principal) middleware.Responder {
+		api.Logger("authenticated request from %q", *principal)
+		return middleware.NotImplemented("operation operations.GetFoo has not yet been implemented")
+	})
 	api.LoginHandler = handlers.Login()
 
 	api.PreServerShutdown = func() {}
