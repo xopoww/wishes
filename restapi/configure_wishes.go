@@ -14,6 +14,7 @@ import (
 	"github.com/xopoww/wishes/internal/auth"
 	"github.com/xopoww/wishes/internal/db"
 	"github.com/xopoww/wishes/internal/handlers"
+	"github.com/xopoww/wishes/internal/meta"
 	"github.com/xopoww/wishes/models"
 	"github.com/xopoww/wishes/restapi/operations"
 )
@@ -39,6 +40,9 @@ func configureAPI(api *operations.WishesAPI) http.Handler {
 			log.Fatalf("add test user: %s", err)
 		}
 	}
+
+	log.Printf("build version: %s", meta.BuildVersion)
+	log.Printf("build date: %s", meta.BuildDate)
 
 	// configure the api here
 	api.ServeError = errors.ServeError
