@@ -69,7 +69,7 @@ type LoginInternalServerError struct {
 	/*
 	  In: Body
 	*/
-	Payload string `json:"body,omitempty"`
+	Payload *LoginInternalServerErrorBody `json:"body,omitempty"`
 }
 
 // NewLoginInternalServerError creates LoginInternalServerError with default headers values
@@ -79,13 +79,13 @@ func NewLoginInternalServerError() *LoginInternalServerError {
 }
 
 // WithPayload adds the payload to the login internal server error response
-func (o *LoginInternalServerError) WithPayload(payload string) *LoginInternalServerError {
+func (o *LoginInternalServerError) WithPayload(payload *LoginInternalServerErrorBody) *LoginInternalServerError {
 	o.Payload = payload
 	return o
 }
 
 // SetPayload sets the payload to the login internal server error response
-func (o *LoginInternalServerError) SetPayload(payload string) {
+func (o *LoginInternalServerError) SetPayload(payload *LoginInternalServerErrorBody) {
 	o.Payload = payload
 }
 
@@ -93,8 +93,10 @@ func (o *LoginInternalServerError) SetPayload(payload string) {
 func (o *LoginInternalServerError) WriteResponse(rw http.ResponseWriter, producer runtime.Producer) {
 
 	rw.WriteHeader(500)
-	payload := o.Payload
-	if err := producer.Produce(rw, payload); err != nil {
-		panic(err) // let the recovery middleware deal with this
+	if o.Payload != nil {
+		payload := o.Payload
+		if err := producer.Produce(rw, payload); err != nil {
+			panic(err) // let the recovery middleware deal with this
+		}
 	}
 }

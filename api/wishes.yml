@@ -2,7 +2,7 @@ swagger: '2.0'
 
 info:
   title: Wishes API
-  version: 0.0.1
+  version: 0.0.2
 
 basePath: /api
 
@@ -11,6 +11,11 @@ securityDefinitions:
     type: apiKey
     in: header
     name: x-token
+
+consumes:
+  - "application/json"
+produces:
+  - "application/json"
 
 security:
   - KeySecurity: []
@@ -21,13 +26,10 @@ paths:
       description: Return api token for authorized User
       operationId: Login
       security: []
-      consumes:
-        - "application/json"
       parameters:
-        - name: 'login'
-          in: 'body'
+        - name: credentials
+          in: body
           required: true
-          description: 'Login Payload'
           schema:
             $ref: '#/definitions/UserCredentials'
       responses:
@@ -42,23 +44,93 @@ paths:
               token:
                 type: string
         500:
-          schema:
-            type: string
-          description: Server error
+          $ref: "#/responses/ServerError"
 
-  /foo:
+  /user:
     get:
-      summary: Response with schema
+      summary: Get user info
+      parameters:
+        - name: username
+          in: query
+          type: string
+          required: true
       responses:
-        '200':
-          description: Successful response
+        200:
+          description: Success
           schema:
-            type: string
+            $ref: "#/definitions/UserInfo"
+        404:
+          description: User not found
+        500:
+          $ref: "#/responses/ServerError"
+    patch:
+      summary: Edit user info
+      parameters:
+        - name: user
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              username:
+                $ref: "#/definitions/UserName"
+              info:
+                $ref: "#/definitions/UserInfo"
+            required: [username, info]
+      responses:
+        200:
+          description: Success
+        404:
+          description: User not found
+        403:
+          description: Access denied
+        500:
+          $ref: "#/responses/ServerError"
+    post:
+      summary: Register new user
+      security: []
+      parameters:
+        - name: credentials
+          in: body
+          required: true
+          schema:
+            $ref: "#/definitions/UserCredentials"
+      responses:
+        200:
+          description: Registration result
+          schema:
+            type: object
+            required: [ok]
+            properties:
+              ok:
+                type: boolean
+              error:
+                type: string
+        500:
+          $ref: "#/responses/ServerError"
+
+responses:
+  ServerError:
+    description: Server error
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+      required: [error]
 
 definitions:
 
   UserName:
     type: string
+
+  UserInfo:
+    type: object
+    properties:
+      fname:
+        type: string
+      lname:
+        type: string
 
   UserCredentials:
     type: object

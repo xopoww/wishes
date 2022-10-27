@@ -44,11 +44,17 @@ func NewWishesAPI(spec *loads.Document) *WishesAPI {
 
 		JSONProducer: runtime.JSONProducer(),
 
-		GetFooHandler: GetFooHandlerFunc(func(params GetFooParams, principal *models.Principal) middleware.Responder {
-			return middleware.NotImplemented("operation GetFoo has not yet been implemented")
+		GetUserHandler: GetUserHandlerFunc(func(params GetUserParams, principal *models.Principal) middleware.Responder {
+			return middleware.NotImplemented("operation GetUser has not yet been implemented")
 		}),
 		LoginHandler: LoginHandlerFunc(func(params LoginParams) middleware.Responder {
 			return middleware.NotImplemented("operation Login has not yet been implemented")
+		}),
+		PatchUserHandler: PatchUserHandlerFunc(func(params PatchUserParams, principal *models.Principal) middleware.Responder {
+			return middleware.NotImplemented("operation PatchUser has not yet been implemented")
+		}),
+		PostUserHandler: PostUserHandlerFunc(func(params PostUserParams) middleware.Responder {
+			return middleware.NotImplemented("operation PostUser has not yet been implemented")
 		}),
 
 		// Applies when the "x-token" header is set
@@ -100,10 +106,14 @@ type WishesAPI struct {
 	// APIAuthorizer provides access control (ACL/RBAC/ABAC) by providing access to the request and authenticated principal
 	APIAuthorizer runtime.Authorizer
 
-	// GetFooHandler sets the operation handler for the get foo operation
-	GetFooHandler GetFooHandler
+	// GetUserHandler sets the operation handler for the get user operation
+	GetUserHandler GetUserHandler
 	// LoginHandler sets the operation handler for the login operation
 	LoginHandler LoginHandler
+	// PatchUserHandler sets the operation handler for the patch user operation
+	PatchUserHandler PatchUserHandler
+	// PostUserHandler sets the operation handler for the post user operation
+	PostUserHandler PostUserHandler
 
 	// ServeError is called when an error is received, there is a default handler
 	// but you can set your own with this
@@ -185,11 +195,17 @@ func (o *WishesAPI) Validate() error {
 		unregistered = append(unregistered, "XTokenAuth")
 	}
 
-	if o.GetFooHandler == nil {
-		unregistered = append(unregistered, "GetFooHandler")
+	if o.GetUserHandler == nil {
+		unregistered = append(unregistered, "GetUserHandler")
 	}
 	if o.LoginHandler == nil {
 		unregistered = append(unregistered, "LoginHandler")
+	}
+	if o.PatchUserHandler == nil {
+		unregistered = append(unregistered, "PatchUserHandler")
+	}
+	if o.PostUserHandler == nil {
+		unregistered = append(unregistered, "PostUserHandler")
 	}
 
 	if len(unregistered) > 0 {
@@ -293,11 +309,19 @@ func (o *WishesAPI) initHandlerCache() {
 	if o.handlers["GET"] == nil {
 		o.handlers["GET"] = make(map[string]http.Handler)
 	}
-	o.handlers["GET"]["/foo"] = NewGetFoo(o.context, o.GetFooHandler)
+	o.handlers["GET"]["/user"] = NewGetUser(o.context, o.GetUserHandler)
 	if o.handlers["POST"] == nil {
 		o.handlers["POST"] = make(map[string]http.Handler)
 	}
 	o.handlers["POST"]["/login"] = NewLogin(o.context, o.LoginHandler)
+	if o.handlers["PATCH"] == nil {
+		o.handlers["PATCH"] = make(map[string]http.Handler)
+	}
+	o.handlers["PATCH"]["/user"] = NewPatchUser(o.context, o.PatchUserHandler)
+	if o.handlers["POST"] == nil {
+		o.handlers["POST"] = make(map[string]http.Handler)
+	}
+	o.handlers["POST"]["/user"] = NewPostUser(o.context, o.PostUserHandler)
 }
 
 // Serve creates a http handler to serve the API over HTTP

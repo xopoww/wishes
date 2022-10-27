@@ -12,6 +12,9 @@ import (
 type User struct {
 	ID   int
 	Name string
+
+	FirstName	string
+	LastName	string
 }
 
 var (
@@ -79,8 +82,9 @@ func GetFullUser(username string) (user *User, passHash []byte, err error) {
 		id         int64
 		hashString string
 	)
-	row := db.QueryRow(`SELECT user_id, pwd_hash FROM Users WHERE user_name = $1`, username)
-	err = row.Scan(&id, &hashString)
+	user = &User{Name: username}
+	row := db.QueryRow(`SELECT user_id, fname, lname, pwd_hash FROM Users WHERE user_name = $1`, username)
+	err = row.Scan(&id, &user.FirstName, &user.LastName, &hashString)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil, ErrNotFound
 	}
@@ -93,8 +97,28 @@ func GetFullUser(username string) (user *User, passHash []byte, err error) {
 		return nil, nil, fmt.Errorf("invalid base64 in database: %w", err)
 	}
 
-	return &User{
-		ID: int(id),
-		Name: username,
-	}, passHash, nil
+	user.ID = int(id)
+	return user, passHash, nil
+}
+
+func EditUser(user *User) error {
+	if db == nil {
+		return ErrNotConnected
+	}
+
+	r, err := db.Exec(
+		`UPDATE Users SET fname = $1, lname = $2 WHERE user_name = $3`,
+		user.FirstName, user.LastName, user.Name,
+	)
+	if err != nil {
+		return fmt.Errorf("update: %s", err)
+	}
+	ra, err := r.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("rows affected: %s", err)
+	}
+	if ra == 0 {
+		return ErrNotFound
+	}
+	return nil
 }

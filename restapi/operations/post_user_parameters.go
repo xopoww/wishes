@@ -17,19 +17,19 @@ import (
 	"github.com/xopoww/wishes/models"
 )
 
-// NewLoginParams creates a new LoginParams object
+// NewPostUserParams creates a new PostUserParams object
 //
 // There are no default values defined in the spec.
-func NewLoginParams() LoginParams {
+func NewPostUserParams() PostUserParams {
 
-	return LoginParams{}
+	return PostUserParams{}
 }
 
-// LoginParams contains all the bound params for the login operation
+// PostUserParams contains all the bound params for the post user operation
 // typically these are obtained from a http.Request
 //
-// swagger:parameters Login
-type LoginParams struct {
+// swagger:parameters PostUser
+type PostUserParams struct {
 
 	// HTTP Request Object
 	HTTPRequest *http.Request `json:"-"`
@@ -44,8 +44,8 @@ type LoginParams struct {
 // BindRequest both binds and validates a request, it assumes that complex things implement a Validatable(strfmt.Registry) error interface
 // for simple values it will use straight method calls.
 //
-// To ensure default values, the struct must have been initialized with NewLoginParams() beforehand.
-func (o *LoginParams) BindRequest(r *http.Request, route *middleware.MatchedRoute) error {
+// To ensure default values, the struct must have been initialized with NewPostUserParams() beforehand.
+func (o *PostUserParams) BindRequest(r *http.Request, route *middleware.MatchedRoute) error {
 	var res []error
 
 	o.HTTPRequest = r

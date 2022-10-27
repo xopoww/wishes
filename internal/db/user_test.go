@@ -102,3 +102,35 @@ func TestGetFullUser(t *testing.T) {
 		t.Errorf("get foo: want %#v, got %#v", db.ErrNotFound, err)
 	}
 }
+
+func TestEditUser(t *testing.T) {
+	withTrace(t)
+
+	dbs := newTestDatabase(t)
+	if err := db.Connect(dbs); err != nil {
+		t.Fatalf("connect: %s", err)
+	}
+
+	want, err := db.AddUser("user", []byte("password"))
+	if err != nil {
+		t.Fatalf("register: %s", err)
+	}
+	if want == nil {
+		t.Fatalf("register: nil user")
+	}
+
+	want.FirstName = "John"
+	want.LastName = "Doe"
+	err = db.EditUser(want)
+	if err != nil {
+		t.Fatalf("edit user: %s", err)
+	}
+
+	got, _, err := db.GetFullUser(want.Name)
+	if err != nil {
+		t.Fatalf("get user: %s", err)
+	}
+	if got == nil || *got != *want {
+		t.Fatalf("want %+v, got %+v", want, got)
+	}
+}

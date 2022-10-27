@@ -18,38 +18,27 @@ var (
 
 func init() {
 	SwaggerJSON = json.RawMessage([]byte(`{
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
   "swagger": "2.0",
   "info": {
     "title": "Wishes API",
-    "version": "0.0.1"
+    "version": "0.0.2"
   },
   "basePath": "/api",
   "paths": {
-    "/foo": {
-      "get": {
-        "summary": "Response with schema",
-        "responses": {
-          "200": {
-            "description": "Successful response",
-            "schema": {
-              "type": "string"
-            }
-          }
-        }
-      }
-    },
     "/login": {
       "post": {
         "security": [],
         "description": "Return api token for authorized User",
-        "consumes": [
-          "application/json"
-        ],
         "operationId": "Login",
         "parameters": [
           {
-            "description": "Login Payload",
-            "name": "login",
+            "name": "credentials",
             "in": "body",
             "required": true,
             "schema": {
@@ -76,10 +65,109 @@ func init() {
             }
           },
           "500": {
-            "description": "Server error",
+            "$ref": "#/responses/ServerError"
+          }
+        }
+      }
+    },
+    "/user": {
+      "get": {
+        "summary": "Get user info",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "username",
+            "in": "query",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
             "schema": {
-              "type": "string"
+              "$ref": "#/definitions/UserInfo"
             }
+          },
+          "404": {
+            "description": "User not found"
+          },
+          "500": {
+            "$ref": "#/responses/ServerError"
+          }
+        }
+      },
+      "post": {
+        "security": [],
+        "summary": "Register new user",
+        "parameters": [
+          {
+            "name": "credentials",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/UserCredentials"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Registration result",
+            "schema": {
+              "type": "object",
+              "required": [
+                "ok"
+              ],
+              "properties": {
+                "error": {
+                  "type": "string"
+                },
+                "ok": {
+                  "type": "boolean"
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/responses/ServerError"
+          }
+        }
+      },
+      "patch": {
+        "summary": "Edit user info",
+        "parameters": [
+          {
+            "name": "user",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "required": [
+                "username",
+                "info"
+              ],
+              "properties": {
+                "info": {
+                  "$ref": "#/definitions/UserInfo"
+                },
+                "username": {
+                  "$ref": "#/definitions/UserName"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "403": {
+            "description": "Access denied"
+          },
+          "404": {
+            "description": "User not found"
+          },
+          "500": {
+            "$ref": "#/responses/ServerError"
           }
         }
       }
@@ -102,11 +190,38 @@ func init() {
         }
       }
     },
+    "UserInfo": {
+      "type": "object",
+      "properties": {
+        "fname": {
+          "type": "string"
+        },
+        "lname": {
+          "type": "string"
+        }
+      }
+    },
     "UserName": {
       "type": "string"
     },
     "principal": {
       "type": "string"
+    }
+  },
+  "responses": {
+    "ServerError": {
+      "description": "Server error",
+      "schema": {
+        "type": "object",
+        "required": [
+          "error"
+        ],
+        "properties": {
+          "error": {
+            "type": "string"
+          }
+        }
+      }
     }
   },
   "securityDefinitions": {
@@ -123,38 +238,27 @@ func init() {
   ]
 }`))
 	FlatSwaggerJSON = json.RawMessage([]byte(`{
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
   "swagger": "2.0",
   "info": {
     "title": "Wishes API",
-    "version": "0.0.1"
+    "version": "0.0.2"
   },
   "basePath": "/api",
   "paths": {
-    "/foo": {
-      "get": {
-        "summary": "Response with schema",
-        "responses": {
-          "200": {
-            "description": "Successful response",
-            "schema": {
-              "type": "string"
-            }
-          }
-        }
-      }
-    },
     "/login": {
       "post": {
         "security": [],
         "description": "Return api token for authorized User",
-        "consumes": [
-          "application/json"
-        ],
         "operationId": "Login",
         "parameters": [
           {
-            "description": "Login Payload",
-            "name": "login",
+            "name": "credentials",
             "in": "body",
             "required": true,
             "schema": {
@@ -183,7 +287,150 @@ func init() {
           "500": {
             "description": "Server error",
             "schema": {
-              "type": "string"
+              "type": "object",
+              "required": [
+                "error"
+              ],
+              "properties": {
+                "error": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/user": {
+      "get": {
+        "summary": "Get user info",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "username",
+            "in": "query",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/UserInfo"
+            }
+          },
+          "404": {
+            "description": "User not found"
+          },
+          "500": {
+            "description": "Server error",
+            "schema": {
+              "type": "object",
+              "required": [
+                "error"
+              ],
+              "properties": {
+                "error": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "security": [],
+        "summary": "Register new user",
+        "parameters": [
+          {
+            "name": "credentials",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/UserCredentials"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Registration result",
+            "schema": {
+              "type": "object",
+              "required": [
+                "ok"
+              ],
+              "properties": {
+                "error": {
+                  "type": "string"
+                },
+                "ok": {
+                  "type": "boolean"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "schema": {
+              "type": "object",
+              "required": [
+                "error"
+              ],
+              "properties": {
+                "error": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "summary": "Edit user info",
+        "parameters": [
+          {
+            "name": "user",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "required": [
+                "username",
+                "info"
+              ],
+              "properties": {
+                "info": {
+                  "$ref": "#/definitions/UserInfo"
+                },
+                "username": {
+                  "$ref": "#/definitions/UserName"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "403": {
+            "description": "Access denied"
+          },
+          "404": {
+            "description": "User not found"
+          },
+          "500": {
+            "description": "Server error",
+            "schema": {
+              "type": "object",
+              "required": [
+                "error"
+              ],
+              "properties": {
+                "error": {
+                  "type": "string"
+                }
+              }
             }
           }
         }
@@ -207,11 +454,38 @@ func init() {
         }
       }
     },
+    "UserInfo": {
+      "type": "object",
+      "properties": {
+        "fname": {
+          "type": "string"
+        },
+        "lname": {
+          "type": "string"
+        }
+      }
+    },
     "UserName": {
       "type": "string"
     },
     "principal": {
       "type": "string"
+    }
+  },
+  "responses": {
+    "ServerError": {
+      "description": "Server error",
+      "schema": {
+        "type": "object",
+        "required": [
+          "error"
+        ],
+        "properties": {
+          "error": {
+            "type": "string"
+          }
+        }
+      }
     }
   },
   "securityDefinitions": {

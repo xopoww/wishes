@@ -9,14 +9,12 @@ import (
 
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
-	"github.com/go-openapi/runtime/middleware"
 
 	"github.com/xopoww/wishes/internal/auth"
 	"github.com/xopoww/wishes/internal/db"
 	"github.com/xopoww/wishes/internal/handlers"
 	"github.com/xopoww/wishes/internal/log"
 	"github.com/xopoww/wishes/internal/meta"
-	"github.com/xopoww/wishes/models"
 	"github.com/xopoww/wishes/restapi/operations"
 
 	"github.com/rs/zerolog/hlog"
@@ -31,7 +29,7 @@ func configureFlags(api *operations.WishesAPI) {
 func configureAPI(api *operations.WishesAPI) http.Handler {
 	l := log.Logger()
 	log.WithTraces(l)
-	
+
 	//TODO: move somewhere else
 	if err := db.Connect("devdata/db.sqlite3"); err != nil {
 		l.Fatal().Err(err).Msg("connect failed")
@@ -69,27 +67,22 @@ func configureAPI(api *operations.WishesAPI) http.Handler {
 
 	api.JSONProducer = runtime.JSONProducer()
 
-	// Applies when the "x-token" header is set
-	api.KeySecurityAuth = func(token string) (*models.Principal, error) {
-		principal, err := auth.ValidateToken(token)
-		if err != nil {
-			api.Logger("incorrect api token: %s (token=%s)", err, token)
-			return nil, errors.New(401, "incorrect api key auth")
-		}
-		return principal, nil
-	}
-
 	// Set your custom authorizer if needed. Default one is security.Authorized()
 	// Expected interface runtime.Authorizer
 	//
 	// Example:
 	// api.APIAuthorizer = security.Authorized()
 
-	api.GetFooHandler = operations.GetFooHandlerFunc(func(params operations.GetFooParams, principal *models.Principal) middleware.Responder {
-		api.Logger("authenticated request from %q", *principal)
-		return middleware.NotImplemented("operation operations.GetFoo has not yet been implemented")
-	})
-	api.LoginHandler = handlers.Login()
+	ht := log.Handlers(l)
+
+	// Applies when the "x-token" header is set
+	api.KeySecurityAuth = handlers.KeySecurityAuth(ht)
+
+	api.LoginHandler = handlers.Login(ht)
+
+	api.GetUserHandler = handlers.GetUser(ht)
+	api.PatchUserHandler = handlers.PatchUser(ht)
+	api.PostUserHandler = handlers.PostUser(ht)
 
 	api.PreServerShutdown = func() {}
 
