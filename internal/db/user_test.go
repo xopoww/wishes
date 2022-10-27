@@ -8,6 +8,8 @@ import (
 )
 
 func TestCheckUser(t *testing.T) {
+	withTrace(t)
+
 	dbs := newTestDatabase(t,
 		upMigrationFromString(t,
 			`INSERT INTO Users (user_name, pwd_hash) VALUES ("user", "cGFzc3dvcmQ=")`,
@@ -43,6 +45,8 @@ func TestCheckUser(t *testing.T) {
 }
 
 func TestAddUser(t *testing.T) {
+	withTrace(t)
+
 	dbs := newTestDatabase(t)
 	if err := db.Connect(dbs); err != nil {
 		t.Fatalf("connect: %s", err)
@@ -67,6 +71,8 @@ func TestAddUser(t *testing.T) {
 }
 
 func TestGetFullUser(t *testing.T) {
+	withTrace(t)
+
 	dbs := newTestDatabase(t)
 	if err := db.Connect(dbs); err != nil {
 		t.Fatalf("connect: %s", err)

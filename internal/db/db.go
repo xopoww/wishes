@@ -7,7 +7,10 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-var db *sqlx.DB
+var (
+	db *sqlx.DB
+	t Trace
+)
 
 var ErrNotConnected = errors.New("database not connected")
 
@@ -17,4 +20,8 @@ func Connect(dbs string) (err error) {
 		return err
 	}
 	return nil
+}
+
+func WithTrace(trace Trace) {
+	t = trace
 }

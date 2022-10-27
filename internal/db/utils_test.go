@@ -11,6 +11,7 @@ import (
 
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/source/iofs"
+	"github.com/xopoww/wishes/internal/db"
 
 	_ "github.com/golang-migrate/migrate/v4/database/sqlite3"
 )
@@ -60,4 +61,15 @@ func upMigrationFromString(t *testing.T, body string, version int) *migrate.Migr
 		t.Fatalf("new migration (v=%d): %s", version, err)
 	}
 	return migration
+}
+
+func withTrace(t *testing.T) {
+	db.WithTrace(db.Trace{
+		OnCheckUser: func(info db.OnCheckUserStartInfo) func(db.OnCheckUserDoneInfo) {
+			t.Logf("check user start, username=%s", info.Username)
+			return func(info db.OnCheckUserDoneInfo) {
+				t.Logf("check user done, error=%v", info.Error)
+			}
+		},
+	})
 }

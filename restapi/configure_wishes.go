@@ -26,6 +26,15 @@ func configureFlags(api *operations.WishesAPI) {
 }
 
 func configureAPI(api *operations.WishesAPI) http.Handler {
+	db.WithTrace(db.Trace{
+		OnCheckUser: func(info db.OnCheckUserStartInfo) func(db.OnCheckUserDoneInfo) {
+			log.Printf("check user start, username=%s", info.Username)
+			return func(info db.OnCheckUserDoneInfo) {
+				log.Printf("check user done, error=%v", info.Error)
+			}
+		},
+	})
+	
 	//TODO: move somewhere else
 	if err := db.Connect("devdata/db.sqlite3"); err != nil {
 		log.Fatalf("connect: %s", err)
