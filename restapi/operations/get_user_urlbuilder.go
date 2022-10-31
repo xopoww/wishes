@@ -9,11 +9,13 @@ import (
 	"errors"
 	"net/url"
 	golangswaggerpaths "path"
+
+	"github.com/go-openapi/swag"
 )
 
 // GetUserURL generates an URL for the get user operation
 type GetUserURL struct {
-	Username string
+	ID int64
 
 	_basePath string
 	// avoid unkeyed usage
@@ -49,9 +51,9 @@ func (o *GetUserURL) Build() (*url.URL, error) {
 
 	qs := make(url.Values)
 
-	usernameQ := o.Username
-	if usernameQ != "" {
-		qs.Set("username", usernameQ)
+	idQ := swag.FormatInt64(o.ID)
+	if idQ != "" {
+		qs.Set("id", idQ)
 	}
 
 	_result.RawQuery = qs.Encode()

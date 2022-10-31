@@ -79,12 +79,11 @@ func GetFullUser(username string) (user *User, passHash []byte, err error) {
 	}
 
 	var (
-		id         int64
 		hashString string
 	)
 	user = &User{Name: username}
 	row := db.QueryRow(`SELECT user_id, fname, lname, pwd_hash FROM Users WHERE user_name = $1`, username)
-	err = row.Scan(&id, &user.FirstName, &user.LastName, &hashString)
+	err = row.Scan(&user.ID, &user.FirstName, &user.LastName, &hashString)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil, ErrNotFound
 	}
@@ -97,18 +96,21 @@ func GetFullUser(username string) (user *User, passHash []byte, err error) {
 		return nil, nil, fmt.Errorf("invalid base64 in database: %w", err)
 	}
 
-	user.ID = int(id)
 	return user, passHash, nil
 }
 
-func EditUser(user *User) error {
+func GetUserById(id int) (*User, error) {
+	return nil, nil
+}
+
+func EditUserInfo(user *User) error {
 	if db == nil {
 		return ErrNotConnected
 	}
 
 	r, err := db.Exec(
-		`UPDATE Users SET fname = $1, lname = $2 WHERE user_name = $3`,
-		user.FirstName, user.LastName, user.Name,
+		`UPDATE Users SET fname = $1, lname = $2 WHERE user_id = $3`,
+		user.FirstName, user.LastName, user.ID,
 	)
 	if err != nil {
 		return fmt.Errorf("update: %s", err)

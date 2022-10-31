@@ -2,7 +2,7 @@ swagger: '2.0'
 
 info:
   title: Wishes API
-  version: 0.0.2
+  version: 0.0.3
 
 basePath: /api
 
@@ -50,15 +50,15 @@ paths:
     get:
       summary: Get user info
       parameters:
-        - name: username
+        - name: id
           in: query
-          type: string
+          type: integer
           required: true
       responses:
         200:
           description: Success
           schema:
-            $ref: "#/definitions/UserInfo"
+            $ref: "#/definitions/User"
         404:
           description: User not found
         500:
@@ -70,13 +70,7 @@ paths:
           in: body
           required: true
           schema:
-            type: object
-            properties:
-              username:
-                $ref: "#/definitions/UserName"
-              info:
-                $ref: "#/definitions/UserInfo"
-            required: [username, info]
+            $ref: "#/definitions/User"
       responses:
         200:
           description: Success
@@ -131,6 +125,17 @@ definitions:
         type: string
       lname:
         type: string
+
+  User:
+    allOf:
+      - type: object
+        properties:
+          id:
+            type: integer
+          username:
+            $ref: "#/definitions/UserName"
+        required: [id]
+      - $ref: "#/definitions/UserInfo"
 
   UserCredentials:
     type: object

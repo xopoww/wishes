@@ -75,8 +75,8 @@ func init() {
         "summary": "Get user info",
         "parameters": [
           {
-            "type": "string",
-            "name": "username",
+            "type": "integer",
+            "name": "id",
             "in": "query",
             "required": true
           }
@@ -85,7 +85,7 @@ func init() {
           "200": {
             "description": "Success",
             "schema": {
-              "$ref": "#/definitions/UserInfo"
+              "$ref": "#/definitions/User"
             }
           },
           "404": {
@@ -140,19 +140,7 @@ func init() {
             "in": "body",
             "required": true,
             "schema": {
-              "type": "object",
-              "required": [
-                "username",
-                "info"
-              ],
-              "properties": {
-                "info": {
-                  "$ref": "#/definitions/UserInfo"
-                },
-                "username": {
-                  "$ref": "#/definitions/UserName"
-                }
-              }
+              "$ref": "#/definitions/User"
             }
           }
         ],
@@ -174,6 +162,27 @@ func init() {
     }
   },
   "definitions": {
+    "User": {
+      "allOf": [
+        {
+          "type": "object",
+          "required": [
+            "id"
+          ],
+          "properties": {
+            "id": {
+              "type": "integer"
+            },
+            "username": {
+              "$ref": "#/definitions/UserName"
+            }
+          }
+        },
+        {
+          "$ref": "#/definitions/UserInfo"
+        }
+      ]
+    },
     "UserCredentials": {
       "type": "object",
       "required": [
@@ -306,8 +315,8 @@ func init() {
         "summary": "Get user info",
         "parameters": [
           {
-            "type": "string",
-            "name": "username",
+            "type": "integer",
+            "name": "id",
             "in": "query",
             "required": true
           }
@@ -316,7 +325,7 @@ func init() {
           "200": {
             "description": "Success",
             "schema": {
-              "$ref": "#/definitions/UserInfo"
+              "$ref": "#/definitions/User"
             }
           },
           "404": {
@@ -393,19 +402,7 @@ func init() {
             "in": "body",
             "required": true,
             "schema": {
-              "type": "object",
-              "required": [
-                "username",
-                "info"
-              ],
-              "properties": {
-                "info": {
-                  "$ref": "#/definitions/UserInfo"
-                },
-                "username": {
-                  "$ref": "#/definitions/UserName"
-                }
-              }
+              "$ref": "#/definitions/User"
             }
           }
         ],
@@ -438,6 +435,27 @@ func init() {
     }
   },
   "definitions": {
+    "User": {
+      "allOf": [
+        {
+          "type": "object",
+          "required": [
+            "id"
+          ],
+          "properties": {
+            "id": {
+              "type": "integer"
+            },
+            "username": {
+              "$ref": "#/definitions/UserName"
+            }
+          }
+        },
+        {
+          "$ref": "#/definitions/UserInfo"
+        }
+      ]
+    },
     "UserCredentials": {
       "type": "object",
       "required": [

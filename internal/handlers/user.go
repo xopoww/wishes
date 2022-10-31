@@ -12,27 +12,27 @@ import (
 
 type (
 	OnGetUserStartInfo struct {
-		Username  string
+		UserID	  int
 		Principal *models.Principal
 	}
 	OnGetUserDoneInfo struct {
-		Ui    *models.UserInfo
-		Error error
+		User	*models.User
+		Error 	error
 	}
 )
 
 func GetUser(t Trace) operations.GetUserHandler {
 	return operations.GetUserHandlerFunc(func(gup operations.GetUserParams, p *models.Principal) middleware.Responder {
-		username := gup.Username
+		id := int(gup.ID)
 
-		onDone := traceOnGetUser(t, username, p)
-		payload := &models.UserInfo{}
+		onDone := traceOnGetUser(t, id, p)
+		payload := &models.User{}
 		var err error
 		defer func() {
 			onDone(payload, err)
 		}()
 
-		user, _, err := db.GetFullUser(username)
+		user, err := db.GetUserById(id)
 		if errors.Is(err, db.ErrNotFound) {
 			return operations.NewGetUserNotFound()
 		}
@@ -40,6 +40,8 @@ func GetUser(t Trace) operations.GetUserHandler {
 			return operations.NewGetUserInternalServerError()
 		}
 
+		payload.ID = &gup.ID
+		payload.Username = models.UserName(user.Name)
 		payload.Fname = user.FirstName
 		payload.Lname = user.LastName
 		return operations.NewGetUserOK().WithPayload(payload)
@@ -48,8 +50,7 @@ func GetUser(t Trace) operations.GetUserHandler {
 
 type (
 	OnPatchUserStartInfo struct {
-		Username  string
-		Ui        *models.UserInfo
+		User	  *models.User
 		Principal *models.Principal
 	}
 
@@ -60,25 +61,26 @@ type (
 
 func PatchUser(t Trace) operations.PatchUserHandler {
 	return operations.PatchUserHandlerFunc(func(pup operations.PatchUserParams, p *models.Principal) middleware.Responder {
-		username := string(*pup.User.Username)
 
-		onDone := traceOnPatchUser(t, username, pup.User.Info, p)
+		onDone := traceOnPatchUser(t, pup.User, p)
 		var err error
 		defer func() {
 			onDone(err)
 		}()
 
-		if username != string(*p) {
+
+		if string(pup.User.Username) != string(*p) {
 			err = errors.New("forbidden")
 			return operations.NewPatchUserForbidden()
 		}
 
 		user := &db.User{
-			Name:      username,
-			FirstName: pup.User.Info.Fname,
-			LastName:  pup.User.Info.Lname,
+			ID:		   int(*pup.User.ID),
+			Name:      string(pup.User.Username),
+			FirstName: pup.User.Fname,
+			LastName:  pup.User.Lname,
 		}
-		err = db.EditUser(user)
+		err = db.EditUserInfo(user)
 		if errors.Is(err, db.ErrNotFound) {
 			return operations.NewPatchUserNotFound()
 		}

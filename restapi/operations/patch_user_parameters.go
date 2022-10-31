@@ -13,6 +13,8 @@ import (
 	"github.com/go-openapi/runtime"
 	"github.com/go-openapi/runtime/middleware"
 	"github.com/go-openapi/validate"
+
+	"github.com/xopoww/wishes/models"
 )
 
 // NewPatchUserParams creates a new PatchUserParams object
@@ -36,7 +38,7 @@ type PatchUserParams struct {
 	  Required: true
 	  In: body
 	*/
-	User PatchUserBody
+	User *models.User
 }
 
 // BindRequest both binds and validates a request, it assumes that complex things implement a Validatable(strfmt.Registry) error interface
@@ -50,7 +52,7 @@ func (o *PatchUserParams) BindRequest(r *http.Request, route *middleware.Matched
 
 	if runtime.HasBody(r) {
 		defer r.Body.Close()
-		var body PatchUserBody
+		var body models.User
 		if err := route.Consumer.Consume(r.Body, &body); err != nil {
 			if err == io.EOF {
 				res = append(res, errors.Required("user", "body", ""))
@@ -69,7 +71,7 @@ func (o *PatchUserParams) BindRequest(r *http.Request, route *middleware.Matched
 			}
 
 			if len(res) == 0 {
-				o.User = body
+				o.User = &body
 			}
 		}
 	} else {

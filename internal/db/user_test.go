@@ -121,7 +121,7 @@ func TestEditUser(t *testing.T) {
 
 	want.FirstName = "John"
 	want.LastName = "Doe"
-	err = db.EditUser(want)
+	err = db.EditUserInfo(want)
 	if err != nil {
 		t.Fatalf("edit user: %s", err)
 	}

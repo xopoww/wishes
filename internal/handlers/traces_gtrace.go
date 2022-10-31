@@ -217,22 +217,21 @@ func traceOnLogin(t Trace, username string) func(ok bool, _ error) {
 		res(p)
 	}
 }
-func traceOnGetUser(t Trace, username string, p *models.Principal) func(ui *models.UserInfo, _ error) {
+func traceOnGetUser(t Trace, userID int, p *models.Principal) func(*models.User, error) {
 	var p1 OnGetUserStartInfo
-	p1.Username = username
+	p1.UserID = userID
 	p1.Principal = p
 	res := t.onGetUser(p1)
-	return func(ui *models.UserInfo, e error) {
+	return func(u *models.User, e error) {
 		var p OnGetUserDoneInfo
-		p.Ui = ui
+		p.User = u
 		p.Error = e
 		res(p)
 	}
 }
-func traceOnPatchUser(t Trace, username string, ui *models.UserInfo, p *models.Principal) func(error) {
+func traceOnPatchUser(t Trace, u *models.User, p *models.Principal) func(error) {
 	var p1 OnPatchUserStartInfo
-	p1.Username = username
-	p1.Ui = ui
+	p1.User = u
 	p1.Principal = p
 	res := t.onPatchUser(p1)
 	return func(e error) {

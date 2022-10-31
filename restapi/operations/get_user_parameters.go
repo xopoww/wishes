@@ -12,6 +12,7 @@ import (
 	"github.com/go-openapi/runtime"
 	"github.com/go-openapi/runtime/middleware"
 	"github.com/go-openapi/strfmt"
+	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
@@ -36,7 +37,7 @@ type GetUserParams struct {
 	  Required: true
 	  In: query
 	*/
-	Username string
+	ID int64
 }
 
 // BindRequest both binds and validates a request, it assumes that complex things implement a Validatable(strfmt.Registry) error interface
@@ -50,8 +51,8 @@ func (o *GetUserParams) BindRequest(r *http.Request, route *middleware.MatchedRo
 
 	qs := runtime.Values(r.URL.Query())
 
-	qUsername, qhkUsername, _ := qs.GetOK("username")
-	if err := o.bindUsername(qUsername, qhkUsername, route.Formats); err != nil {
+	qID, qhkID, _ := qs.GetOK("id")
+	if err := o.bindID(qID, qhkID, route.Formats); err != nil {
 		res = append(res, err)
 	}
 	if len(res) > 0 {
@@ -60,10 +61,10 @@ func (o *GetUserParams) BindRequest(r *http.Request, route *middleware.MatchedRo
 	return nil
 }
 
-// bindUsername binds and validates parameter Username from query.
-func (o *GetUserParams) bindUsername(rawData []string, hasKey bool, formats strfmt.Registry) error {
+// bindID binds and validates parameter ID from query.
+func (o *GetUserParams) bindID(rawData []string, hasKey bool, formats strfmt.Registry) error {
 	if !hasKey {
-		return errors.Required("username", "query", rawData)
+		return errors.Required("id", "query", rawData)
 	}
 	var raw string
 	if len(rawData) > 0 {
@@ -73,10 +74,15 @@ func (o *GetUserParams) bindUsername(rawData []string, hasKey bool, formats strf
 	// Required: true
 	// AllowEmptyValue: false
 
-	if err := validate.RequiredString("username", "query", raw); err != nil {
+	if err := validate.RequiredString("id", "query", raw); err != nil {
 		return err
 	}
-	o.Username = raw
+
+	value, err := swag.ConvertInt64(raw)
+	if err != nil {
+		return errors.InvalidType("id", "query", "int64", raw)
+	}
+	o.ID = value
 
 	return nil
 }
