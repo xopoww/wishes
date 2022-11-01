@@ -19,7 +19,7 @@ import (
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 
-	"github.com/xopoww/wishes/models"
+	"github.com/xopoww/wishes/internal/models"
 )
 
 // NewWishesAPI creates a new Wishes instance

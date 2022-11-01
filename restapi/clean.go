@@ -8,6 +8,7 @@ package main
 import (
 	"bufio"
 	"errors"
+	"flag"
 	"io"
 	"os"
 	"path"
@@ -71,17 +72,32 @@ func handleDirectory(dir string) {
 	}
 }
 
+var (
+	args struct {
+		quiet bool
+	}
+)
+
 func main() {
+	flag.BoolVar(&args.quiet, "quiet", false, "reduce logs to error or higher")
+	flag.Parse()
+
+	var lvl zerolog.Level
+	if args.quiet {
+		lvl = zerolog.ErrorLevel
+	} else {
+		lvl = zerolog.DebugLevel
+	}
 	log.Logger = zerolog.New(zerolog.ConsoleWriter{
 		Out: os.Stderr,
-	}).Level(zerolog.DebugLevel)
+	}).Level(lvl)
 
 	root := path.Dir(os.Getenv("GOFILE"))
 
 	dirs := make([]string, 0)
 	dirs = append(dirs, ".")
 	dirs = append(dirs, path.Join(".", "operations"))
-	dirs = append(dirs, path.Join("..", "models"))
+	dirs = append(dirs, path.Join("..", "internal", "models"))
 
 	for _, dir := range dirs {
 		handleDirectory(path.Clean(path.Join(root, dir)))

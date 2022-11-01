@@ -22,8 +22,8 @@ import (
 	"github.com/rs/zerolog/hlog"
 )
 
-//go:generate go run ./clean.go
-//go:generate swagger generate server --target ../../wishes --name Wishes --spec ../api/wishes.yml --principal models.Principal
+//go:generate go run ./clean.go --quiet
+//go:generate swagger generate server --quiet --target ../../wishes --name Wishes --spec ../api/wishes.yml --principal models.Principal -m internal/models
 
 func configureFlags(api *operations.WishesAPI) {
 	// api.CommandLineOptionsGroups = []swag.CommandLineOptionsGroup{ ... }

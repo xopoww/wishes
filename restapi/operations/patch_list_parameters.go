@@ -16,7 +16,7 @@ import (
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 
-	"github.com/xopoww/wishes/models"
+	"github.com/xopoww/wishes/internal/models"
 )
 
 // NewPatchListParams creates a new PatchListParams object

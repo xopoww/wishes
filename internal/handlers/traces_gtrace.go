@@ -3,7 +3,7 @@
 package handlers
 
 import (
-	"github.com/xopoww/wishes/models"
+	"github.com/xopoww/wishes/internal/models"
 )
 
 // Compose returns a new Trace which has functional fields composed

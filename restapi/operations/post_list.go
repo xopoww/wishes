@@ -15,7 +15,7 @@ import (
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 
-	"github.com/xopoww/wishes/models"
+	"github.com/xopoww/wishes/internal/models"
 )
 
 // PostListHandlerFunc turns a function with the right signature into a post list handler

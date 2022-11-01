@@ -8,7 +8,7 @@ import (
 
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/xopoww/wishes/internal/auth"
-	"github.com/xopoww/wishes/models"
+	"github.com/xopoww/wishes/internal/models"
 )
 
 type anyError struct{}

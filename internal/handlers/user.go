@@ -6,7 +6,7 @@ import (
 	"github.com/go-openapi/runtime/middleware"
 	"github.com/xopoww/wishes/internal/auth"
 	"github.com/xopoww/wishes/internal/db"
-	"github.com/xopoww/wishes/models"
+	"github.com/xopoww/wishes/internal/models"
 	"github.com/xopoww/wishes/restapi/operations"
 )
 

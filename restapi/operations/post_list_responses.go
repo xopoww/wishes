@@ -10,7 +10,7 @@ import (
 
 	"github.com/go-openapi/runtime"
 
-	"github.com/xopoww/wishes/models"
+	"github.com/xopoww/wishes/internal/models"
 )
 
 // PostListCreatedCode is the HTTP code returned for type PostListCreated

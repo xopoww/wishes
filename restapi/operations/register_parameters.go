@@ -14,7 +14,7 @@ import (
 	"github.com/go-openapi/runtime/middleware"
 	"github.com/go-openapi/validate"
 
-	"github.com/xopoww/wishes/models"
+	"github.com/xopoww/wishes/internal/models"
 )
 
 // NewRegisterParams creates a new RegisterParams object

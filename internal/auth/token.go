@@ -9,7 +9,7 @@ import (
 
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/xopoww/wishes/internal/db"
-	"github.com/xopoww/wishes/models"
+	"github.com/xopoww/wishes/internal/models"
 )
 
 const TokenSecretVariableName = "WISHES_JWT_SECRET"
