@@ -37,7 +37,7 @@ func NewPostList(ctx *middleware.Context, handler PostListHandler) *PostList {
 }
 
 /*
-	PostList swagger:route POST /list postList
+	PostList swagger:route POST /lists postList
 
 Create new list
 */

@@ -9,6 +9,7 @@ import (
 	"errors"
 	"net/url"
 	golangswaggerpaths "path"
+	"strings"
 
 	"github.com/go-openapi/swag"
 )
@@ -41,22 +42,20 @@ func (o *GetUserURL) SetBasePath(bp string) {
 func (o *GetUserURL) Build() (*url.URL, error) {
 	var _result url.URL
 
-	var _path = "/user"
+	var _path = "/users/{id}"
+
+	id := swag.FormatInt64(o.ID)
+	if id != "" {
+		_path = strings.Replace(_path, "{id}", id, -1)
+	} else {
+		return nil, errors.New("id is required on GetUserURL")
+	}
 
 	_basePath := o._basePath
 	if _basePath == "" {
 		_basePath = "/api"
 	}
 	_result.Path = golangswaggerpaths.Join(_basePath, _path)
-
-	qs := make(url.Values)
-
-	idQ := swag.FormatInt64(o.ID)
-	if idQ != "" {
-		qs.Set("id", idQ)
-	}
-
-	_result.RawQuery = qs.Encode()
 
 	return &_result, nil
 }

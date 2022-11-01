@@ -37,7 +37,7 @@ func NewGetList(ctx *middleware.Context, handler GetListHandler) *GetList {
 }
 
 /*
-	GetList swagger:route GET /list getList
+	GetList swagger:route GET /lists/{id} getList
 
 Get list info
 */

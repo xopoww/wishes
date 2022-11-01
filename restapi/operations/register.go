@@ -18,40 +18,40 @@ import (
 	"github.com/xopoww/wishes/models"
 )
 
-// PostUserHandlerFunc turns a function with the right signature into a post user handler
-type PostUserHandlerFunc func(PostUserParams) middleware.Responder
+// RegisterHandlerFunc turns a function with the right signature into a register handler
+type RegisterHandlerFunc func(RegisterParams) middleware.Responder
 
 // Handle executing the request and returning a response
-func (fn PostUserHandlerFunc) Handle(params PostUserParams) middleware.Responder {
+func (fn RegisterHandlerFunc) Handle(params RegisterParams) middleware.Responder {
 	return fn(params)
 }
 
-// PostUserHandler interface for that can handle valid post user params
-type PostUserHandler interface {
-	Handle(PostUserParams) middleware.Responder
+// RegisterHandler interface for that can handle valid register params
+type RegisterHandler interface {
+	Handle(RegisterParams) middleware.Responder
 }
 
-// NewPostUser creates a new http.Handler for the post user operation
-func NewPostUser(ctx *middleware.Context, handler PostUserHandler) *PostUser {
-	return &PostUser{Context: ctx, Handler: handler}
+// NewRegister creates a new http.Handler for the register operation
+func NewRegister(ctx *middleware.Context, handler RegisterHandler) *Register {
+	return &Register{Context: ctx, Handler: handler}
 }
 
 /*
-	PostUser swagger:route POST /user postUser
+	Register swagger:route POST /users register
 
 Register new user
 */
-type PostUser struct {
+type Register struct {
 	Context *middleware.Context
-	Handler PostUserHandler
+	Handler RegisterHandler
 }
 
-func (o *PostUser) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
+func (o *Register) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	route, rCtx, _ := o.Context.RouteInfo(r)
 	if rCtx != nil {
 		*r = *rCtx
 	}
-	var Params = NewPostUserParams()
+	var Params = NewRegisterParams()
 	if err := o.Context.BindValidRequest(r, route, &Params); err != nil { // bind params
 		o.Context.Respond(rw, r, route.Produces, route, err)
 		return
@@ -62,18 +62,18 @@ func (o *PostUser) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 
 }
 
-// PostUserInternalServerErrorBody post user internal server error body
+// RegisterInternalServerErrorBody register internal server error body
 //
-// swagger:model PostUserInternalServerErrorBody
-type PostUserInternalServerErrorBody struct {
+// swagger:model RegisterInternalServerErrorBody
+type RegisterInternalServerErrorBody struct {
 
 	// error
 	// Required: true
 	Error *string `json:"error"`
 }
 
-// Validate validates this post user internal server error body
-func (o *PostUserInternalServerErrorBody) Validate(formats strfmt.Registry) error {
+// Validate validates this register internal server error body
+func (o *RegisterInternalServerErrorBody) Validate(formats strfmt.Registry) error {
 	var res []error
 
 	if err := o.validateError(formats); err != nil {
@@ -86,22 +86,22 @@ func (o *PostUserInternalServerErrorBody) Validate(formats strfmt.Registry) erro
 	return nil
 }
 
-func (o *PostUserInternalServerErrorBody) validateError(formats strfmt.Registry) error {
+func (o *RegisterInternalServerErrorBody) validateError(formats strfmt.Registry) error {
 
-	if err := validate.Required("postUserInternalServerError"+"."+"error", "body", o.Error); err != nil {
+	if err := validate.Required("registerInternalServerError"+"."+"error", "body", o.Error); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-// ContextValidate validates this post user internal server error body based on context it is used
-func (o *PostUserInternalServerErrorBody) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+// ContextValidate validates this register internal server error body based on context it is used
+func (o *RegisterInternalServerErrorBody) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }
 
 // MarshalBinary interface implementation
-func (o *PostUserInternalServerErrorBody) MarshalBinary() ([]byte, error) {
+func (o *RegisterInternalServerErrorBody) MarshalBinary() ([]byte, error) {
 	if o == nil {
 		return nil, nil
 	}
@@ -109,8 +109,8 @@ func (o *PostUserInternalServerErrorBody) MarshalBinary() ([]byte, error) {
 }
 
 // UnmarshalBinary interface implementation
-func (o *PostUserInternalServerErrorBody) UnmarshalBinary(b []byte) error {
-	var res PostUserInternalServerErrorBody
+func (o *RegisterInternalServerErrorBody) UnmarshalBinary(b []byte) error {
+	var res RegisterInternalServerErrorBody
 	if err := swag.ReadJSON(b, &res); err != nil {
 		return err
 	}
@@ -118,10 +118,10 @@ func (o *PostUserInternalServerErrorBody) UnmarshalBinary(b []byte) error {
 	return nil
 }
 
-// PostUserOKBody post user o k body
+// RegisterOKBody register o k body
 //
-// swagger:model PostUserOKBody
-type PostUserOKBody struct {
+// swagger:model RegisterOKBody
+type RegisterOKBody struct {
 
 	// error
 	Error string `json:"error,omitempty"`
@@ -134,8 +134,8 @@ type PostUserOKBody struct {
 	User *models.ID `json:"user,omitempty"`
 }
 
-// Validate validates this post user o k body
-func (o *PostUserOKBody) Validate(formats strfmt.Registry) error {
+// Validate validates this register o k body
+func (o *RegisterOKBody) Validate(formats strfmt.Registry) error {
 	var res []error
 
 	if err := o.validateOk(formats); err != nil {
@@ -152,16 +152,16 @@ func (o *PostUserOKBody) Validate(formats strfmt.Registry) error {
 	return nil
 }
 
-func (o *PostUserOKBody) validateOk(formats strfmt.Registry) error {
+func (o *RegisterOKBody) validateOk(formats strfmt.Registry) error {
 
-	if err := validate.Required("postUserOK"+"."+"ok", "body", o.Ok); err != nil {
+	if err := validate.Required("registerOK"+"."+"ok", "body", o.Ok); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (o *PostUserOKBody) validateUser(formats strfmt.Registry) error {
+func (o *RegisterOKBody) validateUser(formats strfmt.Registry) error {
 	if swag.IsZero(o.User) { // not required
 		return nil
 	}
@@ -169,9 +169,9 @@ func (o *PostUserOKBody) validateUser(formats strfmt.Registry) error {
 	if o.User != nil {
 		if err := o.User.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
-				return ve.ValidateName("postUserOK" + "." + "user")
+				return ve.ValidateName("registerOK" + "." + "user")
 			} else if ce, ok := err.(*errors.CompositeError); ok {
-				return ce.ValidateName("postUserOK" + "." + "user")
+				return ce.ValidateName("registerOK" + "." + "user")
 			}
 			return err
 		}
@@ -180,8 +180,8 @@ func (o *PostUserOKBody) validateUser(formats strfmt.Registry) error {
 	return nil
 }
 
-// ContextValidate validate this post user o k body based on the context it is used
-func (o *PostUserOKBody) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+// ContextValidate validate this register o k body based on the context it is used
+func (o *RegisterOKBody) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	var res []error
 
 	if err := o.contextValidateUser(ctx, formats); err != nil {
@@ -194,14 +194,14 @@ func (o *PostUserOKBody) ContextValidate(ctx context.Context, formats strfmt.Reg
 	return nil
 }
 
-func (o *PostUserOKBody) contextValidateUser(ctx context.Context, formats strfmt.Registry) error {
+func (o *RegisterOKBody) contextValidateUser(ctx context.Context, formats strfmt.Registry) error {
 
 	if o.User != nil {
 		if err := o.User.ContextValidate(ctx, formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
-				return ve.ValidateName("postUserOK" + "." + "user")
+				return ve.ValidateName("registerOK" + "." + "user")
 			} else if ce, ok := err.(*errors.CompositeError); ok {
-				return ce.ValidateName("postUserOK" + "." + "user")
+				return ce.ValidateName("registerOK" + "." + "user")
 			}
 			return err
 		}
@@ -211,7 +211,7 @@ func (o *PostUserOKBody) contextValidateUser(ctx context.Context, formats strfmt
 }
 
 // MarshalBinary interface implementation
-func (o *PostUserOKBody) MarshalBinary() ([]byte, error) {
+func (o *RegisterOKBody) MarshalBinary() ([]byte, error) {
 	if o == nil {
 		return nil, nil
 	}
@@ -219,8 +219,8 @@ func (o *PostUserOKBody) MarshalBinary() ([]byte, error) {
 }
 
 // UnmarshalBinary interface implementation
-func (o *PostUserOKBody) UnmarshalBinary(b []byte) error {
-	var res PostUserOKBody
+func (o *RegisterOKBody) UnmarshalBinary(b []byte) error {
+	var res RegisterOKBody
 	if err := swag.ReadJSON(b, &res); err != nil {
 		return err
 	}

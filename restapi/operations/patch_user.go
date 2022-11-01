@@ -37,7 +37,7 @@ func NewPatchUser(ctx *middleware.Context, handler PatchUserHandler) *PatchUser 
 }
 
 /*
-	PatchUser swagger:route PATCH /user patchUser
+	PatchUser swagger:route PATCH /users/{id} patchUser
 
 Edit user info
 */
@@ -73,108 +73,6 @@ func (o *PatchUser) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	res := o.Handler.Handle(Params, principal) // actually handle the request
 	o.Context.Respond(rw, r, route.Produces, route, res)
 
-}
-
-// PatchUserBody patch user body
-//
-// swagger:model PatchUserBody
-type PatchUserBody struct {
-	models.ID
-
-	models.UserInfo
-}
-
-// UnmarshalJSON unmarshals this object from a JSON structure
-func (o *PatchUserBody) UnmarshalJSON(raw []byte) error {
-	// PatchUserParamsBodyAO0
-	var patchUserParamsBodyAO0 models.ID
-	if err := swag.ReadJSON(raw, &patchUserParamsBodyAO0); err != nil {
-		return err
-	}
-	o.ID = patchUserParamsBodyAO0
-
-	// PatchUserParamsBodyAO1
-	var patchUserParamsBodyAO1 models.UserInfo
-	if err := swag.ReadJSON(raw, &patchUserParamsBodyAO1); err != nil {
-		return err
-	}
-	o.UserInfo = patchUserParamsBodyAO1
-
-	return nil
-}
-
-// MarshalJSON marshals this object to a JSON structure
-func (o PatchUserBody) MarshalJSON() ([]byte, error) {
-	_parts := make([][]byte, 0, 2)
-
-	patchUserParamsBodyAO0, err := swag.WriteJSON(o.ID)
-	if err != nil {
-		return nil, err
-	}
-	_parts = append(_parts, patchUserParamsBodyAO0)
-
-	patchUserParamsBodyAO1, err := swag.WriteJSON(o.UserInfo)
-	if err != nil {
-		return nil, err
-	}
-	_parts = append(_parts, patchUserParamsBodyAO1)
-	return swag.ConcatJSON(_parts...), nil
-}
-
-// Validate validates this patch user body
-func (o *PatchUserBody) Validate(formats strfmt.Registry) error {
-	var res []error
-
-	// validation for a type composition with models.ID
-	if err := o.ID.Validate(formats); err != nil {
-		res = append(res, err)
-	}
-	// validation for a type composition with models.UserInfo
-	if err := o.UserInfo.Validate(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if len(res) > 0 {
-		return errors.CompositeValidationError(res...)
-	}
-	return nil
-}
-
-// ContextValidate validate this patch user body based on the context it is used
-func (o *PatchUserBody) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
-	var res []error
-
-	// validation for a type composition with models.ID
-	if err := o.ID.ContextValidate(ctx, formats); err != nil {
-		res = append(res, err)
-	}
-	// validation for a type composition with models.UserInfo
-	if err := o.UserInfo.ContextValidate(ctx, formats); err != nil {
-		res = append(res, err)
-	}
-
-	if len(res) > 0 {
-		return errors.CompositeValidationError(res...)
-	}
-	return nil
-}
-
-// MarshalBinary interface implementation
-func (o *PatchUserBody) MarshalBinary() ([]byte, error) {
-	if o == nil {
-		return nil, nil
-	}
-	return swag.WriteJSON(o)
-}
-
-// UnmarshalBinary interface implementation
-func (o *PatchUserBody) UnmarshalBinary(b []byte) error {
-	var res PatchUserBody
-	if err := swag.ReadJSON(b, &res); err != nil {
-		return err
-	}
-	*o = res
-	return nil
 }
 
 // PatchUserInternalServerErrorBody patch user internal server error body

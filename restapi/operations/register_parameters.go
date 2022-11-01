@@ -17,19 +17,19 @@ import (
 	"github.com/xopoww/wishes/models"
 )
 
-// NewPostUserParams creates a new PostUserParams object
+// NewRegisterParams creates a new RegisterParams object
 //
 // There are no default values defined in the spec.
-func NewPostUserParams() PostUserParams {
+func NewRegisterParams() RegisterParams {
 
-	return PostUserParams{}
+	return RegisterParams{}
 }
 
-// PostUserParams contains all the bound params for the post user operation
+// RegisterParams contains all the bound params for the register operation
 // typically these are obtained from a http.Request
 //
-// swagger:parameters PostUser
-type PostUserParams struct {
+// swagger:parameters Register
+type RegisterParams struct {
 
 	// HTTP Request Object
 	HTTPRequest *http.Request `json:"-"`
@@ -44,8 +44,8 @@ type PostUserParams struct {
 // BindRequest both binds and validates a request, it assumes that complex things implement a Validatable(strfmt.Registry) error interface
 // for simple values it will use straight method calls.
 //
-// To ensure default values, the struct must have been initialized with NewPostUserParams() beforehand.
-func (o *PostUserParams) BindRequest(r *http.Request, route *middleware.MatchedRoute) error {
+// To ensure default values, the struct must have been initialized with NewRegisterParams() beforehand.
+func (o *RegisterParams) BindRequest(r *http.Request, route *middleware.MatchedRoute) error {
 	var res []error
 
 	o.HTTPRequest = r

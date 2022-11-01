@@ -9,11 +9,18 @@ import (
 	"errors"
 	"net/url"
 	golangswaggerpaths "path"
+	"strings"
+
+	"github.com/go-openapi/swag"
 )
 
 // PatchUserURL generates an URL for the patch user operation
 type PatchUserURL struct {
+	ID int64
+
 	_basePath string
+	// avoid unkeyed usage
+	_ struct{}
 }
 
 // WithBasePath sets the base path for this url builder, only required when it's different from the
@@ -35,7 +42,14 @@ func (o *PatchUserURL) SetBasePath(bp string) {
 func (o *PatchUserURL) Build() (*url.URL, error) {
 	var _result url.URL
 
-	var _path = "/user"
+	var _path = "/users/{id}"
+
+	id := swag.FormatInt64(o.ID)
+	if id != "" {
+		_path = strings.Replace(_path, "{id}", id, -1)
+	} else {
+		return nil, errors.New("id is required on PatchUserURL")
+	}
 
 	_basePath := o._basePath
 	if _basePath == "" {

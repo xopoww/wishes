@@ -37,7 +37,7 @@ func NewPatchList(ctx *middleware.Context, handler PatchListHandler) *PatchList 
 }
 
 /*
-	PatchList swagger:route PATCH /list patchList
+	PatchList swagger:route PATCH /lists/{id} patchList
 
 Edit existing list
 */
@@ -73,108 +73,6 @@ func (o *PatchList) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	res := o.Handler.Handle(Params, principal) // actually handle the request
 	o.Context.Respond(rw, r, route.Produces, route, res)
 
-}
-
-// PatchListBody patch list body
-//
-// swagger:model PatchListBody
-type PatchListBody struct {
-	models.ID
-
-	models.List
-}
-
-// UnmarshalJSON unmarshals this object from a JSON structure
-func (o *PatchListBody) UnmarshalJSON(raw []byte) error {
-	// PatchListParamsBodyAO0
-	var patchListParamsBodyAO0 models.ID
-	if err := swag.ReadJSON(raw, &patchListParamsBodyAO0); err != nil {
-		return err
-	}
-	o.ID = patchListParamsBodyAO0
-
-	// PatchListParamsBodyAO1
-	var patchListParamsBodyAO1 models.List
-	if err := swag.ReadJSON(raw, &patchListParamsBodyAO1); err != nil {
-		return err
-	}
-	o.List = patchListParamsBodyAO1
-
-	return nil
-}
-
-// MarshalJSON marshals this object to a JSON structure
-func (o PatchListBody) MarshalJSON() ([]byte, error) {
-	_parts := make([][]byte, 0, 2)
-
-	patchListParamsBodyAO0, err := swag.WriteJSON(o.ID)
-	if err != nil {
-		return nil, err
-	}
-	_parts = append(_parts, patchListParamsBodyAO0)
-
-	patchListParamsBodyAO1, err := swag.WriteJSON(o.List)
-	if err != nil {
-		return nil, err
-	}
-	_parts = append(_parts, patchListParamsBodyAO1)
-	return swag.ConcatJSON(_parts...), nil
-}
-
-// Validate validates this patch list body
-func (o *PatchListBody) Validate(formats strfmt.Registry) error {
-	var res []error
-
-	// validation for a type composition with models.ID
-	if err := o.ID.Validate(formats); err != nil {
-		res = append(res, err)
-	}
-	// validation for a type composition with models.List
-	if err := o.List.Validate(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if len(res) > 0 {
-		return errors.CompositeValidationError(res...)
-	}
-	return nil
-}
-
-// ContextValidate validate this patch list body based on the context it is used
-func (o *PatchListBody) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
-	var res []error
-
-	// validation for a type composition with models.ID
-	if err := o.ID.ContextValidate(ctx, formats); err != nil {
-		res = append(res, err)
-	}
-	// validation for a type composition with models.List
-	if err := o.List.ContextValidate(ctx, formats); err != nil {
-		res = append(res, err)
-	}
-
-	if len(res) > 0 {
-		return errors.CompositeValidationError(res...)
-	}
-	return nil
-}
-
-// MarshalBinary interface implementation
-func (o *PatchListBody) MarshalBinary() ([]byte, error) {
-	if o == nil {
-		return nil, nil
-	}
-	return swag.WriteJSON(o)
-}
-
-// UnmarshalBinary interface implementation
-func (o *PatchListBody) UnmarshalBinary(b []byte) error {
-	var res PatchListBody
-	if err := swag.ReadJSON(b, &res); err != nil {
-		return err
-	}
-	*o = res
-	return nil
 }
 
 // PatchListInternalServerErrorBody patch list internal server error body

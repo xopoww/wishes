@@ -35,7 +35,7 @@ func (o *PostListURL) SetBasePath(bp string) {
 func (o *PostListURL) Build() (*url.URL, error) {
 	var _result url.URL
 
-	var _path = "/list"
+	var _path = "/lists"
 
 	_basePath := o._basePath
 	if _basePath == "" {

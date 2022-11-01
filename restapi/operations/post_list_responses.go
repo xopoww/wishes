@@ -13,15 +13,15 @@ import (
 	"github.com/xopoww/wishes/models"
 )
 
-// PostListOKCode is the HTTP code returned for type PostListOK
-const PostListOKCode int = 200
+// PostListCreatedCode is the HTTP code returned for type PostListCreated
+const PostListCreatedCode int = 201
 
 /*
-PostListOK Success
+PostListCreated Success
 
-swagger:response postListOK
+swagger:response postListCreated
 */
-type PostListOK struct {
+type PostListCreated struct {
 
 	/*
 	  In: Body
@@ -29,27 +29,27 @@ type PostListOK struct {
 	Payload *models.ID `json:"body,omitempty"`
 }
 
-// NewPostListOK creates PostListOK with default headers values
-func NewPostListOK() *PostListOK {
+// NewPostListCreated creates PostListCreated with default headers values
+func NewPostListCreated() *PostListCreated {
 
-	return &PostListOK{}
+	return &PostListCreated{}
 }
 
-// WithPayload adds the payload to the post list o k response
-func (o *PostListOK) WithPayload(payload *models.ID) *PostListOK {
+// WithPayload adds the payload to the post list created response
+func (o *PostListCreated) WithPayload(payload *models.ID) *PostListCreated {
 	o.Payload = payload
 	return o
 }
 
-// SetPayload sets the payload to the post list o k response
-func (o *PostListOK) SetPayload(payload *models.ID) {
+// SetPayload sets the payload to the post list created response
+func (o *PostListCreated) SetPayload(payload *models.ID) {
 	o.Payload = payload
 }
 
 // WriteResponse to the client
-func (o *PostListOK) WriteResponse(rw http.ResponseWriter, producer runtime.Producer) {
+func (o *PostListCreated) WriteResponse(rw http.ResponseWriter, producer runtime.Producer) {
 
-	rw.WriteHeader(200)
+	rw.WriteHeader(201)
 	if o.Payload != nil {
 		payload := o.Payload
 		if err := producer.Produce(rw, payload); err != nil {

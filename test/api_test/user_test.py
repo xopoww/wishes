@@ -44,12 +44,12 @@ class TestUser:
         u2.must_register(client)
         
         for id in [u1.id, u2.id]:
-            resp = client.get("/user", params={"id": id})
+            resp = client.get(f"/users/{id}")
             assert resp.status_code == 401
         
         u2.must_login(client)
         for u in [u1, u2]:
-            resp = client.get("/user", params={"id": u.id})
+            resp = client.get(f"/users/{u.id}")
             assert resp.status_code == 200
             body = resp.json()
             assert body["id"] == u.id
@@ -57,10 +57,13 @@ class TestUser:
             assert body.get("fname") is None
             assert body.get("lname") is None
         
-        resp = client.get("/user", params={"id": u2.id + 50})
+        resp = client.get(f"/users/{u2.id + 50}")
         assert resp.status_code == 404
 
-        resp = client.get("/user")
+        resp = client.get("/users")
+        assert resp.status_code == 405
+
+        resp = client.get("/users/john")
         assert resp.status_code == 422
     
     def test_patch(self, client: Client, make_user: ty.Callable[[],User]):
@@ -74,21 +77,24 @@ class TestUser:
             "lname": "Doe"
         }
         
-        resp = client.patch("/user", json={"id": u1.id}|info)
+        resp = client.patch(f"/users/{u1.id}", json=info)
         assert resp.status_code == 401
 
         u1.must_login(client)
         
-        resp = client.patch("/user", json={"id": u1.id}|info)
+        resp = client.patch(f"/users/{u1.id}", json=info)
         assert resp.status_code == 200
-        resp = client.get("/user", params={"id": u1.id})
+        resp = client.get(f"/users/{u1.id}")
         assert resp.status_code == 200
         body = resp.json()
         assert body["fname"] == info["fname"]
         assert body["lname"] == info["lname"]
 
-        resp = client.patch("/user", json={"id": u2.id}|info)
+        resp = client.patch(f"/users/{u2.id}", json=info)
         assert resp.status_code == 403
 
-        resp = client.patch("/user", json=info)
+        resp = client.patch("/users", json=info)
+        assert resp.status_code == 405
+
+        resp = client.patch("/users/john", json=info)
         assert resp.status_code == 422

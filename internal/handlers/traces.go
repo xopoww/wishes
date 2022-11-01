@@ -9,7 +9,7 @@ type Trace struct {
 
 	OnGetUser   func(OnGetUserStartInfo) func(OnGetUserDoneInfo)
 	OnPatchUser func(OnPatchUserStartInfo) func(OnPatchUserDoneInfo)
-	OnPostUser  func(OnPostUserStartInfo) func(OnPostUserDoneInfo)
+	OnRegister  func(OnRegisterStartInfo) func(OnRegisterDoneInfo)
 
 	OnKeySecurityAuth func(OnKeySecurityAuthStartInfo) func(OnKeySecurityAuthDoneInfo)
 }

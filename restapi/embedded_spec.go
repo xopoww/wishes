@@ -27,21 +27,41 @@ func init() {
   "swagger": "2.0",
   "info": {
     "title": "Wishes API",
-    "version": "0.0.3"
+    "version": "0.0.4"
   },
   "basePath": "/api",
   "paths": {
-    "/list": {
-      "get": {
-        "summary": "Get list info",
+    "/lists": {
+      "post": {
+        "summary": "Create new list",
+        "operationId": "PostList",
         "parameters": [
           {
-            "type": "integer",
-            "name": "id",
-            "in": "query",
-            "required": true
+            "name": "list",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/List"
+            }
           }
         ],
+        "responses": {
+          "201": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/ID"
+            }
+          },
+          "500": {
+            "$ref": "#/responses/ServerError"
+          }
+        }
+      }
+    },
+    "/lists/{id}": {
+      "get": {
+        "summary": "Get list info",
+        "operationId": "GetList",
         "responses": {
           "200": {
             "description": "Success",
@@ -60,41 +80,9 @@ func init() {
           }
         }
       },
-      "post": {
-        "summary": "Create new list",
-        "parameters": [
-          {
-            "name": "list",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/List"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/ID"
-            }
-          },
-          "500": {
-            "$ref": "#/responses/ServerError"
-          }
-        }
-      },
       "delete": {
         "summary": "Delete existing list",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "body",
-            "schema": {
-              "$ref": "#/definitions/ID"
-            }
-          }
-        ],
+        "operationId": "DeleteList",
         "responses": {
           "200": {
             "description": "Success"
@@ -112,20 +100,14 @@ func init() {
       },
       "patch": {
         "summary": "Edit existing list",
+        "operationId": "PatchList",
         "parameters": [
           {
             "name": "list",
             "in": "body",
             "required": true,
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/ID"
-                },
-                {
-                  "$ref": "#/definitions/List"
-                }
-              ]
+              "$ref": "#/definitions/List"
             }
           }
         ],
@@ -143,7 +125,12 @@ func init() {
             "$ref": "#/responses/ServerError"
           }
         }
-      }
+      },
+      "parameters": [
+        {
+          "$ref": "#/parameters/PathId"
+        }
+      ]
     },
     "/login": {
       "post": {
@@ -184,35 +171,11 @@ func init() {
         }
       }
     },
-    "/user": {
-      "get": {
-        "summary": "Get user info",
-        "parameters": [
-          {
-            "type": "integer",
-            "name": "id",
-            "in": "query",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/User"
-            }
-          },
-          "404": {
-            "description": "User not found"
-          },
-          "500": {
-            "$ref": "#/responses/ServerError"
-          }
-        }
-      },
+    "/users": {
       "post": {
         "security": [],
         "summary": "Register new user",
+        "operationId": "Register",
         "parameters": [
           {
             "name": "credentials",
@@ -248,23 +211,37 @@ func init() {
             "$ref": "#/responses/ServerError"
           }
         }
+      }
+    },
+    "/users/{id}": {
+      "get": {
+        "summary": "Get user info",
+        "operationId": "GetUser",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/User"
+            }
+          },
+          "404": {
+            "description": "User not found"
+          },
+          "500": {
+            "$ref": "#/responses/ServerError"
+          }
+        }
       },
       "patch": {
         "summary": "Edit user info",
+        "operationId": "PatchUser",
         "parameters": [
           {
             "name": "user",
             "in": "body",
             "required": true,
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/ID"
-                },
-                {
-                  "$ref": "#/definitions/UserInfo"
-                }
-              ]
+              "$ref": "#/definitions/UserInfo"
             }
           }
         ],
@@ -279,7 +256,41 @@ func init() {
             "$ref": "#/responses/ServerError"
           }
         }
-      }
+      },
+      "parameters": [
+        {
+          "$ref": "#/parameters/PathId"
+        }
+      ]
+    },
+    "/users/{id}/lists": {
+      "get": {
+        "summary": "Get user list ids (visible by client)",
+        "operationId": "GetUserLists",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "type": "array",
+              "uniqueItems": true,
+              "items": {
+                "type": "integer"
+              }
+            }
+          },
+          "404": {
+            "description": "User not found"
+          },
+          "500": {
+            "$ref": "#/responses/ServerError"
+          }
+        }
+      },
+      "parameters": [
+        {
+          "$ref": "#/parameters/PathId"
+        }
+      ]
     }
   },
   "definitions": {
@@ -372,6 +383,14 @@ func init() {
     },
     "principal": {
       "type": "string"
+    }
+  },
+  "parameters": {
+    "PathId": {
+      "type": "integer",
+      "name": "id",
+      "in": "path",
+      "required": true
     }
   },
   "responses": {
@@ -413,21 +432,52 @@ func init() {
   "swagger": "2.0",
   "info": {
     "title": "Wishes API",
-    "version": "0.0.3"
+    "version": "0.0.4"
   },
   "basePath": "/api",
   "paths": {
-    "/list": {
-      "get": {
-        "summary": "Get list info",
+    "/lists": {
+      "post": {
+        "summary": "Create new list",
+        "operationId": "PostList",
         "parameters": [
           {
-            "type": "integer",
-            "name": "id",
-            "in": "query",
-            "required": true
+            "name": "list",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/List"
+            }
           }
         ],
+        "responses": {
+          "201": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/ID"
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "schema": {
+              "type": "object",
+              "required": [
+                "error"
+              ],
+              "properties": {
+                "error": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/lists/{id}": {
+      "get": {
+        "summary": "Get list info",
+        "operationId": "GetList",
         "responses": {
           "200": {
             "description": "Success",
@@ -457,52 +507,9 @@ func init() {
           }
         }
       },
-      "post": {
-        "summary": "Create new list",
-        "parameters": [
-          {
-            "name": "list",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/List"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/ID"
-            }
-          },
-          "500": {
-            "description": "Server error",
-            "schema": {
-              "type": "object",
-              "required": [
-                "error"
-              ],
-              "properties": {
-                "error": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        }
-      },
       "delete": {
         "summary": "Delete existing list",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "body",
-            "schema": {
-              "$ref": "#/definitions/ID"
-            }
-          }
-        ],
+        "operationId": "DeleteList",
         "responses": {
           "200": {
             "description": "Success"
@@ -531,20 +538,14 @@ func init() {
       },
       "patch": {
         "summary": "Edit existing list",
+        "operationId": "PatchList",
         "parameters": [
           {
             "name": "list",
             "in": "body",
             "required": true,
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/ID"
-                },
-                {
-                  "$ref": "#/definitions/List"
-                }
-              ]
+              "$ref": "#/definitions/List"
             }
           }
         ],
@@ -573,7 +574,15 @@ func init() {
             }
           }
         }
-      }
+      },
+      "parameters": [
+        {
+          "type": "integer",
+          "name": "id",
+          "in": "path",
+          "required": true
+        }
+      ]
     },
     "/login": {
       "post": {
@@ -625,46 +634,11 @@ func init() {
         }
       }
     },
-    "/user": {
-      "get": {
-        "summary": "Get user info",
-        "parameters": [
-          {
-            "type": "integer",
-            "name": "id",
-            "in": "query",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/User"
-            }
-          },
-          "404": {
-            "description": "User not found"
-          },
-          "500": {
-            "description": "Server error",
-            "schema": {
-              "type": "object",
-              "required": [
-                "error"
-              ],
-              "properties": {
-                "error": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        }
-      },
+    "/users": {
       "post": {
         "security": [],
         "summary": "Register new user",
+        "operationId": "Register",
         "parameters": [
           {
             "name": "credentials",
@@ -711,23 +685,48 @@ func init() {
             }
           }
         }
+      }
+    },
+    "/users/{id}": {
+      "get": {
+        "summary": "Get user info",
+        "operationId": "GetUser",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/User"
+            }
+          },
+          "404": {
+            "description": "User not found"
+          },
+          "500": {
+            "description": "Server error",
+            "schema": {
+              "type": "object",
+              "required": [
+                "error"
+              ],
+              "properties": {
+                "error": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
       },
       "patch": {
         "summary": "Edit user info",
+        "operationId": "PatchUser",
         "parameters": [
           {
             "name": "user",
             "in": "body",
             "required": true,
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/ID"
-                },
-                {
-                  "$ref": "#/definitions/UserInfo"
-                }
-              ]
+              "$ref": "#/definitions/UserInfo"
             }
           }
         ],
@@ -753,7 +752,58 @@ func init() {
             }
           }
         }
-      }
+      },
+      "parameters": [
+        {
+          "type": "integer",
+          "name": "id",
+          "in": "path",
+          "required": true
+        }
+      ]
+    },
+    "/users/{id}/lists": {
+      "get": {
+        "summary": "Get user list ids (visible by client)",
+        "operationId": "GetUserLists",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "type": "array",
+              "uniqueItems": true,
+              "items": {
+                "type": "integer"
+              }
+            }
+          },
+          "404": {
+            "description": "User not found"
+          },
+          "500": {
+            "description": "Server error",
+            "schema": {
+              "type": "object",
+              "required": [
+                "error"
+              ],
+              "properties": {
+                "error": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "parameters": [
+        {
+          "type": "integer",
+          "name": "id",
+          "in": "path",
+          "required": true
+        }
+      ]
     }
   },
   "definitions": {
@@ -846,6 +896,14 @@ func init() {
     },
     "principal": {
       "type": "string"
+    }
+  },
+  "parameters": {
+    "PathId": {
+      "type": "integer",
+      "name": "id",
+      "in": "path",
+      "required": true
     }
   },
   "responses": {

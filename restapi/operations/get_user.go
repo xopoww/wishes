@@ -37,7 +37,7 @@ func NewGetUser(ctx *middleware.Context, handler GetUserHandler) *GetUser {
 }
 
 /*
-	GetUser swagger:route GET /user getUser
+	GetUser swagger:route GET /users/{id} getUser
 
 Get user info
 */

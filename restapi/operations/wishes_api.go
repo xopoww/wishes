@@ -53,6 +53,9 @@ func NewWishesAPI(spec *loads.Document) *WishesAPI {
 		GetUserHandler: GetUserHandlerFunc(func(params GetUserParams, principal *models.Principal) middleware.Responder {
 			return middleware.NotImplemented("operation GetUser has not yet been implemented")
 		}),
+		GetUserListsHandler: GetUserListsHandlerFunc(func(params GetUserListsParams, principal *models.Principal) middleware.Responder {
+			return middleware.NotImplemented("operation GetUserLists has not yet been implemented")
+		}),
 		LoginHandler: LoginHandlerFunc(func(params LoginParams) middleware.Responder {
 			return middleware.NotImplemented("operation Login has not yet been implemented")
 		}),
@@ -65,8 +68,8 @@ func NewWishesAPI(spec *loads.Document) *WishesAPI {
 		PostListHandler: PostListHandlerFunc(func(params PostListParams, principal *models.Principal) middleware.Responder {
 			return middleware.NotImplemented("operation PostList has not yet been implemented")
 		}),
-		PostUserHandler: PostUserHandlerFunc(func(params PostUserParams) middleware.Responder {
-			return middleware.NotImplemented("operation PostUser has not yet been implemented")
+		RegisterHandler: RegisterHandlerFunc(func(params RegisterParams) middleware.Responder {
+			return middleware.NotImplemented("operation Register has not yet been implemented")
 		}),
 
 		// Applies when the "x-token" header is set
@@ -124,6 +127,8 @@ type WishesAPI struct {
 	GetListHandler GetListHandler
 	// GetUserHandler sets the operation handler for the get user operation
 	GetUserHandler GetUserHandler
+	// GetUserListsHandler sets the operation handler for the get user lists operation
+	GetUserListsHandler GetUserListsHandler
 	// LoginHandler sets the operation handler for the login operation
 	LoginHandler LoginHandler
 	// PatchListHandler sets the operation handler for the patch list operation
@@ -132,8 +137,8 @@ type WishesAPI struct {
 	PatchUserHandler PatchUserHandler
 	// PostListHandler sets the operation handler for the post list operation
 	PostListHandler PostListHandler
-	// PostUserHandler sets the operation handler for the post user operation
-	PostUserHandler PostUserHandler
+	// RegisterHandler sets the operation handler for the register operation
+	RegisterHandler RegisterHandler
 
 	// ServeError is called when an error is received, there is a default handler
 	// but you can set your own with this
@@ -224,6 +229,9 @@ func (o *WishesAPI) Validate() error {
 	if o.GetUserHandler == nil {
 		unregistered = append(unregistered, "GetUserHandler")
 	}
+	if o.GetUserListsHandler == nil {
+		unregistered = append(unregistered, "GetUserListsHandler")
+	}
 	if o.LoginHandler == nil {
 		unregistered = append(unregistered, "LoginHandler")
 	}
@@ -236,8 +244,8 @@ func (o *WishesAPI) Validate() error {
 	if o.PostListHandler == nil {
 		unregistered = append(unregistered, "PostListHandler")
 	}
-	if o.PostUserHandler == nil {
-		unregistered = append(unregistered, "PostUserHandler")
+	if o.RegisterHandler == nil {
+		unregistered = append(unregistered, "RegisterHandler")
 	}
 
 	if len(unregistered) > 0 {
@@ -341,15 +349,19 @@ func (o *WishesAPI) initHandlerCache() {
 	if o.handlers["DELETE"] == nil {
 		o.handlers["DELETE"] = make(map[string]http.Handler)
 	}
-	o.handlers["DELETE"]["/list"] = NewDeleteList(o.context, o.DeleteListHandler)
+	o.handlers["DELETE"]["/lists/{id}"] = NewDeleteList(o.context, o.DeleteListHandler)
 	if o.handlers["GET"] == nil {
 		o.handlers["GET"] = make(map[string]http.Handler)
 	}
-	o.handlers["GET"]["/list"] = NewGetList(o.context, o.GetListHandler)
+	o.handlers["GET"]["/lists/{id}"] = NewGetList(o.context, o.GetListHandler)
 	if o.handlers["GET"] == nil {
 		o.handlers["GET"] = make(map[string]http.Handler)
 	}
-	o.handlers["GET"]["/user"] = NewGetUser(o.context, o.GetUserHandler)
+	o.handlers["GET"]["/users/{id}"] = NewGetUser(o.context, o.GetUserHandler)
+	if o.handlers["GET"] == nil {
+		o.handlers["GET"] = make(map[string]http.Handler)
+	}
+	o.handlers["GET"]["/users/{id}/lists"] = NewGetUserLists(o.context, o.GetUserListsHandler)
 	if o.handlers["POST"] == nil {
 		o.handlers["POST"] = make(map[string]http.Handler)
 	}
@@ -357,19 +369,19 @@ func (o *WishesAPI) initHandlerCache() {
 	if o.handlers["PATCH"] == nil {
 		o.handlers["PATCH"] = make(map[string]http.Handler)
 	}
-	o.handlers["PATCH"]["/list"] = NewPatchList(o.context, o.PatchListHandler)
+	o.handlers["PATCH"]["/lists/{id}"] = NewPatchList(o.context, o.PatchListHandler)
 	if o.handlers["PATCH"] == nil {
 		o.handlers["PATCH"] = make(map[string]http.Handler)
 	}
-	o.handlers["PATCH"]["/user"] = NewPatchUser(o.context, o.PatchUserHandler)
+	o.handlers["PATCH"]["/users/{id}"] = NewPatchUser(o.context, o.PatchUserHandler)
 	if o.handlers["POST"] == nil {
 		o.handlers["POST"] = make(map[string]http.Handler)
 	}
-	o.handlers["POST"]["/list"] = NewPostList(o.context, o.PostListHandler)
+	o.handlers["POST"]["/lists"] = NewPostList(o.context, o.PostListHandler)
 	if o.handlers["POST"] == nil {
 		o.handlers["POST"] = make(map[string]http.Handler)
 	}
-	o.handlers["POST"]["/user"] = NewPostUser(o.context, o.PostUserHandler)
+	o.handlers["POST"]["/users"] = NewRegister(o.context, o.RegisterHandler)
 }
 
 // Serve creates a http handler to serve the API over HTTP

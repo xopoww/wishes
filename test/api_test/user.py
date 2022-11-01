@@ -8,7 +8,7 @@ class User:
         self.id: int|None = None
     
     def register(self, c: Client) -> requests.Response:
-        return c.post("/user", json={"username": self.username, "password": self.password})
+        return c.post("/users", json={"username": self.username, "password": self.password})
     
     def must_register(self, c: Client):
         resp = self.register(c)

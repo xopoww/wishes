@@ -12,12 +12,12 @@ import (
 
 type (
 	OnGetUserStartInfo struct {
-		UserID	  int
+		UserID    int
 		Principal *models.Principal
 	}
 	OnGetUserDoneInfo struct {
-		User	*models.User
-		Error 	error
+		User  *models.User
+		Error error
 	}
 )
 
@@ -50,8 +50,8 @@ func GetUser(t Trace) operations.GetUserHandler {
 
 type (
 	OnPatchUserStartInfo struct {
-		ID		  models.ID
-		Info	  models.UserInfo
+		ID        int
+		Info      models.UserInfo
 		Principal *models.Principal
 	}
 
@@ -63,14 +63,14 @@ type (
 func PatchUser(t Trace) operations.PatchUserHandler {
 	return operations.PatchUserHandlerFunc(func(pup operations.PatchUserParams, p *models.Principal) middleware.Responder {
 
-		onDone := traceOnPatchUser(t, pup.User.ID, pup.User.UserInfo, p)
+		onDone := traceOnPatchUser(t, int(pup.ID), *pup.User, p)
 		var err error
 		defer func() {
 			onDone(err)
 		}()
 
 		user := &db.User{
-			ID:		   int(*pup.User.ID.ID),
+			ID:        int(pup.ID),
 			FirstName: pup.User.Fname,
 			LastName:  pup.User.Lname,
 		}
@@ -94,21 +94,21 @@ func PatchUser(t Trace) operations.PatchUserHandler {
 }
 
 type (
-	OnPostUserStartInfo struct {
+	OnRegisterStartInfo struct {
 		Username string
 	}
-	OnPostUserDoneInfo struct {
+	OnRegisterDoneInfo struct {
 		Ok    bool
 		Error error
 	}
 )
 
-func PostUser(t Trace) operations.PostUserHandler {
-	return operations.PostUserHandlerFunc(func(pup operations.PostUserParams) middleware.Responder {
+func Register(t Trace) operations.RegisterHandler {
+	return operations.RegisterHandlerFunc(func(pup operations.RegisterParams) middleware.Responder {
 		username := string(*pup.Credentials.Username)
 		password := string(*pup.Credentials.Password)
 
-		onDone := traceOnPostUser(t, username)
+		onDone := traceOnRegister(t, username)
 		var (
 			ok  bool
 			err error
@@ -119,16 +119,16 @@ func PostUser(t Trace) operations.PostUserHandler {
 
 		hash, err := auth.HashPassword(password)
 		if err != nil {
-			return operations.NewPostUserInternalServerError()
+			return operations.NewRegisterInternalServerError()
 		}
 
 		user, err := db.AddUser(username, hash)
 		if err != nil && !errors.Is(err, db.ErrNameTaken) {
-			return operations.NewPostUserInternalServerError()
+			return operations.NewRegisterInternalServerError()
 		}
 
 		ok = err == nil
-		payload := &operations.PostUserOKBody{
+		payload := &operations.RegisterOKBody{
 			Ok: &ok,
 		}
 		if !ok {
@@ -137,6 +137,6 @@ func PostUser(t Trace) operations.PostUserHandler {
 			id := int64(user.ID)
 			payload.User = &models.ID{ID: &id}
 		}
-		return operations.NewPostUserOK().WithPayload(payload)
+		return operations.NewRegisterOK().WithPayload(payload)
 	})
 }

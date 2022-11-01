@@ -22,6 +22,7 @@ import (
 	"github.com/rs/zerolog/hlog"
 )
 
+//go:generate go run ./clean.go
 //go:generate swagger generate server --target ../../wishes --name Wishes --spec ../api/wishes.yml --principal models.Principal
 
 func configureFlags(api *operations.WishesAPI) {
@@ -88,7 +89,7 @@ func configureAPI(api *operations.WishesAPI) http.Handler {
 
 	api.GetUserHandler = handlers.GetUser(ht)
 	api.PatchUserHandler = handlers.PatchUser(ht)
-	api.PostUserHandler = handlers.PostUser(ht)
+	api.RegisterHandler = handlers.Register(ht)
 
 	api.PreServerShutdown = func() {}
 

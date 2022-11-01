@@ -43,21 +43,21 @@ func Handlers(l zerolog.Logger) (t handlers.Trace) {
 		return func(di handlers.OnPatchUserDoneInfo) {
 			if di.Error != nil {
 				l.Error().
-					Int("id", int(*si.ID.ID)).
+					Int("id", si.ID).
 					Str("principal", string(*si.Principal)).
 					Err(di.Error).
 					Msg("patch user error")
 			} else {
 				l.Debug().
-					Int("id", int(*si.ID.ID)).
+					Int("id", si.ID).
 					Str("principal", string(*si.Principal)).
 					Msg("patch user done")
 			}
 		}
 	}
 
-	t.OnPostUser = func(si handlers.OnPostUserStartInfo) func(handlers.OnPostUserDoneInfo) {
-		return func(di handlers.OnPostUserDoneInfo) {
+	t.OnRegister = func(si handlers.OnRegisterStartInfo) func(handlers.OnRegisterDoneInfo) {
+		return func(di handlers.OnRegisterDoneInfo) {
 			if di.Error != nil {
 				l.Error().
 					Str("username", si.Username).

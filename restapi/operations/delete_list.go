@@ -37,7 +37,7 @@ func NewDeleteList(ctx *middleware.Context, handler DeleteListHandler) *DeleteLi
 }
 
 /*
-	DeleteList swagger:route DELETE /list deleteList
+	DeleteList swagger:route DELETE /lists/{id} deleteList
 
 Delete existing list
 */

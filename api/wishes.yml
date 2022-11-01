@@ -2,7 +2,7 @@ swagger: '2.0'
 
 info:
   title: Wishes API
-  version: 0.0.3
+  version: 0.0.4
 
 basePath: /api
 
@@ -46,42 +46,10 @@ paths:
         500:
           $ref: "#/responses/ServerError"
 
-  /user:
-    get:
-      summary: Get user info
-      parameters:
-        - name: id
-          in: query
-          type: integer
-          required: true
-      responses:
-        200:
-          description: Success
-          schema:
-            $ref: "#/definitions/User"
-        404:
-          description: User not found
-        500:
-          $ref: "#/responses/ServerError"
-    patch:
-      summary: Edit user info
-      parameters:
-        - name: user
-          in: body
-          required: true
-          schema:
-            allOf:
-             - $ref: "#/definitions/ID"
-             - $ref: "#/definitions/UserInfo"
-      responses:
-        200:
-          description: Success
-        403:
-          description: Access denied
-        500:
-          $ref: "#/responses/ServerError"
+  /users:
     post:
       summary: Register new user
+      operationId: Register
       security: []
       parameters:
         - name: credentials
@@ -105,77 +73,129 @@ paths:
         500:
           $ref: "#/responses/ServerError"
 
-  /list:
+  /users/{id}:
+    parameters:
+      - $ref: "#/parameters/PathId"
     get:
-      summary: Get list info
-      parameters:
-        - name: id
-          in: query
-          type: integer
-          required: true
+      summary: Get user info
+      operationId: GetUser
       responses:
         200:
           description: Success
           schema:
-            $ref: "#/definitions/List"
+            $ref: "#/definitions/User"
         404:
-          description: List not found
+          description: User not found
+        500:
+          $ref: "#/responses/ServerError"
+    patch:
+      summary: Edit user info
+      operationId: PatchUser
+      parameters:
+        - name: user
+          in: body
+          required: true
+          schema:
+            $ref: "#/definitions/UserInfo"
+      responses:
+        200:
+          description: Success
         403:
           description: Access denied
         500:
           $ref: "#/responses/ServerError"
-    post:
-      summary: Create new list
-      parameters:
-        - name: list
-          in: body
-          schema:
-            $ref: "#/definitions/List"
-          required: true
+
+  /users/{id}/lists:
+    parameters:
+      - $ref: "#/parameters/PathId"
+    get:
+      operationId: GetUserLists
+      summary: Get user list ids (visible by client)
       responses:
         200:
           description: Success
           schema:
-            $ref: "#/definitions/ID"
+            type: array
+            items:
+              type: integer
+            uniqueItems: true
+        404:
+          description: User not found
+        500:
+          $ref: "#/responses/ServerError"
+
+  /lists/{id}:
+    parameters:
+      - $ref: "#/parameters/PathId"
+    get:
+      summary: Get list info
+      operationId: GetList
+      responses:
+        200:
+          description: Success
+          schema:
+            $ref: "#/definitions/List"
+        403:
+          description: Access denied
+        404:
+          description: List not found
         500:
           $ref: "#/responses/ServerError"
     patch:
       summary: Edit existing list
+      operationId: PatchList
       parameters:
         - name: list
           in: body
           schema:
-            allOf:
-             - $ref: "#/definitions/ID"
-             - $ref: "#/definitions/List"
+            $ref: "#/definitions/List"
           required: true
       responses:
         200:
           description: Success
-        404:
-          description: List not found
         403:
           description: Access denied
+        404:
+          description: List not found
         500:
           $ref: "#/responses/ServerError"
     delete:
       summary: Delete existing list
-      parameters:
-        - name: id
-          in: body
-          schema:
-            $ref: "#/definitions/ID"
+      operationId: DeleteList
       responses:
         200:
           description: Success
-        404:
-          description: List not found
         403:
           description: Access denied
+        404:
+          description: List not found
         500:
           $ref: "#/responses/ServerError"
-      
 
+  /lists:
+    post:
+        summary: Create new list
+        operationId: PostList
+        parameters:
+          - name: list
+            in: body
+            schema:
+              $ref: "#/definitions/List"
+            required: true
+        responses:
+          201:
+            description: Success
+            schema:
+              $ref: "#/definitions/ID"
+          500:
+            $ref: "#/responses/ServerError"
+      
+parameters:
+  PathId:
+    name: id
+    in: path
+    required: true
+    type: integer
 
 responses:
   ServerError:

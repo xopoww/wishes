@@ -82,14 +82,14 @@ func (t Trace) Compose(x Trace) (ret Trace) {
 		}
 	}
 	switch {
-	case t.OnPostUser == nil:
-		ret.OnPostUser = x.OnPostUser
-	case x.OnPostUser == nil:
-		ret.OnPostUser = t.OnPostUser
+	case t.OnRegister == nil:
+		ret.OnRegister = x.OnRegister
+	case x.OnRegister == nil:
+		ret.OnRegister = t.OnRegister
 	default:
-		h1 := t.OnPostUser
-		h2 := x.OnPostUser
-		ret.OnPostUser = func(o OnPostUserStartInfo) func(OnPostUserDoneInfo) {
+		h1 := t.OnRegister
+		h2 := x.OnRegister
+		ret.OnRegister = func(o OnRegisterStartInfo) func(OnRegisterDoneInfo) {
 			r1 := h1(o)
 			r2 := h2(o)
 			switch {
@@ -98,7 +98,7 @@ func (t Trace) Compose(x Trace) (ret Trace) {
 			case r2 == nil:
 				return r1
 			default:
-				return func(o OnPostUserDoneInfo) {
+				return func(o OnRegisterDoneInfo) {
 					r1(o)
 					r2(o)
 				}
@@ -176,16 +176,16 @@ func (t Trace) onPatchUser(o OnPatchUserStartInfo) func(OnPatchUserDoneInfo) {
 	}
 	return res
 }
-func (t Trace) onPostUser(o OnPostUserStartInfo) func(OnPostUserDoneInfo) {
-	fn := t.OnPostUser
+func (t Trace) onRegister(o OnRegisterStartInfo) func(OnRegisterDoneInfo) {
+	fn := t.OnRegister
 	if fn == nil {
-		return func(OnPostUserDoneInfo) {
+		return func(OnRegisterDoneInfo) {
 			return
 		}
 	}
 	res := fn(o)
 	if res == nil {
-		return func(OnPostUserDoneInfo) {
+		return func(OnRegisterDoneInfo) {
 			return
 		}
 	}
@@ -229,9 +229,9 @@ func traceOnGetUser(t Trace, userID int, p *models.Principal) func(*models.User,
 		res(p)
 	}
 }
-func traceOnPatchUser(t Trace, i models.ID, info models.UserInfo, p *models.Principal) func(error) {
+func traceOnPatchUser(t Trace, iD int, info models.UserInfo, p *models.Principal) func(error) {
 	var p1 OnPatchUserStartInfo
-	p1.ID = i
+	p1.ID = iD
 	p1.Info = info
 	p1.Principal = p
 	res := t.onPatchUser(p1)
@@ -241,12 +241,12 @@ func traceOnPatchUser(t Trace, i models.ID, info models.UserInfo, p *models.Prin
 		res(p)
 	}
 }
-func traceOnPostUser(t Trace, username string) func(ok bool, _ error) {
-	var p OnPostUserStartInfo
+func traceOnRegister(t Trace, username string) func(ok bool, _ error) {
+	var p OnRegisterStartInfo
 	p.Username = username
-	res := t.onPostUser(p)
+	res := t.onRegister(p)
 	return func(ok bool, e error) {
-		var p OnPostUserDoneInfo
+		var p OnRegisterDoneInfo
 		p.Ok = ok
 		p.Error = e
 		res(p)
