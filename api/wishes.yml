@@ -70,12 +70,12 @@ paths:
           in: body
           required: true
           schema:
-            $ref: "#/definitions/User"
+            allOf:
+             - $ref: "#/definitions/ID"
+             - $ref: "#/definitions/UserInfo"
       responses:
         200:
           description: Success
-        404:
-          description: User not found
         403:
           description: Access denied
         500:
@@ -100,8 +100,82 @@ paths:
                 type: boolean
               error:
                 type: string
+              user:
+                $ref: "#/definitions/ID"
         500:
           $ref: "#/responses/ServerError"
+
+  /list:
+    get:
+      summary: Get list info
+      parameters:
+        - name: id
+          in: query
+          type: integer
+          required: true
+      responses:
+        200:
+          description: Success
+          schema:
+            $ref: "#/definitions/List"
+        404:
+          description: List not found
+        403:
+          description: Access denied
+        500:
+          $ref: "#/responses/ServerError"
+    post:
+      summary: Create new list
+      parameters:
+        - name: list
+          in: body
+          schema:
+            $ref: "#/definitions/List"
+          required: true
+      responses:
+        200:
+          description: Success
+          schema:
+            $ref: "#/definitions/ID"
+        500:
+          $ref: "#/responses/ServerError"
+    patch:
+      summary: Edit existing list
+      parameters:
+        - name: list
+          in: body
+          schema:
+            allOf:
+             - $ref: "#/definitions/ID"
+             - $ref: "#/definitions/List"
+          required: true
+      responses:
+        200:
+          description: Success
+        404:
+          description: List not found
+        403:
+          description: Access denied
+        500:
+          $ref: "#/responses/ServerError"
+    delete:
+      summary: Delete existing list
+      parameters:
+        - name: id
+          in: body
+          schema:
+            $ref: "#/definitions/ID"
+      responses:
+        200:
+          description: Success
+        404:
+          description: List not found
+        403:
+          description: Access denied
+        500:
+          $ref: "#/responses/ServerError"
+      
+
 
 responses:
   ServerError:
@@ -114,6 +188,18 @@ responses:
       required: [error]
 
 definitions:
+
+  principal:
+    type: string
+
+
+  ID:
+    type: object
+    properties:
+      id:
+        type: integer
+    required: [id]
+
 
   UserName:
     type: string
@@ -128,13 +214,11 @@ definitions:
 
   User:
     allOf:
+      - $ref: "#/definitions/ID"
       - type: object
         properties:
-          id:
-            type: integer
           username:
             $ref: "#/definitions/UserName"
-        required: [id]
       - $ref: "#/definitions/UserInfo"
 
   UserCredentials:
@@ -146,7 +230,23 @@ definitions:
       password:
         type: string
         format: password
-
-  principal:
-    type: string
       
+
+  List:
+    type: object
+    properties:
+      title:
+        type: string
+      items:
+        type: array
+        items:
+          $ref: "#/definitions/ListItem"
+  
+  ListItem:
+    type: object
+    properties:
+      title:
+        type: string
+      desc:
+        type: string
+    required: [title]

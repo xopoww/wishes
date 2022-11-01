@@ -6,57 +6,53 @@ package operations
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	"io"
 	"net/http"
 
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
 	"github.com/go-openapi/runtime/middleware"
 	"github.com/go-openapi/validate"
+
+	"github.com/xopoww/wishes/models"
 )
 
-// NewPatchUserParams creates a new PatchUserParams object
+// NewDeleteListParams creates a new DeleteListParams object
 //
 // There are no default values defined in the spec.
-func NewPatchUserParams() PatchUserParams {
+func NewDeleteListParams() DeleteListParams {
 
-	return PatchUserParams{}
+	return DeleteListParams{}
 }
 
-// PatchUserParams contains all the bound params for the patch user operation
+// DeleteListParams contains all the bound params for the delete list operation
 // typically these are obtained from a http.Request
 //
-// swagger:parameters PatchUser
-type PatchUserParams struct {
+// swagger:parameters DeleteList
+type DeleteListParams struct {
 
 	// HTTP Request Object
 	HTTPRequest *http.Request `json:"-"`
 
 	/*
-	  Required: true
 	  In: body
 	*/
-	User PatchUserBody
+	ID *models.ID
 }
 
 // BindRequest both binds and validates a request, it assumes that complex things implement a Validatable(strfmt.Registry) error interface
 // for simple values it will use straight method calls.
 //
-// To ensure default values, the struct must have been initialized with NewPatchUserParams() beforehand.
-func (o *PatchUserParams) BindRequest(r *http.Request, route *middleware.MatchedRoute) error {
+// To ensure default values, the struct must have been initialized with NewDeleteListParams() beforehand.
+func (o *DeleteListParams) BindRequest(r *http.Request, route *middleware.MatchedRoute) error {
 	var res []error
 
 	o.HTTPRequest = r
 
 	if runtime.HasBody(r) {
 		defer r.Body.Close()
-		var body PatchUserBody
+		var body models.ID
 		if err := route.Consumer.Consume(r.Body, &body); err != nil {
-			if err == io.EOF {
-				res = append(res, errors.Required("user", "body", ""))
-			} else {
-				res = append(res, errors.NewParseError("user", "body", "", err))
-			}
+			res = append(res, errors.NewParseError("id", "body", "", err))
 		} else {
 			// validate body object
 			if err := body.Validate(route.Formats); err != nil {
@@ -69,11 +65,9 @@ func (o *PatchUserParams) BindRequest(r *http.Request, route *middleware.Matched
 			}
 
 			if len(res) == 0 {
-				o.User = body
+				o.ID = &body
 			}
 		}
-	} else {
-		res = append(res, errors.Required("user", "body", ""))
 	}
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)

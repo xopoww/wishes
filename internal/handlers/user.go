@@ -40,7 +40,7 @@ func GetUser(t Trace) operations.GetUserHandler {
 			return operations.NewGetUserInternalServerError()
 		}
 
-		payload.ID = &gup.ID
+		payload.ID.ID = &gup.ID
 		payload.Username = models.UserName(user.Name)
 		payload.Fname = user.FirstName
 		payload.Lname = user.LastName
@@ -50,7 +50,8 @@ func GetUser(t Trace) operations.GetUserHandler {
 
 type (
 	OnPatchUserStartInfo struct {
-		User	  *models.User
+		ID		  models.ID
+		Info	  models.UserInfo
 		Principal *models.Principal
 	}
 
@@ -62,28 +63,28 @@ type (
 func PatchUser(t Trace) operations.PatchUserHandler {
 	return operations.PatchUserHandlerFunc(func(pup operations.PatchUserParams, p *models.Principal) middleware.Responder {
 
-		onDone := traceOnPatchUser(t, pup.User, p)
+		onDone := traceOnPatchUser(t, pup.User.ID, pup.User.UserInfo, p)
 		var err error
 		defer func() {
 			onDone(err)
 		}()
 
+		user := &db.User{
+			ID:		   int(*pup.User.ID.ID),
+			FirstName: pup.User.Fname,
+			LastName:  pup.User.Lname,
+		}
 
-		if string(pup.User.Username) != string(*p) {
+		id, err := db.CheckUser(string(*p))
+		if err != nil {
+			return operations.NewPatchUserInternalServerError()
+		}
+		if id != user.ID {
 			err = errors.New("forbidden")
 			return operations.NewPatchUserForbidden()
 		}
 
-		user := &db.User{
-			ID:		   int(*pup.User.ID),
-			Name:      string(pup.User.Username),
-			FirstName: pup.User.Fname,
-			LastName:  pup.User.Lname,
-		}
 		err = db.EditUserInfo(user)
-		if errors.Is(err, db.ErrNotFound) {
-			return operations.NewPatchUserNotFound()
-		}
 		if err != nil {
 			return operations.NewPatchUserInternalServerError()
 		}
@@ -121,7 +122,7 @@ func PostUser(t Trace) operations.PostUserHandler {
 			return operations.NewPostUserInternalServerError()
 		}
 
-		_, err = db.AddUser(username, hash)
+		user, err := db.AddUser(username, hash)
 		if err != nil && !errors.Is(err, db.ErrNameTaken) {
 			return operations.NewPostUserInternalServerError()
 		}
@@ -132,6 +133,9 @@ func PostUser(t Trace) operations.PostUserHandler {
 		}
 		if !ok {
 			payload.Error = err.Error()
+		} else {
+			id := int64(user.ID)
+			payload.User = &models.ID{ID: &id}
 		}
 		return operations.NewPostUserOK().WithPayload(payload)
 	})

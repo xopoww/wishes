@@ -43,13 +43,13 @@ func Handlers(l zerolog.Logger) (t handlers.Trace) {
 		return func(di handlers.OnPatchUserDoneInfo) {
 			if di.Error != nil {
 				l.Error().
-					Str("username", string(si.User.Username)).
+					Int("id", int(*si.ID.ID)).
 					Str("principal", string(*si.Principal)).
 					Err(di.Error).
 					Msg("patch user error")
 			} else {
 				l.Debug().
-					Str("username", string(si.User.Username)).
+					Int("id", int(*si.ID.ID)).
 					Str("principal", string(*si.Principal)).
 					Msg("patch user done")
 			}

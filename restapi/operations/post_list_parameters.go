@@ -13,21 +13,23 @@ import (
 	"github.com/go-openapi/runtime"
 	"github.com/go-openapi/runtime/middleware"
 	"github.com/go-openapi/validate"
+
+	"github.com/xopoww/wishes/models"
 )
 
-// NewPatchUserParams creates a new PatchUserParams object
+// NewPostListParams creates a new PostListParams object
 //
 // There are no default values defined in the spec.
-func NewPatchUserParams() PatchUserParams {
+func NewPostListParams() PostListParams {
 
-	return PatchUserParams{}
+	return PostListParams{}
 }
 
-// PatchUserParams contains all the bound params for the patch user operation
+// PostListParams contains all the bound params for the post list operation
 // typically these are obtained from a http.Request
 //
-// swagger:parameters PatchUser
-type PatchUserParams struct {
+// swagger:parameters PostList
+type PostListParams struct {
 
 	// HTTP Request Object
 	HTTPRequest *http.Request `json:"-"`
@@ -36,26 +38,26 @@ type PatchUserParams struct {
 	  Required: true
 	  In: body
 	*/
-	User PatchUserBody
+	List *models.List
 }
 
 // BindRequest both binds and validates a request, it assumes that complex things implement a Validatable(strfmt.Registry) error interface
 // for simple values it will use straight method calls.
 //
-// To ensure default values, the struct must have been initialized with NewPatchUserParams() beforehand.
-func (o *PatchUserParams) BindRequest(r *http.Request, route *middleware.MatchedRoute) error {
+// To ensure default values, the struct must have been initialized with NewPostListParams() beforehand.
+func (o *PostListParams) BindRequest(r *http.Request, route *middleware.MatchedRoute) error {
 	var res []error
 
 	o.HTTPRequest = r
 
 	if runtime.HasBody(r) {
 		defer r.Body.Close()
-		var body PatchUserBody
+		var body models.List
 		if err := route.Consumer.Consume(r.Body, &body); err != nil {
 			if err == io.EOF {
-				res = append(res, errors.Required("user", "body", ""))
+				res = append(res, errors.Required("list", "body", ""))
 			} else {
-				res = append(res, errors.NewParseError("user", "body", "", err))
+				res = append(res, errors.NewParseError("list", "body", "", err))
 			}
 		} else {
 			// validate body object
@@ -69,11 +71,11 @@ func (o *PatchUserParams) BindRequest(r *http.Request, route *middleware.Matched
 			}
 
 			if len(res) == 0 {
-				o.User = body
+				o.List = &body
 			}
 		}
 	} else {
-		res = append(res, errors.Required("user", "body", ""))
+		res = append(res, errors.Required("list", "body", ""))
 	}
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)

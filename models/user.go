@@ -11,17 +11,13 @@ import (
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
-	"github.com/go-openapi/validate"
 )
 
 // User user
 //
 // swagger:model User
 type User struct {
-
-	// id
-	// Required: true
-	ID *int64 `json:"id"`
+	ID
 
 	// username
 	Username UserName `json:"username,omitempty"`
@@ -32,54 +28,58 @@ type User struct {
 // UnmarshalJSON unmarshals this object from a JSON structure
 func (m *User) UnmarshalJSON(raw []byte) error {
 	// AO0
-	var dataAO0 struct {
-		ID *int64 `json:"id"`
-
-		Username UserName `json:"username,omitempty"`
-	}
-	if err := swag.ReadJSON(raw, &dataAO0); err != nil {
+	var aO0 ID
+	if err := swag.ReadJSON(raw, &aO0); err != nil {
 		return err
 	}
-
-	m.ID = dataAO0.ID
-
-	m.Username = dataAO0.Username
+	m.ID = aO0
 
 	// AO1
-	var aO1 UserInfo
-	if err := swag.ReadJSON(raw, &aO1); err != nil {
+	var dataAO1 struct {
+		Username UserName `json:"username,omitempty"`
+	}
+	if err := swag.ReadJSON(raw, &dataAO1); err != nil {
 		return err
 	}
-	m.UserInfo = aO1
+
+	m.Username = dataAO1.Username
+
+	// AO2
+	var aO2 UserInfo
+	if err := swag.ReadJSON(raw, &aO2); err != nil {
+		return err
+	}
+	m.UserInfo = aO2
 
 	return nil
 }
 
 // MarshalJSON marshals this object to a JSON structure
 func (m User) MarshalJSON() ([]byte, error) {
-	_parts := make([][]byte, 0, 2)
+	_parts := make([][]byte, 0, 3)
 
-	var dataAO0 struct {
-		ID *int64 `json:"id"`
-
-		Username UserName `json:"username,omitempty"`
-	}
-
-	dataAO0.ID = m.ID
-
-	dataAO0.Username = m.Username
-
-	jsonDataAO0, errAO0 := swag.WriteJSON(dataAO0)
-	if errAO0 != nil {
-		return nil, errAO0
-	}
-	_parts = append(_parts, jsonDataAO0)
-
-	aO1, err := swag.WriteJSON(m.UserInfo)
+	aO0, err := swag.WriteJSON(m.ID)
 	if err != nil {
 		return nil, err
 	}
-	_parts = append(_parts, aO1)
+	_parts = append(_parts, aO0)
+	var dataAO1 struct {
+		Username UserName `json:"username,omitempty"`
+	}
+
+	dataAO1.Username = m.Username
+
+	jsonDataAO1, errAO1 := swag.WriteJSON(dataAO1)
+	if errAO1 != nil {
+		return nil, errAO1
+	}
+	_parts = append(_parts, jsonDataAO1)
+
+	aO2, err := swag.WriteJSON(m.UserInfo)
+	if err != nil {
+		return nil, err
+	}
+	_parts = append(_parts, aO2)
 	return swag.ConcatJSON(_parts...), nil
 }
 
@@ -87,7 +87,8 @@ func (m User) MarshalJSON() ([]byte, error) {
 func (m *User) Validate(formats strfmt.Registry) error {
 	var res []error
 
-	if err := m.validateID(formats); err != nil {
+	// validation for a type composition with ID
+	if err := m.ID.Validate(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -103,15 +104,6 @@ func (m *User) Validate(formats strfmt.Registry) error {
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)
 	}
-	return nil
-}
-
-func (m *User) validateID(formats strfmt.Registry) error {
-
-	if err := validate.Required("id", "body", m.ID); err != nil {
-		return err
-	}
-
 	return nil
 }
 
@@ -136,6 +128,11 @@ func (m *User) validateUsername(formats strfmt.Registry) error {
 // ContextValidate validate this user based on the context it is used
 func (m *User) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	var res []error
+
+	// validation for a type composition with ID
+	if err := m.ID.ContextValidate(ctx, formats); err != nil {
+		res = append(res, err)
+	}
 
 	if err := m.contextValidateUsername(ctx, formats); err != nil {
 		res = append(res, err)

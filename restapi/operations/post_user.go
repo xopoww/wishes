@@ -14,6 +14,8 @@ import (
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
+
+	"github.com/xopoww/wishes/models"
 )
 
 // PostUserHandlerFunc turns a function with the right signature into a post user handler
@@ -127,6 +129,9 @@ type PostUserOKBody struct {
 	// ok
 	// Required: true
 	Ok *bool `json:"ok"`
+
+	// user
+	User *models.ID `json:"user,omitempty"`
 }
 
 // Validate validates this post user o k body
@@ -134,6 +139,10 @@ func (o *PostUserOKBody) Validate(formats strfmt.Registry) error {
 	var res []error
 
 	if err := o.validateOk(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := o.validateUser(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -152,8 +161,52 @@ func (o *PostUserOKBody) validateOk(formats strfmt.Registry) error {
 	return nil
 }
 
-// ContextValidate validates this post user o k body based on context it is used
+func (o *PostUserOKBody) validateUser(formats strfmt.Registry) error {
+	if swag.IsZero(o.User) { // not required
+		return nil
+	}
+
+	if o.User != nil {
+		if err := o.User.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("postUserOK" + "." + "user")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("postUserOK" + "." + "user")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+// ContextValidate validate this post user o k body based on the context it is used
 func (o *PostUserOKBody) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	if err := o.contextValidateUser(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (o *PostUserOKBody) contextValidateUser(ctx context.Context, formats strfmt.Registry) error {
+
+	if o.User != nil {
+		if err := o.User.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("postUserOK" + "." + "user")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("postUserOK" + "." + "user")
+			}
+			return err
+		}
+	}
+
 	return nil
 }
 

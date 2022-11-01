@@ -1,4 +1,4 @@
-BIN := build/wishes-server
+BIN := bin/wishes-server
 HASH := $(shell git rev-parse --short HEAD)
 COMMIT_NAME := $(shell git show -s --format=%s ${HASH})
 BUILD_DATE := $(shell date '+%Y-%m-%d %H:%M:%S')

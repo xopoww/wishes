@@ -5,6 +5,8 @@ package restapi
 import (
 	"crypto/tls"
 	"net/http"
+	"os"
+	"runtime/debug"
 	"time"
 
 	"github.com/go-openapi/errors"
@@ -31,10 +33,14 @@ func configureAPI(api *operations.WishesAPI) http.Handler {
 	log.WithTraces(l)
 
 	//TODO: move somewhere else
-	if err := db.Connect("devdata/db.sqlite3"); err != nil {
+	dbs, exists := os.LookupEnv("WISHES_DBS")
+	if !exists {
+		l.Fatal().Msg("WISHES_DBS is not set")
+	}
+	if err := db.Connect(dbs); err != nil {
 		l.Fatal().Err(err).Msg("connect failed")
 	}
-	if db.CheckUser("test") != db.ErrNameTaken {
+	if _, err := db.CheckUser("test"); err != nil {
 		hash, err := auth.HashPassword("test")
 		if err != nil {
 			l.Fatal().Err(err).Msg("hash test pwd failed")
@@ -86,7 +92,11 @@ func configureAPI(api *operations.WishesAPI) http.Handler {
 
 	api.PreServerShutdown = func() {}
 
-	api.ServerShutdown = func() {}
+	api.ServerShutdown = func() {
+		if err := db.Disconnect(); err != nil {
+			l.Error().Err(err).Msg("db disconnect failed")
+		}
+	}
 
 	return setupGlobalMiddleware(api.Serve(setupMiddlewares))
 }
@@ -120,6 +130,7 @@ func setupGlobalMiddleware(handler http.Handler) http.Handler {
 				l.Error().
 					Interface("reason", r).
 					Msg("recovered in global middleware")
+				l.Printf("stack trace: %s", string(debug.Stack()))
 			}
 		}()
 

@@ -61,31 +61,6 @@ func (o *PatchUserForbidden) WriteResponse(rw http.ResponseWriter, producer runt
 	rw.WriteHeader(403)
 }
 
-// PatchUserNotFoundCode is the HTTP code returned for type PatchUserNotFound
-const PatchUserNotFoundCode int = 404
-
-/*
-PatchUserNotFound User not found
-
-swagger:response patchUserNotFound
-*/
-type PatchUserNotFound struct {
-}
-
-// NewPatchUserNotFound creates PatchUserNotFound with default headers values
-func NewPatchUserNotFound() *PatchUserNotFound {
-
-	return &PatchUserNotFound{}
-}
-
-// WriteResponse to the client
-func (o *PatchUserNotFound) WriteResponse(rw http.ResponseWriter, producer runtime.Producer) {
-
-	rw.Header().Del(runtime.HeaderContentType) //Remove Content-Type on empty responses
-
-	rw.WriteHeader(404)
-}
-
 // PatchUserInternalServerErrorCode is the HTTP code returned for type PatchUserInternalServerError
 const PatchUserInternalServerErrorCode int = 500
 

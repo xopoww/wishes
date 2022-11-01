@@ -6,15 +6,16 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/jmoiron/sqlx"
 	"github.com/mattn/go-sqlite3"
 )
 
 type User struct {
-	ID   int
-	Name string
+	ID   int    `db:"user_id"`
+	Name string `db:"user_name"`
 
-	FirstName string
-	LastName  string
+	FirstName string `db:"fname"`
+	LastName  string `db:"lname"`
 }
 
 var (
@@ -22,27 +23,19 @@ var (
 	ErrNotFound  = errors.New("not found")
 )
 
-// CheckUser returns nil if username is not found in the database.
-// It returns ErrNameTaken if username is found in the database. All other
-// return values indicate internal error during check.
-func CheckUser(username string) error {
+func CheckUser(username string) (id int, err error) {
 	onDone := traceOnCheckUser(t, username)
 	defer func() { onDone() }()
 
 	if db == nil {
-		return ErrNotConnected
+		return 0, ErrNotConnected
 	}
 
-	row := db.QueryRow(`SELECT 1 FROM Users WHERE user_name = $1`, username)
-	var unused int
-	err := row.Scan(&unused)
-	if err == nil {
-		return ErrNameTaken
-	}
+	err = sqlx.Get(tracer(db), &id, `SELECT user_id FROM Users WHERE user_name = $1`, username)
 	if errors.Is(err, sql.ErrNoRows) {
-		return nil
+		err = ErrNotFound
 	}
-	return err
+	return id, err
 }
 
 func AddUser(username string, passHash []byte) (*User, error) {
@@ -51,9 +44,12 @@ func AddUser(username string, passHash []byte) (*User, error) {
 	}
 
 	hashString := base64.RawStdEncoding.EncodeToString(passHash)
-	r, err := db.Exec(
-		`INSERT INTO Users (user_name, pwd_hash) VALUES ($1, $2)`,
-		username, hashString,
+	r, err := sqlx.NamedExec(tracer(db),
+		`INSERT INTO Users (user_name, pwd_hash) VALUES (:user_name, :pwd_hash)`,
+		map[string]interface{}{
+			"user_name":  username,
+			"pwd_hash": hashString,
+		},
 	)
 	var serr sqlite3.Error
 	if errors.As(err, &serr) && serr.ExtendedCode == sqlite3.ErrConstraintUnique {
@@ -78,12 +74,11 @@ func GetFullUser(username string) (user *User, passHash []byte, err error) {
 		return nil, nil, ErrNotConnected
 	}
 
-	var (
-		hashString string
-	)
-	user = &User{Name: username}
-	row := db.QueryRow(`SELECT user_id, fname, lname, pwd_hash FROM Users WHERE user_name = $1`, username)
-	err = row.Scan(&user.ID, &user.FirstName, &user.LastName, &hashString)
+	full := &struct{
+		User
+		Hash string	`db:"pwd_hash"`
+	}{}
+	err = sqlx.Get(tracer(db), full, `SELECT user_id, fname, lname, pwd_hash FROM Users WHERE user_name = $1`, username)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil, ErrNotFound
 	}
@@ -91,16 +86,31 @@ func GetFullUser(username string) (user *User, passHash []byte, err error) {
 		return nil, nil, err
 	}
 
-	passHash, err = base64.RawStdEncoding.DecodeString(hashString)
+	passHash, err = base64.RawStdEncoding.DecodeString(full.Hash)
 	if err != nil {
 		return nil, nil, fmt.Errorf("invalid base64 in database: %w", err)
 	}
 
+	user = &full.User
+	user.Name = username
 	return user, passHash, nil
 }
 
 func GetUserById(id int) (*User, error) {
-	return nil, nil
+	if db == nil {
+		return nil, ErrNotConnected
+	}
+
+	user := &User{ID: id}
+	err := sqlx.Get(tracer(db), user, `SELECT user_name, fname, lname FROM Users WHERE user_id = $1`, id)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, ErrNotFound
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	return user, nil
 }
 
 func EditUserInfo(user *User) error {
@@ -108,9 +118,9 @@ func EditUserInfo(user *User) error {
 		return ErrNotConnected
 	}
 
-	r, err := db.Exec(
-		`UPDATE Users SET fname = $1, lname = $2 WHERE user_id = $3`,
-		user.FirstName, user.LastName, user.ID,
+	r, err := sqlx.NamedExec(tracer(db),
+		`UPDATE Users SET fname = :fname, lname = :lname WHERE user_id = :user_id`,
+		user,
 	)
 	if err != nil {
 		return fmt.Errorf("update: %s", err)

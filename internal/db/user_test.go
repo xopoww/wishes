@@ -28,14 +28,14 @@ func TestCheckUser(t *testing.T) {
 
 	for _, username := range usernames {
 		t.Run(username, func(t *testing.T) {
-			err := db.CheckUser(username)
+			_, err := db.CheckUser(username)
 			if username == "user" {
-				if !errors.Is(err, db.ErrNameTaken) {
-					t.Fatalf("want %#v, got %#v", db.ErrNameTaken, err)
+				if err != nil {
+					t.Fatalf("want %#v, got %#v", nil, err)
 				}
 			} else {
-				if err != nil {
-					t.Fatalf("want nil, got %#v", err)
+				if !errors.Is(err, db.ErrNotFound) {
+					t.Fatalf("want %#v, got %#v", db.ErrNotFound, err)
 				}
 			}
 
@@ -60,8 +60,12 @@ func TestAddUser(t *testing.T) {
 		t.Fatalf("register user: got %+v", user)
 	}
 
-	if err := db.CheckUser("user"); !errors.Is(err, db.ErrNameTaken) {
-		t.Fatalf("check username: want %#v, got %#v", db.ErrNameTaken, err)
+	id, err := db.CheckUser("user")
+	if err != nil  {
+		t.Fatalf("check user error: want %#v, got %#v", nil, err)
+	}
+	if id != user.ID {
+		t.Fatalf("check user id: want %d, got %d", user.ID, id)
 	}
 
 	_, err = db.AddUser("user", []byte("password"))
@@ -100,6 +104,36 @@ func TestGetFullUser(t *testing.T) {
 	_, _, err = db.GetFullUser("foo")
 	if !errors.Is(err, db.ErrNotFound) {
 		t.Errorf("get foo: want %#v, got %#v", db.ErrNotFound, err)
+	}
+}
+
+func TestGetUserById(t *testing.T) {
+	withTrace(t)
+
+	dbs := newTestDatabase(t)
+	if err := db.Connect(dbs); err != nil {
+		t.Fatalf("connect: %s", err)
+	}
+
+	want, err := db.AddUser("user", []byte("password"))
+	if err != nil {
+		t.Fatalf("register: %s", err)
+	}
+	if want == nil {
+		t.Fatalf("register: nil user")
+	}
+
+	got, err := db.GetUserById(want.ID)
+	if err != nil {
+		t.Errorf("get user: %s", err)
+	}
+	if got == nil || *want != *got {
+		t.Errorf("get user: want %+v, got %+v", want, got)
+	}
+
+	_, err = db.GetUserById(want.ID + 42)
+	if !errors.Is(err, db.ErrNotFound) {
+		t.Errorf("get wrong id: want %#v, got %#v", db.ErrNotFound, err)
 	}
 }
 

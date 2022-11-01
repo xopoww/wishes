@@ -229,9 +229,10 @@ func traceOnGetUser(t Trace, userID int, p *models.Principal) func(*models.User,
 		res(p)
 	}
 }
-func traceOnPatchUser(t Trace, u *models.User, p *models.Principal) func(error) {
+func traceOnPatchUser(t Trace, i models.ID, info models.UserInfo, p *models.Principal) func(error) {
 	var p1 OnPatchUserStartInfo
-	p1.User = u
+	p1.ID = i
+	p1.Info = info
 	p1.Principal = p
 	res := t.onPatchUser(p1)
 	return func(e error) {

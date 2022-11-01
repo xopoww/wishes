@@ -1,0 +1,20 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: build/docker/server.Dockerfile
+    env_file: dev/dev.envrc
+    ports:
+      - 65000:8080
+  
+  api_test:
+    profiles:
+      - test
+    build:
+      context: .
+      dockerfile: build/docker/api_test.Dockerfile
+      no_cache: true
+    environment:
+      WISHES_HOST: "http://api:8080/api"
+    depends_on:
+      - api

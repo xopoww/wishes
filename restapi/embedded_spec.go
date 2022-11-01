@@ -27,10 +27,124 @@ func init() {
   "swagger": "2.0",
   "info": {
     "title": "Wishes API",
-    "version": "0.0.2"
+    "version": "0.0.3"
   },
   "basePath": "/api",
   "paths": {
+    "/list": {
+      "get": {
+        "summary": "Get list info",
+        "parameters": [
+          {
+            "type": "integer",
+            "name": "id",
+            "in": "query",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/List"
+            }
+          },
+          "403": {
+            "description": "Access denied"
+          },
+          "404": {
+            "description": "List not found"
+          },
+          "500": {
+            "$ref": "#/responses/ServerError"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create new list",
+        "parameters": [
+          {
+            "name": "list",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/List"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/ID"
+            }
+          },
+          "500": {
+            "$ref": "#/responses/ServerError"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete existing list",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/ID"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "403": {
+            "description": "Access denied"
+          },
+          "404": {
+            "description": "List not found"
+          },
+          "500": {
+            "$ref": "#/responses/ServerError"
+          }
+        }
+      },
+      "patch": {
+        "summary": "Edit existing list",
+        "parameters": [
+          {
+            "name": "list",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/definitions/ID"
+                },
+                {
+                  "$ref": "#/definitions/List"
+                }
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "403": {
+            "description": "Access denied"
+          },
+          "404": {
+            "description": "List not found"
+          },
+          "500": {
+            "$ref": "#/responses/ServerError"
+          }
+        }
+      }
+    },
     "/login": {
       "post": {
         "security": [],
@@ -123,6 +237,9 @@ func init() {
                 },
                 "ok": {
                   "type": "boolean"
+                },
+                "user": {
+                  "$ref": "#/definitions/ID"
                 }
               }
             }
@@ -140,7 +257,14 @@ func init() {
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/User"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/ID"
+                },
+                {
+                  "$ref": "#/definitions/UserInfo"
+                }
+              ]
             }
           }
         ],
@@ -151,9 +275,6 @@ func init() {
           "403": {
             "description": "Access denied"
           },
-          "404": {
-            "description": "User not found"
-          },
           "500": {
             "$ref": "#/responses/ServerError"
           }
@@ -162,17 +283,53 @@ func init() {
     }
   },
   "definitions": {
+    "ID": {
+      "type": "object",
+      "required": [
+        "id"
+      ],
+      "properties": {
+        "id": {
+          "type": "integer"
+        }
+      }
+    },
+    "List": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ListItem"
+          }
+        },
+        "title": {
+          "type": "string"
+        }
+      }
+    },
+    "ListItem": {
+      "type": "object",
+      "required": [
+        "title"
+      ],
+      "properties": {
+        "desc": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        }
+      }
+    },
     "User": {
       "allOf": [
         {
+          "$ref": "#/definitions/ID"
+        },
+        {
           "type": "object",
-          "required": [
-            "id"
-          ],
           "properties": {
-            "id": {
-              "type": "integer"
-            },
             "username": {
               "$ref": "#/definitions/UserName"
             }
@@ -256,10 +413,168 @@ func init() {
   "swagger": "2.0",
   "info": {
     "title": "Wishes API",
-    "version": "0.0.2"
+    "version": "0.0.3"
   },
   "basePath": "/api",
   "paths": {
+    "/list": {
+      "get": {
+        "summary": "Get list info",
+        "parameters": [
+          {
+            "type": "integer",
+            "name": "id",
+            "in": "query",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/List"
+            }
+          },
+          "403": {
+            "description": "Access denied"
+          },
+          "404": {
+            "description": "List not found"
+          },
+          "500": {
+            "description": "Server error",
+            "schema": {
+              "type": "object",
+              "required": [
+                "error"
+              ],
+              "properties": {
+                "error": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create new list",
+        "parameters": [
+          {
+            "name": "list",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/List"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/ID"
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "schema": {
+              "type": "object",
+              "required": [
+                "error"
+              ],
+              "properties": {
+                "error": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete existing list",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/ID"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "403": {
+            "description": "Access denied"
+          },
+          "404": {
+            "description": "List not found"
+          },
+          "500": {
+            "description": "Server error",
+            "schema": {
+              "type": "object",
+              "required": [
+                "error"
+              ],
+              "properties": {
+                "error": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "summary": "Edit existing list",
+        "parameters": [
+          {
+            "name": "list",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/definitions/ID"
+                },
+                {
+                  "$ref": "#/definitions/List"
+                }
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "403": {
+            "description": "Access denied"
+          },
+          "404": {
+            "description": "List not found"
+          },
+          "500": {
+            "description": "Server error",
+            "schema": {
+              "type": "object",
+              "required": [
+                "error"
+              ],
+              "properties": {
+                "error": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/login": {
       "post": {
         "security": [],
@@ -374,6 +689,9 @@ func init() {
                 },
                 "ok": {
                   "type": "boolean"
+                },
+                "user": {
+                  "$ref": "#/definitions/ID"
                 }
               }
             }
@@ -402,7 +720,14 @@ func init() {
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/User"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/ID"
+                },
+                {
+                  "$ref": "#/definitions/UserInfo"
+                }
+              ]
             }
           }
         ],
@@ -412,9 +737,6 @@ func init() {
           },
           "403": {
             "description": "Access denied"
-          },
-          "404": {
-            "description": "User not found"
           },
           "500": {
             "description": "Server error",
@@ -435,17 +757,53 @@ func init() {
     }
   },
   "definitions": {
+    "ID": {
+      "type": "object",
+      "required": [
+        "id"
+      ],
+      "properties": {
+        "id": {
+          "type": "integer"
+        }
+      }
+    },
+    "List": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ListItem"
+          }
+        },
+        "title": {
+          "type": "string"
+        }
+      }
+    },
+    "ListItem": {
+      "type": "object",
+      "required": [
+        "title"
+      ],
+      "properties": {
+        "desc": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        }
+      }
+    },
     "User": {
       "allOf": [
         {
+          "$ref": "#/definitions/ID"
+        },
+        {
           "type": "object",
-          "required": [
-            "id"
-          ],
           "properties": {
-            "id": {
-              "type": "integer"
-            },
             "username": {
               "$ref": "#/definitions/UserName"
             }

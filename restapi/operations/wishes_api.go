@@ -44,14 +44,26 @@ func NewWishesAPI(spec *loads.Document) *WishesAPI {
 
 		JSONProducer: runtime.JSONProducer(),
 
+		DeleteListHandler: DeleteListHandlerFunc(func(params DeleteListParams, principal *models.Principal) middleware.Responder {
+			return middleware.NotImplemented("operation DeleteList has not yet been implemented")
+		}),
+		GetListHandler: GetListHandlerFunc(func(params GetListParams, principal *models.Principal) middleware.Responder {
+			return middleware.NotImplemented("operation GetList has not yet been implemented")
+		}),
 		GetUserHandler: GetUserHandlerFunc(func(params GetUserParams, principal *models.Principal) middleware.Responder {
 			return middleware.NotImplemented("operation GetUser has not yet been implemented")
 		}),
 		LoginHandler: LoginHandlerFunc(func(params LoginParams) middleware.Responder {
 			return middleware.NotImplemented("operation Login has not yet been implemented")
 		}),
+		PatchListHandler: PatchListHandlerFunc(func(params PatchListParams, principal *models.Principal) middleware.Responder {
+			return middleware.NotImplemented("operation PatchList has not yet been implemented")
+		}),
 		PatchUserHandler: PatchUserHandlerFunc(func(params PatchUserParams, principal *models.Principal) middleware.Responder {
 			return middleware.NotImplemented("operation PatchUser has not yet been implemented")
+		}),
+		PostListHandler: PostListHandlerFunc(func(params PostListParams, principal *models.Principal) middleware.Responder {
+			return middleware.NotImplemented("operation PostList has not yet been implemented")
 		}),
 		PostUserHandler: PostUserHandlerFunc(func(params PostUserParams) middleware.Responder {
 			return middleware.NotImplemented("operation PostUser has not yet been implemented")
@@ -106,12 +118,20 @@ type WishesAPI struct {
 	// APIAuthorizer provides access control (ACL/RBAC/ABAC) by providing access to the request and authenticated principal
 	APIAuthorizer runtime.Authorizer
 
+	// DeleteListHandler sets the operation handler for the delete list operation
+	DeleteListHandler DeleteListHandler
+	// GetListHandler sets the operation handler for the get list operation
+	GetListHandler GetListHandler
 	// GetUserHandler sets the operation handler for the get user operation
 	GetUserHandler GetUserHandler
 	// LoginHandler sets the operation handler for the login operation
 	LoginHandler LoginHandler
+	// PatchListHandler sets the operation handler for the patch list operation
+	PatchListHandler PatchListHandler
 	// PatchUserHandler sets the operation handler for the patch user operation
 	PatchUserHandler PatchUserHandler
+	// PostListHandler sets the operation handler for the post list operation
+	PostListHandler PostListHandler
 	// PostUserHandler sets the operation handler for the post user operation
 	PostUserHandler PostUserHandler
 
@@ -195,14 +215,26 @@ func (o *WishesAPI) Validate() error {
 		unregistered = append(unregistered, "XTokenAuth")
 	}
 
+	if o.DeleteListHandler == nil {
+		unregistered = append(unregistered, "DeleteListHandler")
+	}
+	if o.GetListHandler == nil {
+		unregistered = append(unregistered, "GetListHandler")
+	}
 	if o.GetUserHandler == nil {
 		unregistered = append(unregistered, "GetUserHandler")
 	}
 	if o.LoginHandler == nil {
 		unregistered = append(unregistered, "LoginHandler")
 	}
+	if o.PatchListHandler == nil {
+		unregistered = append(unregistered, "PatchListHandler")
+	}
 	if o.PatchUserHandler == nil {
 		unregistered = append(unregistered, "PatchUserHandler")
+	}
+	if o.PostListHandler == nil {
+		unregistered = append(unregistered, "PostListHandler")
 	}
 	if o.PostUserHandler == nil {
 		unregistered = append(unregistered, "PostUserHandler")
@@ -306,6 +338,14 @@ func (o *WishesAPI) initHandlerCache() {
 		o.handlers = make(map[string]map[string]http.Handler)
 	}
 
+	if o.handlers["DELETE"] == nil {
+		o.handlers["DELETE"] = make(map[string]http.Handler)
+	}
+	o.handlers["DELETE"]["/list"] = NewDeleteList(o.context, o.DeleteListHandler)
+	if o.handlers["GET"] == nil {
+		o.handlers["GET"] = make(map[string]http.Handler)
+	}
+	o.handlers["GET"]["/list"] = NewGetList(o.context, o.GetListHandler)
 	if o.handlers["GET"] == nil {
 		o.handlers["GET"] = make(map[string]http.Handler)
 	}
@@ -317,7 +357,15 @@ func (o *WishesAPI) initHandlerCache() {
 	if o.handlers["PATCH"] == nil {
 		o.handlers["PATCH"] = make(map[string]http.Handler)
 	}
+	o.handlers["PATCH"]["/list"] = NewPatchList(o.context, o.PatchListHandler)
+	if o.handlers["PATCH"] == nil {
+		o.handlers["PATCH"] = make(map[string]http.Handler)
+	}
 	o.handlers["PATCH"]["/user"] = NewPatchUser(o.context, o.PatchUserHandler)
+	if o.handlers["POST"] == nil {
+		o.handlers["POST"] = make(map[string]http.Handler)
+	}
+	o.handlers["POST"]["/list"] = NewPostList(o.context, o.PostListHandler)
 	if o.handlers["POST"] == nil {
 		o.handlers["POST"] = make(map[string]http.Handler)
 	}

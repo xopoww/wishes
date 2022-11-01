@@ -15,11 +15,21 @@ var (
 var ErrNotConnected = errors.New("database not connected")
 
 func Connect(dbs string) (err error) {
-	db, err = sqlx.Open("sqlite3", dbs)
+	onDone := traceOnConnect(t, dbs)
+	defer onDone()
+
+	db, err = sqlx.Connect("sqlite3", dbs)
 	if err != nil {
 		return err
 	}
 	return nil
+}
+
+func Disconnect() error {
+	if db == nil {
+		return ErrNotConnected
+	}
+	return db.Close()
 }
 
 func WithTrace(trace Trace) {
