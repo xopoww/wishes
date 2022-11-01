@@ -47,8 +47,8 @@ func AddUser(username string, passHash []byte) (*User, error) {
 	r, err := sqlx.NamedExec(tracer(db),
 		`INSERT INTO Users (user_name, pwd_hash) VALUES (:user_name, :pwd_hash)`,
 		map[string]interface{}{
-			"user_name":  username,
-			"pwd_hash": hashString,
+			"user_name": username,
+			"pwd_hash":  hashString,
 		},
 	)
 	var serr sqlite3.Error
@@ -74,9 +74,9 @@ func GetFullUser(username string) (user *User, passHash []byte, err error) {
 		return nil, nil, ErrNotConnected
 	}
 
-	full := &struct{
+	full := &struct {
 		User
-		Hash string	`db:"pwd_hash"`
+		Hash string `db:"pwd_hash"`
 	}{}
 	err = sqlx.Get(tracer(db), full, `SELECT user_id, fname, lname, pwd_hash FROM Users WHERE user_name = $1`, username)
 	if errors.Is(err, sql.ErrNoRows) {

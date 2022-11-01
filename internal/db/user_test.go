@@ -61,7 +61,7 @@ func TestAddUser(t *testing.T) {
 	}
 
 	id, err := db.CheckUser("user")
-	if err != nil  {
+	if err != nil {
 		t.Fatalf("check user error: want %#v, got %#v", nil, err)
 	}
 	if id != user.ID {

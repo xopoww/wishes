@@ -11,7 +11,7 @@ type (
 		OnQuery func(OnQueryStartInfo) func(OnQueryDoneInfo)
 		OnExec  func(OnExecStartInfo) func(OnExecDoneInfo)
 
-		OnConnect	func(OnConnectStartInfo) func(OnConnectDoneInfo)
+		OnConnect   func(OnConnectStartInfo) func(OnConnectDoneInfo)
 		OnCheckUser func(OnCheckUserStartInfo) func(OnCheckUserDoneInfo)
 	}
 	OnQueryStartInfo struct {
@@ -24,8 +24,8 @@ type (
 	}
 
 	OnExecStartInfo struct {
-		Query  string
-		Args   []interface{}
+		Query string
+		Args  []interface{}
 	}
 	OnExecDoneInfo struct {
 		Result sql.Result
@@ -40,5 +40,5 @@ type (
 	OnConnectStartInfo struct {
 		DBS string
 	}
-	OnConnectDoneInfo struct {}
+	OnConnectDoneInfo struct{}
 )

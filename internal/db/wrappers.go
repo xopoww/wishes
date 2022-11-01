@@ -37,7 +37,7 @@ func (et extTracer) QueryRowx(query string, args ...interface{}) *sqlx.Row {
 type result struct {
 	inner sql.Result
 	liid  *int64
-	ra 	  *int64
+	ra    *int64
 }
 
 func (r *result) LastInsertId() (int64, error) {
@@ -64,11 +64,8 @@ func (r *result) RowsAffected() (int64, error) {
 
 func (et extTracer) Exec(query string, args ...interface{}) (r sql.Result, err error) {
 	onDone := traceOnExec(t, query, args)
-	defer func(){ onDone(r, err) }()
+	defer func() { onDone(r, err) }()
 	r, err = et.Ext.Exec(query, args...)
 	r = &result{inner: r}
 	return
 }
-
-
-

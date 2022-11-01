@@ -57,7 +57,7 @@ func Database(l zerolog.Logger) (t db.Trace) {
 				} else {
 					ee = ee.Int64("ra", ra)
 				}
-			}	
+			}
 			ee.Msg("sql exec done")
 		}
 	}
