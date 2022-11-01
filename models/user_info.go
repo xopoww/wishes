@@ -8,8 +8,10 @@ package models
 import (
 	"context"
 
+	"github.com/go-openapi/errors"
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
+	"github.com/go-openapi/validate"
 )
 
 // UserInfo user info
@@ -18,14 +20,47 @@ import (
 type UserInfo struct {
 
 	// fname
-	Fname string `json:"fname,omitempty"`
+	// Required: true
+	Fname *string `json:"fname"`
 
 	// lname
-	Lname string `json:"lname,omitempty"`
+	// Required: true
+	Lname *string `json:"lname"`
 }
 
 // Validate validates this user info
 func (m *UserInfo) Validate(formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.validateFname(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateLname(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *UserInfo) validateFname(formats strfmt.Registry) error {
+
+	if err := validate.Required("fname", "body", m.Fname); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *UserInfo) validateLname(formats strfmt.Registry) error {
+
+	if err := validate.Required("lname", "body", m.Lname); err != nil {
+		return err
+	}
+
 	return nil
 }
 

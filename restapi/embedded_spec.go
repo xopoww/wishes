@@ -369,6 +369,10 @@ func init() {
     },
     "UserInfo": {
       "type": "object",
+      "required": [
+        "fname",
+        "lname"
+      ],
       "properties": {
         "fname": {
           "type": "string"
@@ -882,6 +886,10 @@ func init() {
     },
     "UserInfo": {
       "type": "object",
+      "required": [
+        "fname",
+        "lname"
+      ],
       "properties": {
         "fname": {
           "type": "string"

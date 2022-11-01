@@ -42,8 +42,8 @@ func GetUser(t Trace) operations.GetUserHandler {
 
 		payload.ID.ID = &gup.ID
 		payload.Username = models.UserName(user.Name)
-		payload.Fname = user.FirstName
-		payload.Lname = user.LastName
+		payload.Fname = &user.FirstName
+		payload.Lname = &user.LastName
 		return operations.NewGetUserOK().WithPayload(payload)
 	})
 }
@@ -71,8 +71,8 @@ func PatchUser(t Trace) operations.PatchUserHandler {
 
 		user := &db.User{
 			ID:        int(pup.ID),
-			FirstName: pup.User.Fname,
-			LastName:  pup.User.Lname,
+			FirstName: *pup.User.Fname,
+			LastName:  *pup.User.Lname,
 		}
 
 		id, err := db.CheckUser(string(*p))

@@ -78,8 +78,8 @@ class TestUser:
             body = resp.json()
             assert body["id"] == u.id
             assert body["username"] == u.username
-            assert body.get("fname") is None
-            assert body.get("lname") is None
+            assert body.get("fname") == ""
+            assert body.get("lname") == ""
         
         resp = client.get(f"/users/{u2.id + 50}")
         assert resp.status_code == 404
@@ -121,4 +121,7 @@ class TestUser:
         assert resp.status_code == 405
 
         resp = client.patch("/users/john", json=info)
+        assert resp.status_code == 422
+
+        resp = client.patch(f"/users/{u1.id}", json={"wrong": "fields", "in": "body"})
         assert resp.status_code == 422

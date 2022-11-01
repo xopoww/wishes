@@ -231,6 +231,7 @@ definitions:
         type: string
       lname:
         type: string
+    required: [fname,lname]
 
   User:
     allOf:
