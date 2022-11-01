@@ -1,4 +1,7 @@
+from datetime import datetime, timedelta
 import typing as ty
+import pytest
+import jwt
 
 from .user import User
 from .client import Client
@@ -33,6 +36,27 @@ class TestAuth:
         resp = u3.login(client)
         assert resp.status_code == 200
         assert resp.json()["ok"] == False
+    
+    @pytest.mark.parametrize("payload,secret", [
+        ({
+            "iat": datetime.now(),
+            "nbf": datetime.now() - timedelta(seconds=5),
+            "exp": datetime.now() + timedelta(hours=1),
+            "sub": "test",
+            "alg": "HS256"
+        }, "wrong-secret"),
+        ({
+            "iat": datetime.now(),
+            "nbf": datetime.now() - timedelta(seconds=5),
+            "exp": datetime.now() + timedelta(hours=1),
+            "sub": "test",
+            "alg": "none",
+        }, "")
+    ])
+    def test_token(self, client: Client, payload, secret):
+        client.token = jwt.encode(payload=payload, key=secret)
+        resp = client.get("/users/1")
+        assert resp.status_code == 401
 
 
 class TestUser:
