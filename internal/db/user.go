@@ -11,7 +11,7 @@ import (
 )
 
 type User struct {
-	ID   int64    `db:"user_id"`
+	ID   int64    `db:"id"`
 	Name string `db:"user_name"`
 
 	FirstName string `db:"fname"`
@@ -28,7 +28,7 @@ func CheckUser(username string) (id int64, err error) {
 		return 0, ErrNotConnected
 	}
 
-	err = sqlx.Get(tracer(db), &id, `SELECT user_id FROM Users WHERE user_name = $1`, username)
+	err = sqlx.Get(tracer(db), &id, `SELECT id FROM Users WHERE user_name = $1`, username)
 	if errors.Is(err, sql.ErrNoRows) {
 		err = ErrNotFound
 	}
@@ -75,7 +75,7 @@ func GetFullUser(username string) (user *User, passHash []byte, err error) {
 		User
 		Hash string `db:"pwd_hash"`
 	}{}
-	err = sqlx.Get(tracer(db), full, `SELECT user_id, fname, lname, pwd_hash FROM Users WHERE user_name = $1`, username)
+	err = sqlx.Get(tracer(db), full, `SELECT id, fname, lname, pwd_hash FROM Users WHERE user_name = $1`, username)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil, ErrNotFound
 	}
@@ -99,7 +99,7 @@ func GetUserById(id int64) (*User, error) {
 	}
 
 	user := &User{ID: id}
-	err := sqlx.Get(tracer(db), user, `SELECT user_name, fname, lname FROM Users WHERE user_id = $1`, id)
+	err := sqlx.Get(tracer(db), user, `SELECT user_name, fname, lname FROM Users WHERE id = $1`, id)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, ErrNotFound
 	}
@@ -116,7 +116,7 @@ func EditUserInfo(user *User) error {
 	}
 
 	r, err := sqlx.NamedExec(tracer(db),
-		`UPDATE Users SET fname = :fname, lname = :lname WHERE user_id = :user_id`,
+		`UPDATE Users SET fname = :fname, lname = :lname WHERE id = :id`,
 		user,
 	)
 	if err != nil {
