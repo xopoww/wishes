@@ -11,5 +11,11 @@ type Trace struct {
 	OnPatchUser func(OnPatchUserStartInfo) func(OnPatchUserDoneInfo)
 	OnRegister  func(OnRegisterStartInfo) func(OnRegisterDoneInfo)
 
+	OnGetList func(OnGetListStartInfo) func(OnGetListDoneInfo)
+	OnPostList func(OnPostListStartInfo) func(OnPostListDoneInfo)
+	OnPatchList func(OnPatchListStartInfo) func(OnPatchListDoneInfo)
+	OnDeleteList func(OnDeleteListStartInfo) func(OnDeleteListDoneInfo)
+	OnGetUserLists func(OnGetUserListsStartInfo) func(OnGetUserListsDoneInfo)
+
 	OnKeySecurityAuth func(OnKeySecurityAuthStartInfo) func(OnKeySecurityAuthDoneInfo)
 }

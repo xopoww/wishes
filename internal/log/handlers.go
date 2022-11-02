@@ -26,13 +26,13 @@ func Handlers(l zerolog.Logger) (t handlers.Trace) {
 		return func(di handlers.OnGetUserDoneInfo) {
 			if di.Error != nil {
 				l.Error().
-					Int("user_id", si.UserID).
+					Int64("user_id", si.UserID).
 					Str("principal", string(*si.Principal)).
 					Err(di.Error).
 					Msg("get user error")
 			} else {
 				l.Debug().
-					Int("user_id", si.UserID).
+					Int64("user_id", si.UserID).
 					Str("principal", string(*si.Principal)).
 					Msg("get user done")
 			}
@@ -43,13 +43,13 @@ func Handlers(l zerolog.Logger) (t handlers.Trace) {
 		return func(di handlers.OnPatchUserDoneInfo) {
 			if di.Error != nil {
 				l.Error().
-					Int("id", si.ID).
+					Int64("id", si.UserID).
 					Str("principal", string(*si.Principal)).
 					Err(di.Error).
 					Msg("patch user error")
 			} else {
 				l.Debug().
-					Int("id", si.ID).
+					Int64("id", si.UserID).
 					Str("principal", string(*si.Principal)).
 					Msg("patch user done")
 			}

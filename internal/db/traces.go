@@ -12,7 +12,6 @@ type (
 		OnExec  func(OnExecStartInfo) func(OnExecDoneInfo)
 
 		OnConnect   func(OnConnectStartInfo) func(OnConnectDoneInfo)
-		OnCheckUser func(OnCheckUserStartInfo) func(OnCheckUserDoneInfo)
 	}
 	OnQueryStartInfo struct {
 		Method string
@@ -31,11 +30,6 @@ type (
 		Result sql.Result
 		Error  error
 	}
-
-	OnCheckUserStartInfo struct {
-		Username string
-	}
-	OnCheckUserDoneInfo struct{}
 
 	OnConnectStartInfo struct {
 		DBS string

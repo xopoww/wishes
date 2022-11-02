@@ -81,30 +81,6 @@ func (t Trace) Compose(x Trace) (ret Trace) {
 			}
 		}
 	}
-	switch {
-	case t.OnCheckUser == nil:
-		ret.OnCheckUser = x.OnCheckUser
-	case x.OnCheckUser == nil:
-		ret.OnCheckUser = t.OnCheckUser
-	default:
-		h1 := t.OnCheckUser
-		h2 := x.OnCheckUser
-		ret.OnCheckUser = func(o OnCheckUserStartInfo) func(OnCheckUserDoneInfo) {
-			r1 := h1(o)
-			r2 := h2(o)
-			switch {
-			case r1 == nil:
-				return r2
-			case r2 == nil:
-				return r1
-			default:
-				return func(o OnCheckUserDoneInfo) {
-					r1(o)
-					r2(o)
-				}
-			}
-		}
-	}
 	return ret
 }
 func (t Trace) onQuery(o OnQueryStartInfo) func(OnQueryDoneInfo) {
@@ -152,21 +128,6 @@ func (t Trace) onConnect(o OnConnectStartInfo) func(OnConnectDoneInfo) {
 	}
 	return res
 }
-func (t Trace) onCheckUser(o OnCheckUserStartInfo) func(OnCheckUserDoneInfo) {
-	fn := t.OnCheckUser
-	if fn == nil {
-		return func(OnCheckUserDoneInfo) {
-			return
-		}
-	}
-	res := fn(o)
-	if res == nil {
-		return func(OnCheckUserDoneInfo) {
-			return
-		}
-	}
-	return res
-}
 func traceOnQuery(t Trace, method string, query string, args []interface{}) func(error) {
 	var p OnQueryStartInfo
 	p.Method = method
@@ -197,15 +158,6 @@ func traceOnConnect(t Trace, dBS string) func() {
 	res := t.onConnect(p)
 	return func() {
 		var p OnConnectDoneInfo
-		res(p)
-	}
-}
-func traceOnCheckUser(t Trace, username string) func() {
-	var p OnCheckUserStartInfo
-	p.Username = username
-	res := t.onCheckUser(p)
-	return func() {
-		var p OnCheckUserDoneInfo
 		res(p)
 	}
 }

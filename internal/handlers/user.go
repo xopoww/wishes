@@ -12,7 +12,7 @@ import (
 
 type (
 	OnGetUserStartInfo struct {
-		UserID    int
+		UserID    int64
 		Principal *models.Principal
 	}
 	OnGetUserDoneInfo struct {
@@ -23,7 +23,7 @@ type (
 
 func GetUser(t Trace) operations.GetUserHandler {
 	return operations.GetUserHandlerFunc(func(gup operations.GetUserParams, p *models.Principal) middleware.Responder {
-		id := int(gup.ID)
+		id := gup.ID
 
 		onDone := traceOnGetUser(t, id, p)
 		payload := &models.User{}
@@ -50,7 +50,7 @@ func GetUser(t Trace) operations.GetUserHandler {
 
 type (
 	OnPatchUserStartInfo struct {
-		ID        int
+		UserID        int64
 		Info      models.UserInfo
 		Principal *models.Principal
 	}
@@ -63,14 +63,14 @@ type (
 func PatchUser(t Trace) operations.PatchUserHandler {
 	return operations.PatchUserHandlerFunc(func(pup operations.PatchUserParams, p *models.Principal) middleware.Responder {
 
-		onDone := traceOnPatchUser(t, int(pup.ID), *pup.User, p)
+		onDone := traceOnPatchUser(t, pup.ID, *pup.User, p)
 		var err error
 		defer func() {
 			onDone(err)
 		}()
 
 		user := &db.User{
-			ID:        int(pup.ID),
+			ID:        pup.ID,
 			FirstName: *pup.User.Fname,
 			LastName:  *pup.User.Lname,
 		}

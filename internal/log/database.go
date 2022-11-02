@@ -73,17 +73,6 @@ func Database(l zerolog.Logger) (t db.Trace) {
 				Msg("connect finished")
 		}
 	}
-
-	t.OnCheckUser = func(si db.OnCheckUserStartInfo) func(db.OnCheckUserDoneInfo) {
-		l.Debug().
-			Str("username", si.Username).
-			Msg("check user start")
-		start := time.Now()
-		return func(di db.OnCheckUserDoneInfo) {
-			l.Debug().
-				TimeDiff("latency", time.Now(), start).
-				Msg("check user done")
-		}
-	}
+	
 	return t
 }

@@ -106,6 +106,126 @@ func (t Trace) Compose(x Trace) (ret Trace) {
 		}
 	}
 	switch {
+	case t.OnGetList == nil:
+		ret.OnGetList = x.OnGetList
+	case x.OnGetList == nil:
+		ret.OnGetList = t.OnGetList
+	default:
+		h1 := t.OnGetList
+		h2 := x.OnGetList
+		ret.OnGetList = func(o OnGetListStartInfo) func(OnGetListDoneInfo) {
+			r1 := h1(o)
+			r2 := h2(o)
+			switch {
+			case r1 == nil:
+				return r2
+			case r2 == nil:
+				return r1
+			default:
+				return func(o OnGetListDoneInfo) {
+					r1(o)
+					r2(o)
+				}
+			}
+		}
+	}
+	switch {
+	case t.OnPostList == nil:
+		ret.OnPostList = x.OnPostList
+	case x.OnPostList == nil:
+		ret.OnPostList = t.OnPostList
+	default:
+		h1 := t.OnPostList
+		h2 := x.OnPostList
+		ret.OnPostList = func(o OnPostListStartInfo) func(OnPostListDoneInfo) {
+			r1 := h1(o)
+			r2 := h2(o)
+			switch {
+			case r1 == nil:
+				return r2
+			case r2 == nil:
+				return r1
+			default:
+				return func(o OnPostListDoneInfo) {
+					r1(o)
+					r2(o)
+				}
+			}
+		}
+	}
+	switch {
+	case t.OnPatchList == nil:
+		ret.OnPatchList = x.OnPatchList
+	case x.OnPatchList == nil:
+		ret.OnPatchList = t.OnPatchList
+	default:
+		h1 := t.OnPatchList
+		h2 := x.OnPatchList
+		ret.OnPatchList = func(o OnPatchListStartInfo) func(OnPatchListDoneInfo) {
+			r1 := h1(o)
+			r2 := h2(o)
+			switch {
+			case r1 == nil:
+				return r2
+			case r2 == nil:
+				return r1
+			default:
+				return func(o OnPatchListDoneInfo) {
+					r1(o)
+					r2(o)
+				}
+			}
+		}
+	}
+	switch {
+	case t.OnDeleteList == nil:
+		ret.OnDeleteList = x.OnDeleteList
+	case x.OnDeleteList == nil:
+		ret.OnDeleteList = t.OnDeleteList
+	default:
+		h1 := t.OnDeleteList
+		h2 := x.OnDeleteList
+		ret.OnDeleteList = func(o OnDeleteListStartInfo) func(OnDeleteListDoneInfo) {
+			r1 := h1(o)
+			r2 := h2(o)
+			switch {
+			case r1 == nil:
+				return r2
+			case r2 == nil:
+				return r1
+			default:
+				return func(o OnDeleteListDoneInfo) {
+					r1(o)
+					r2(o)
+				}
+			}
+		}
+	}
+	switch {
+	case t.OnGetUserLists == nil:
+		ret.OnGetUserLists = x.OnGetUserLists
+	case x.OnGetUserLists == nil:
+		ret.OnGetUserLists = t.OnGetUserLists
+	default:
+		h1 := t.OnGetUserLists
+		h2 := x.OnGetUserLists
+		ret.OnGetUserLists = func(o OnGetUserListsStartInfo) func(OnGetUserListsDoneInfo) {
+			r1 := h1(o)
+			r2 := h2(o)
+			switch {
+			case r1 == nil:
+				return r2
+			case r2 == nil:
+				return r1
+			default:
+				return func(o OnGetUserListsDoneInfo) {
+					r1(o)
+					r2(o)
+				}
+			}
+		}
+	}
+	switch {
 	case t.OnKeySecurityAuth == nil:
 		ret.OnKeySecurityAuth = x.OnKeySecurityAuth
 	case x.OnKeySecurityAuth == nil:
@@ -191,6 +311,81 @@ func (t Trace) onRegister(o OnRegisterStartInfo) func(OnRegisterDoneInfo) {
 	}
 	return res
 }
+func (t Trace) onGetList(o OnGetListStartInfo) func(OnGetListDoneInfo) {
+	fn := t.OnGetList
+	if fn == nil {
+		return func(OnGetListDoneInfo) {
+			return
+		}
+	}
+	res := fn(o)
+	if res == nil {
+		return func(OnGetListDoneInfo) {
+			return
+		}
+	}
+	return res
+}
+func (t Trace) onPostList(o OnPostListStartInfo) func(OnPostListDoneInfo) {
+	fn := t.OnPostList
+	if fn == nil {
+		return func(OnPostListDoneInfo) {
+			return
+		}
+	}
+	res := fn(o)
+	if res == nil {
+		return func(OnPostListDoneInfo) {
+			return
+		}
+	}
+	return res
+}
+func (t Trace) onPatchList(o OnPatchListStartInfo) func(OnPatchListDoneInfo) {
+	fn := t.OnPatchList
+	if fn == nil {
+		return func(OnPatchListDoneInfo) {
+			return
+		}
+	}
+	res := fn(o)
+	if res == nil {
+		return func(OnPatchListDoneInfo) {
+			return
+		}
+	}
+	return res
+}
+func (t Trace) onDeleteList(o OnDeleteListStartInfo) func(OnDeleteListDoneInfo) {
+	fn := t.OnDeleteList
+	if fn == nil {
+		return func(OnDeleteListDoneInfo) {
+			return
+		}
+	}
+	res := fn(o)
+	if res == nil {
+		return func(OnDeleteListDoneInfo) {
+			return
+		}
+	}
+	return res
+}
+func (t Trace) onGetUserLists(o OnGetUserListsStartInfo) func(OnGetUserListsDoneInfo) {
+	fn := t.OnGetUserLists
+	if fn == nil {
+		return func(OnGetUserListsDoneInfo) {
+			return
+		}
+	}
+	res := fn(o)
+	if res == nil {
+		return func(OnGetUserListsDoneInfo) {
+			return
+		}
+	}
+	return res
+}
 func (t Trace) onKeySecurityAuth(o OnKeySecurityAuthStartInfo) func(OnKeySecurityAuthDoneInfo) {
 	fn := t.OnKeySecurityAuth
 	if fn == nil {
@@ -217,7 +412,7 @@ func traceOnLogin(t Trace, username string) func(ok bool, _ error) {
 		res(p)
 	}
 }
-func traceOnGetUser(t Trace, userID int, p *models.Principal) func(*models.User, error) {
+func traceOnGetUser(t Trace, userID int64, p *models.Principal) func(*models.User, error) {
 	var p1 OnGetUserStartInfo
 	p1.UserID = userID
 	p1.Principal = p
@@ -229,9 +424,9 @@ func traceOnGetUser(t Trace, userID int, p *models.Principal) func(*models.User,
 		res(p)
 	}
 }
-func traceOnPatchUser(t Trace, iD int, info models.UserInfo, p *models.Principal) func(error) {
+func traceOnPatchUser(t Trace, userID int64, info models.UserInfo, p *models.Principal) func(error) {
 	var p1 OnPatchUserStartInfo
-	p1.ID = iD
+	p1.UserID = userID
 	p1.Info = info
 	p1.Principal = p
 	res := t.onPatchUser(p1)
@@ -248,6 +443,65 @@ func traceOnRegister(t Trace, username string) func(ok bool, _ error) {
 	return func(ok bool, e error) {
 		var p OnRegisterDoneInfo
 		p.Ok = ok
+		p.Error = e
+		res(p)
+	}
+}
+func traceOnGetList(t Trace, listID int64, p *models.Principal) func(*models.List, error) {
+	var p1 OnGetListStartInfo
+	p1.ListID = listID
+	p1.Principal = p
+	res := t.onGetList(p1)
+	return func(l *models.List, e error) {
+		var p OnGetListDoneInfo
+		p.List = l
+		p.Error = e
+		res(p)
+	}
+}
+func traceOnPostList(t Trace, l models.List, p *models.Principal) func(listID int64, _ error) {
+	var p1 OnPostListStartInfo
+	p1.List = l
+	p1.Principal = p
+	res := t.onPostList(p1)
+	return func(listID int64, e error) {
+		var p OnPostListDoneInfo
+		p.ListID = listID
+		p.Error = e
+		res(p)
+	}
+}
+func traceOnPatchList(t Trace, listID int64, l models.List, p *models.Principal) func(error) {
+	var p1 OnPatchListStartInfo
+	p1.ListID = listID
+	p1.List = l
+	p1.Principal = p
+	res := t.onPatchList(p1)
+	return func(e error) {
+		var p OnPatchListDoneInfo
+		p.Error = e
+		res(p)
+	}
+}
+func traceOnDeleteList(t Trace, listID int64, p *models.Principal) func(error) {
+	var p1 OnDeleteListStartInfo
+	p1.ListID = listID
+	p1.Principal = p
+	res := t.onDeleteList(p1)
+	return func(e error) {
+		var p OnDeleteListDoneInfo
+		p.Error = e
+		res(p)
+	}
+}
+func traceOnGetUserLists(t Trace, userID int64, p *models.Principal) func(listIDs []int64, _ error) {
+	var p1 OnGetUserListsStartInfo
+	p1.UserID = userID
+	p1.Principal = p
+	res := t.onGetUserLists(p1)
+	return func(listIDs []int64, e error) {
+		var p OnGetUserListsDoneInfo
+		p.ListIDs = listIDs
 		p.Error = e
 		res(p)
 	}

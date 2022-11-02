@@ -11,7 +11,7 @@ import (
 )
 
 type User struct {
-	ID   int    `db:"user_id"`
+	ID   int64    `db:"user_id"`
 	Name string `db:"user_name"`
 
 	FirstName string `db:"fname"`
@@ -23,10 +23,7 @@ var (
 	ErrNotFound  = errors.New("not found")
 )
 
-func CheckUser(username string) (id int, err error) {
-	onDone := traceOnCheckUser(t, username)
-	defer func() { onDone() }()
-
+func CheckUser(username string) (id int64, err error) {
 	if db == nil {
 		return 0, ErrNotConnected
 	}
@@ -63,7 +60,7 @@ func AddUser(username string, passHash []byte) (*User, error) {
 		return nil, fmt.Errorf("get id: %w", err)
 	}
 	return &User{
-		ID:   int(id),
+		ID:   id,
 		Name: username,
 	}, nil
 }
@@ -96,7 +93,7 @@ func GetFullUser(username string) (user *User, passHash []byte, err error) {
 	return user, passHash, nil
 }
 
-func GetUserById(id int) (*User, error) {
+func GetUserById(id int64) (*User, error) {
 	if db == nil {
 		return nil, ErrNotConnected
 	}
