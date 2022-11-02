@@ -50,7 +50,7 @@ func GetUser(t Trace) operations.GetUserHandler {
 
 type (
 	OnPatchUserStartInfo struct {
-		UserID        int64
+		UserID    int64
 		Info      models.UserInfo
 		Principal *models.Principal
 	}

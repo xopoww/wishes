@@ -18,6 +18,7 @@ func Connect(dbs string) (err error) {
 	onDone := traceOnConnect(t, dbs)
 	defer onDone()
 
+	dbs += "?_foreign_keys=1"
 	db, err = sqlx.Connect("sqlite3", dbs)
 	if err != nil {
 		return err

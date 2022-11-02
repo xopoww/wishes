@@ -9,17 +9,8 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/xopoww/wishes/internal/auth"
 	"github.com/xopoww/wishes/internal/models"
+	"github.com/xopoww/wishes/internal/testutil"
 )
-
-type anyError struct{}
-
-func (anyError) Error() string {
-	return "any error"
-}
-
-func (anyError) Is(err error) bool {
-	return err != nil
-}
 
 func TestValidateToken(t *testing.T) {
 	now := time.Now().Add(time.Second * -2)
@@ -70,7 +61,7 @@ func TestValidateToken(t *testing.T) {
 				ExpiresAt: jwt.NewNumericDate(now.Add(time.Hour * 1).Add(time.Hour)),
 				Subject:   user,
 			}), secret),
-			wantErr: anyError{},
+			wantErr: testutil.AnyError{},
 		},
 		{
 			name: "missing exp",
@@ -88,7 +79,7 @@ func TestValidateToken(t *testing.T) {
 				ExpiresAt: jwt.NewNumericDate(now.Add(time.Hour)),
 				Subject:   user,
 			}), secret),
-			wantErr: anyError{},
+			wantErr: testutil.AnyError{},
 		},
 		{
 			name: "wrong method",
@@ -98,7 +89,7 @@ func TestValidateToken(t *testing.T) {
 				ExpiresAt: jwt.NewNumericDate(now.Add(time.Hour * 24)),
 				Subject:   user,
 			}), jwt.UnsafeAllowNoneSignatureType),
-			wantErr: anyError{},
+			wantErr: testutil.AnyError{},
 		},
 		{
 			name: "wrong secret",
@@ -108,7 +99,7 @@ func TestValidateToken(t *testing.T) {
 				ExpiresAt: jwt.NewNumericDate(now.Add(time.Hour * 24)),
 				Subject:   user,
 			}), []byte("fake-not-awesome-secret")),
-			wantErr: anyError{},
+			wantErr: testutil.AnyError{},
 		},
 	}
 

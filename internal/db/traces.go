@@ -11,7 +11,7 @@ type (
 		OnQuery func(OnQueryStartInfo) func(OnQueryDoneInfo)
 		OnExec  func(OnExecStartInfo) func(OnExecDoneInfo)
 
-		OnConnect   func(OnConnectStartInfo) func(OnConnectDoneInfo)
+		OnConnect func(OnConnectStartInfo) func(OnConnectDoneInfo)
 	}
 	OnQueryStartInfo struct {
 		Method string

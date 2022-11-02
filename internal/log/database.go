@@ -73,6 +73,6 @@ func Database(l zerolog.Logger) (t db.Trace) {
 				Msg("connect finished")
 		}
 	}
-	
+
 	return t
 }

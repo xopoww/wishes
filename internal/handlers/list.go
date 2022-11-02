@@ -8,7 +8,7 @@ import (
 
 type (
 	OnGetListStartInfo struct {
-		ListID int64
+		ListID    int64
 		Principal *models.Principal
 	}
 	OnGetListDoneInfo struct {
@@ -16,15 +16,23 @@ type (
 		Error error
 	}
 )
+
 func GetList(t Trace) operations.GetListHandler {
 	return operations.GetListHandlerFunc(func(glp operations.GetListParams, p *models.Principal) middleware.Responder {
+		onDone := traceOnGetList(t, glp.ID, p)
+		var (
+			payload *models.List
+			err     error
+		)
+		defer func() { onDone(payload, err) }()
+
 		return nil
 	})
 }
 
 type (
 	OnPostListStartInfo struct {
-		List models.List
+		List      models.List
 		Principal *models.Principal
 	}
 	OnPostListDoneInfo struct {
@@ -32,23 +40,24 @@ type (
 		Error  error
 	}
 )
+
 func PostList(t Trace) operations.PostListHandler {
 	return operations.PostListHandlerFunc(func(plp operations.PostListParams, p *models.Principal) middleware.Responder {
 		return nil
 	})
 }
 
-
 type (
 	OnPatchListStartInfo struct {
-		ListID int64
-		List  models.List
+		ListID    int64
+		List      models.List
 		Principal *models.Principal
 	}
 	OnPatchListDoneInfo struct {
 		Error error
 	}
 )
+
 func PatchList(t Trace) operations.PatchListHandler {
 	return operations.PatchListHandlerFunc(func(plp operations.PatchListParams, p *models.Principal) middleware.Responder {
 		return nil
@@ -57,13 +66,14 @@ func PatchList(t Trace) operations.PatchListHandler {
 
 type (
 	OnDeleteListStartInfo struct {
-		ListID int64
+		ListID    int64
 		Principal *models.Principal
 	}
 	OnDeleteListDoneInfo struct {
 		Error error
 	}
 )
+
 func DeleteList(t Trace) operations.DeleteListHandler {
 	return operations.DeleteListHandlerFunc(func(dlp operations.DeleteListParams, p *models.Principal) middleware.Responder {
 		return nil
@@ -72,14 +82,15 @@ func DeleteList(t Trace) operations.DeleteListHandler {
 
 type (
 	OnGetUserListsStartInfo struct {
-		UserID int64
+		UserID    int64
 		Principal *models.Principal
 	}
 	OnGetUserListsDoneInfo struct {
 		ListIDs []int64
-		Error error
+		Error   error
 	}
 )
+
 func GetUserLists(t Trace) operations.GetUserListsHandler {
 	return operations.GetUserListsHandlerFunc(func(gulp operations.GetUserListsParams, p *models.Principal) middleware.Responder {
 		return nil

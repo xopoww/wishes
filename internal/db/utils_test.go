@@ -17,6 +17,16 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/database/sqlite3"
 )
 
+type migrateLogger struct {
+	l zerolog.Logger
+}
+
+func (l migrateLogger) Printf(format string, a ...interface{}) {
+	l.l.Trace().Msgf(format, a...)
+}
+
+func (l migrateLogger) Verbose() bool { return testing.Verbose() }
+
 //go:embed migrations/*.sql
 var migrations embed.FS
 
@@ -39,6 +49,7 @@ func newTestDatabase(t *testing.T, extra ...*migrate.Migration) string {
 	if err != nil {
 		t.Fatalf("new migrate: %s", err)
 	}
+	m.Log = migrateLogger{l: zerologger(t)}
 	if err := m.Up(); err != nil {
 		t.Fatalf("migrate up: %s", err)
 	}
@@ -64,8 +75,11 @@ func upMigrationFromString(t *testing.T, body string, version int) *migrate.Migr
 	return migration
 }
 
-func withTrace(t *testing.T) {
+func zerologger(t *testing.T) zerolog.Logger {
 	output := zerolog.NewConsoleWriter(zerolog.ConsoleTestWriter(t))
-	logger := zerolog.New(output)
-	log.WithTraces(logger)
+	return zerolog.New(output)
+}
+
+func withTrace(t *testing.T) {
+	log.WithTraces(zerologger(t))
 }
