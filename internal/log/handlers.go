@@ -2,7 +2,7 @@ package log
 
 import (
 	"github.com/rs/zerolog"
-	"github.com/xopoww/wishes/internal/handlers"
+	"github.com/xopoww/wishes/internal/controllers/handlers"
 )
 
 func Handlers(l zerolog.Logger) (t handlers.Trace) {
@@ -27,13 +27,19 @@ func Handlers(l zerolog.Logger) (t handlers.Trace) {
 			if di.Error != nil {
 				l.Error().
 					Int64("user_id", si.UserID).
-					Str("principal", string(*si.Principal)).
+					Dict("client", zerolog.Dict().
+						Str("name", si.Client.Name).
+						Int64("id", si.Client.ID),
+					).
 					Err(di.Error).
 					Msg("get user error")
 			} else {
 				l.Debug().
 					Int64("user_id", si.UserID).
-					Str("principal", string(*si.Principal)).
+					Dict("client", zerolog.Dict().
+						Str("name", si.Client.Name).
+						Int64("id", si.Client.ID),
+					).
 					Msg("get user done")
 			}
 		}
@@ -43,14 +49,20 @@ func Handlers(l zerolog.Logger) (t handlers.Trace) {
 		return func(di handlers.OnPatchUserDoneInfo) {
 			if di.Error != nil {
 				l.Error().
-					Int64("id", si.UserID).
-					Str("principal", string(*si.Principal)).
+					Int64("id", si.User.ID).
+					Dict("client", zerolog.Dict().
+						Str("name", si.Client.Name).
+						Int64("id", si.Client.ID),
+					).
 					Err(di.Error).
 					Msg("patch user error")
 			} else {
 				l.Debug().
-					Int64("id", si.UserID).
-					Str("principal", string(*si.Principal)).
+					Int64("id", si.User.ID).
+					Dict("client", zerolog.Dict().
+						Str("name", si.Client.Name).
+						Int64("id", si.Client.ID),
+					).
 					Msg("patch user done")
 			}
 		}
@@ -75,9 +87,16 @@ func Handlers(l zerolog.Logger) (t handlers.Trace) {
 	t.OnKeySecurityAuth = func(si handlers.OnKeySecurityAuthStartInfo) func(handlers.OnKeySecurityAuthDoneInfo) {
 		return func(di handlers.OnKeySecurityAuthDoneInfo) {
 			if di.Err != nil {
-				l.Warn().AnErr("validate-error", di.Err).Msg("invalid key auth")
+				l.Warn().
+					AnErr("validate-error", di.Err).
+					Msg("invalid key auth")
 			} else {
-				l.Debug().Str("principal", string(*di.Principal)).Msg("new key auth")
+				l.Debug().
+					Dict("client", zerolog.Dict().
+						Str("name", di.Client.Name).
+						Int64("id", di.Client.ID),
+					).
+					Msg("new key auth")
 			}
 		}
 	}

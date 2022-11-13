@@ -7,7 +7,6 @@ COPY .git/        ./.git/
 COPY api/         ./api/
 COPY cmd/         ./cmd/
 COPY internal/    ./internal/
-COPY models/      ./models/
 COPY restapi/     ./restapi/
 COPY scripts/     ./scripts/
 COPY go.mod       ./
@@ -33,7 +32,7 @@ FROM go-base as sql-migrate
 
 WORKDIR /db
 COPY --from=clone /repo/scripts/                ./scripts
-COPY --from=clone /repo/internal/db/migrations/ ./internal/db/migrations/
+COPY --from=clone /repo/internal/repository/sqlite/migrations/ ./internal/repository/sqlite/migrations/
 
 RUN go install -tags 'sqlite3' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
 

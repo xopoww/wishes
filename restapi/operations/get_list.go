@@ -15,20 +15,20 @@ import (
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 
-	"github.com/xopoww/wishes/internal/models"
+	"github.com/xopoww/wishes/restapi/apimodels"
 )
 
 // GetListHandlerFunc turns a function with the right signature into a get list handler
-type GetListHandlerFunc func(GetListParams, *models.Principal) middleware.Responder
+type GetListHandlerFunc func(GetListParams, *apimodels.Principal) middleware.Responder
 
 // Handle executing the request and returning a response
-func (fn GetListHandlerFunc) Handle(params GetListParams, principal *models.Principal) middleware.Responder {
+func (fn GetListHandlerFunc) Handle(params GetListParams, principal *apimodels.Principal) middleware.Responder {
 	return fn(params, principal)
 }
 
 // GetListHandler interface for that can handle valid get list params
 type GetListHandler interface {
-	Handle(GetListParams, *models.Principal) middleware.Responder
+	Handle(GetListParams, *apimodels.Principal) middleware.Responder
 }
 
 // NewGetList creates a new http.Handler for the get list operation
@@ -60,9 +60,9 @@ func (o *GetList) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	if aCtx != nil {
 		*r = *aCtx
 	}
-	var principal *models.Principal
+	var principal *apimodels.Principal
 	if uprinc != nil {
-		principal = uprinc.(*models.Principal) // this is really a models.Principal, I promise
+		principal = uprinc.(*apimodels.Principal) // this is really a apimodels.Principal, I promise
 	}
 
 	if err := o.Context.BindValidRequest(r, route, &Params); err != nil { // bind params

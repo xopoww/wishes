@@ -12,18 +12,18 @@ import (
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
 
-	"github.com/xopoww/wishes/internal/auth"
-	"github.com/xopoww/wishes/internal/db"
-	"github.com/xopoww/wishes/internal/handlers"
+	"github.com/xopoww/wishes/internal/controllers/handlers"
 	"github.com/xopoww/wishes/internal/log"
 	"github.com/xopoww/wishes/internal/meta"
+	"github.com/xopoww/wishes/internal/repository/sqlite"
+	"github.com/xopoww/wishes/internal/service"
 	"github.com/xopoww/wishes/restapi/operations"
 
 	"github.com/rs/zerolog/hlog"
 )
 
 //go:generate go run ./clean.go --quiet
-//go:generate swagger generate server --quiet --target ../../wishes --name Wishes --spec ../api/wishes.yml --principal models.Principal -m internal/models
+//go:generate swagger generate server --quiet --target ../../wishes --name Wishes --spec ../api/wishes.yml --principal apimodels.Principal -m restapi/apimodels
 
 func configureFlags(api *operations.WishesAPI) {
 	// api.CommandLineOptionsGroups = []swag.CommandLineOptionsGroup{ ... }
@@ -31,25 +31,15 @@ func configureFlags(api *operations.WishesAPI) {
 
 func configureAPI(api *operations.WishesAPI) http.Handler {
 	l := log.Logger()
-	log.WithTraces(l)
 
 	//TODO: move somewhere else
 	dbs, exists := os.LookupEnv("WISHES_DBS")
 	if !exists {
 		l.Fatal().Msg("WISHES_DBS is not set")
 	}
-	if err := db.Connect(dbs); err != nil {
-		l.Fatal().Err(err).Msg("connect failed")
-	}
-	if _, err := db.CheckUser("test"); err != nil {
-		hash, err := auth.HashPassword("test")
-		if err != nil {
-			l.Fatal().Err(err).Msg("hash test pwd failed")
-		}
-		_, err = db.AddUser("test", hash)
-		if err != nil {
-			l.Fatal().Err(err).Msg("add test user failed")
-		}
+	repo, err := sqlite.NewRepository(dbs, log.Sqlite(l))
+	if err != nil {
+		l.Fatal().Err(err).Msg("connect to repository failed")
 	}
 
 	l.Debug().
@@ -80,21 +70,22 @@ func configureAPI(api *operations.WishesAPI) http.Handler {
 	// Example:
 	// api.APIAuthorizer = security.Authorized()
 
-	ht := log.Handlers(l)
+	serv := service.NewService(repo)
+	controller := handlers.NewApiController(log.Handlers(l), serv)
 
 	// Applies when the "x-token" header is set
-	api.KeySecurityAuth = handlers.KeySecurityAuth(ht)
+	api.KeySecurityAuth = controller.KeySecurityAuth()
 
-	api.LoginHandler = handlers.Login(ht)
+	api.LoginHandler = controller.Login()
 
-	api.GetUserHandler = handlers.GetUser(ht)
-	api.PatchUserHandler = handlers.PatchUser(ht)
-	api.RegisterHandler = handlers.Register(ht)
+	api.GetUserHandler = controller.GetUser()
+	api.PatchUserHandler = controller.PatchUser()
+	api.RegisterHandler = controller.Register()
 
 	api.PreServerShutdown = func() {}
 
 	api.ServerShutdown = func() {
-		if err := db.Disconnect(); err != nil {
+		if err := repo.Close(); err != nil {
 			l.Error().Err(err).Msg("db disconnect failed")
 		}
 	}

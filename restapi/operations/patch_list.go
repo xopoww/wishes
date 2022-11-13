@@ -15,20 +15,20 @@ import (
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 
-	"github.com/xopoww/wishes/internal/models"
+	"github.com/xopoww/wishes/restapi/apimodels"
 )
 
 // PatchListHandlerFunc turns a function with the right signature into a patch list handler
-type PatchListHandlerFunc func(PatchListParams, *models.Principal) middleware.Responder
+type PatchListHandlerFunc func(PatchListParams, *apimodels.Principal) middleware.Responder
 
 // Handle executing the request and returning a response
-func (fn PatchListHandlerFunc) Handle(params PatchListParams, principal *models.Principal) middleware.Responder {
+func (fn PatchListHandlerFunc) Handle(params PatchListParams, principal *apimodels.Principal) middleware.Responder {
 	return fn(params, principal)
 }
 
 // PatchListHandler interface for that can handle valid patch list params
 type PatchListHandler interface {
-	Handle(PatchListParams, *models.Principal) middleware.Responder
+	Handle(PatchListParams, *apimodels.Principal) middleware.Responder
 }
 
 // NewPatchList creates a new http.Handler for the patch list operation
@@ -60,9 +60,9 @@ func (o *PatchList) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	if aCtx != nil {
 		*r = *aCtx
 	}
-	var principal *models.Principal
+	var principal *apimodels.Principal
 	if uprinc != nil {
-		principal = uprinc.(*models.Principal) // this is really a models.Principal, I promise
+		principal = uprinc.(*apimodels.Principal) // this is really a apimodels.Principal, I promise
 	}
 
 	if err := o.Context.BindValidRequest(r, route, &Params); err != nil { // bind params

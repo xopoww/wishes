@@ -11,29 +11,29 @@ import (
 	"github.com/go-openapi/runtime"
 )
 
-// PatchUserOKCode is the HTTP code returned for type PatchUserOK
-const PatchUserOKCode int = 200
+// PatchUserNoContentCode is the HTTP code returned for type PatchUserNoContent
+const PatchUserNoContentCode int = 204
 
 /*
-PatchUserOK Success
+PatchUserNoContent Success
 
-swagger:response patchUserOK
+swagger:response patchUserNoContent
 */
-type PatchUserOK struct {
+type PatchUserNoContent struct {
 }
 
-// NewPatchUserOK creates PatchUserOK with default headers values
-func NewPatchUserOK() *PatchUserOK {
+// NewPatchUserNoContent creates PatchUserNoContent with default headers values
+func NewPatchUserNoContent() *PatchUserNoContent {
 
-	return &PatchUserOK{}
+	return &PatchUserNoContent{}
 }
 
 // WriteResponse to the client
-func (o *PatchUserOK) WriteResponse(rw http.ResponseWriter, producer runtime.Producer) {
+func (o *PatchUserNoContent) WriteResponse(rw http.ResponseWriter, producer runtime.Producer) {
 
 	rw.Header().Del(runtime.HeaderContentType) //Remove Content-Type on empty responses
 
-	rw.WriteHeader(200)
+	rw.WriteHeader(204)
 }
 
 // PatchUserForbiddenCode is the HTTP code returned for type PatchUserForbidden

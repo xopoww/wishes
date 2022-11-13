@@ -15,20 +15,20 @@ import (
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 
-	"github.com/xopoww/wishes/internal/models"
+	"github.com/xopoww/wishes/restapi/apimodels"
 )
 
 // GetUserHandlerFunc turns a function with the right signature into a get user handler
-type GetUserHandlerFunc func(GetUserParams, *models.Principal) middleware.Responder
+type GetUserHandlerFunc func(GetUserParams, *apimodels.Principal) middleware.Responder
 
 // Handle executing the request and returning a response
-func (fn GetUserHandlerFunc) Handle(params GetUserParams, principal *models.Principal) middleware.Responder {
+func (fn GetUserHandlerFunc) Handle(params GetUserParams, principal *apimodels.Principal) middleware.Responder {
 	return fn(params, principal)
 }
 
 // GetUserHandler interface for that can handle valid get user params
 type GetUserHandler interface {
-	Handle(GetUserParams, *models.Principal) middleware.Responder
+	Handle(GetUserParams, *apimodels.Principal) middleware.Responder
 }
 
 // NewGetUser creates a new http.Handler for the get user operation
@@ -60,9 +60,9 @@ func (o *GetUser) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	if aCtx != nil {
 		*r = *aCtx
 	}
-	var principal *models.Principal
+	var principal *apimodels.Principal
 	if uprinc != nil {
-		principal = uprinc.(*models.Principal) // this is really a models.Principal, I promise
+		principal = uprinc.(*apimodels.Principal) // this is really a apimodels.Principal, I promise
 	}
 
 	if err := o.Context.BindValidRequest(r, route, &Params); err != nil { // bind params

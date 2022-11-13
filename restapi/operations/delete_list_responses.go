@@ -11,29 +11,29 @@ import (
 	"github.com/go-openapi/runtime"
 )
 
-// DeleteListOKCode is the HTTP code returned for type DeleteListOK
-const DeleteListOKCode int = 200
+// DeleteListNoContentCode is the HTTP code returned for type DeleteListNoContent
+const DeleteListNoContentCode int = 204
 
 /*
-DeleteListOK Success
+DeleteListNoContent Success
 
-swagger:response deleteListOK
+swagger:response deleteListNoContent
 */
-type DeleteListOK struct {
+type DeleteListNoContent struct {
 }
 
-// NewDeleteListOK creates DeleteListOK with default headers values
-func NewDeleteListOK() *DeleteListOK {
+// NewDeleteListNoContent creates DeleteListNoContent with default headers values
+func NewDeleteListNoContent() *DeleteListNoContent {
 
-	return &DeleteListOK{}
+	return &DeleteListNoContent{}
 }
 
 // WriteResponse to the client
-func (o *DeleteListOK) WriteResponse(rw http.ResponseWriter, producer runtime.Producer) {
+func (o *DeleteListNoContent) WriteResponse(rw http.ResponseWriter, producer runtime.Producer) {
 
 	rw.Header().Del(runtime.HeaderContentType) //Remove Content-Type on empty responses
 
-	rw.WriteHeader(200)
+	rw.WriteHeader(204)
 }
 
 // DeleteListForbiddenCode is the HTTP code returned for type DeleteListForbidden

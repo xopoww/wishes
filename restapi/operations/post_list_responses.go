@@ -10,7 +10,7 @@ import (
 
 	"github.com/go-openapi/runtime"
 
-	"github.com/xopoww/wishes/internal/models"
+	"github.com/xopoww/wishes/restapi/apimodels"
 )
 
 // PostListCreatedCode is the HTTP code returned for type PostListCreated
@@ -26,7 +26,7 @@ type PostListCreated struct {
 	/*
 	  In: Body
 	*/
-	Payload *models.ID `json:"body,omitempty"`
+	Payload *apimodels.ID `json:"body,omitempty"`
 }
 
 // NewPostListCreated creates PostListCreated with default headers values
@@ -36,13 +36,13 @@ func NewPostListCreated() *PostListCreated {
 }
 
 // WithPayload adds the payload to the post list created response
-func (o *PostListCreated) WithPayload(payload *models.ID) *PostListCreated {
+func (o *PostListCreated) WithPayload(payload *apimodels.ID) *PostListCreated {
 	o.Payload = payload
 	return o
 }
 
 // SetPayload sets the payload to the post list created response
-func (o *PostListCreated) SetPayload(payload *models.ID) {
+func (o *PostListCreated) SetPayload(payload *apimodels.ID) {
 	o.Payload = payload
 }
 

@@ -15,20 +15,20 @@ import (
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 
-	"github.com/xopoww/wishes/internal/models"
+	"github.com/xopoww/wishes/restapi/apimodels"
 )
 
 // PatchUserHandlerFunc turns a function with the right signature into a patch user handler
-type PatchUserHandlerFunc func(PatchUserParams, *models.Principal) middleware.Responder
+type PatchUserHandlerFunc func(PatchUserParams, *apimodels.Principal) middleware.Responder
 
 // Handle executing the request and returning a response
-func (fn PatchUserHandlerFunc) Handle(params PatchUserParams, principal *models.Principal) middleware.Responder {
+func (fn PatchUserHandlerFunc) Handle(params PatchUserParams, principal *apimodels.Principal) middleware.Responder {
 	return fn(params, principal)
 }
 
 // PatchUserHandler interface for that can handle valid patch user params
 type PatchUserHandler interface {
-	Handle(PatchUserParams, *models.Principal) middleware.Responder
+	Handle(PatchUserParams, *apimodels.Principal) middleware.Responder
 }
 
 // NewPatchUser creates a new http.Handler for the patch user operation
@@ -60,9 +60,9 @@ func (o *PatchUser) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	if aCtx != nil {
 		*r = *aCtx
 	}
-	var principal *models.Principal
+	var principal *apimodels.Principal
 	if uprinc != nil {
-		principal = uprinc.(*models.Principal) // this is really a models.Principal, I promise
+		principal = uprinc.(*apimodels.Principal) // this is really a apimodels.Principal, I promise
 	}
 
 	if err := o.Context.BindValidRequest(r, route, &Params); err != nil { // bind params

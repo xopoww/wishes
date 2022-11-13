@@ -6,5 +6,5 @@ if [ $# -eq 0 ] ; then
 fi
 FILE=$1
 
-migrate -path internal/db/migrations/ -database sqlite3://${FILE} down
-migrate -path internal/db/migrations/ -database sqlite3://${FILE} up
+migrate -path internal/repository/sqlite/migrations/ -database sqlite3://${FILE} down
+migrate -path internal/repository/sqlite/migrations/ -database sqlite3://${FILE} up

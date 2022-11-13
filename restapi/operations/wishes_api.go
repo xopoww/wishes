@@ -19,7 +19,7 @@ import (
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 
-	"github.com/xopoww/wishes/internal/models"
+	"github.com/xopoww/wishes/restapi/apimodels"
 )
 
 // NewWishesAPI creates a new Wishes instance
@@ -44,28 +44,28 @@ func NewWishesAPI(spec *loads.Document) *WishesAPI {
 
 		JSONProducer: runtime.JSONProducer(),
 
-		DeleteListHandler: DeleteListHandlerFunc(func(params DeleteListParams, principal *models.Principal) middleware.Responder {
+		DeleteListHandler: DeleteListHandlerFunc(func(params DeleteListParams, principal *apimodels.Principal) middleware.Responder {
 			return middleware.NotImplemented("operation DeleteList has not yet been implemented")
 		}),
-		GetListHandler: GetListHandlerFunc(func(params GetListParams, principal *models.Principal) middleware.Responder {
+		GetListHandler: GetListHandlerFunc(func(params GetListParams, principal *apimodels.Principal) middleware.Responder {
 			return middleware.NotImplemented("operation GetList has not yet been implemented")
 		}),
-		GetUserHandler: GetUserHandlerFunc(func(params GetUserParams, principal *models.Principal) middleware.Responder {
+		GetUserHandler: GetUserHandlerFunc(func(params GetUserParams, principal *apimodels.Principal) middleware.Responder {
 			return middleware.NotImplemented("operation GetUser has not yet been implemented")
 		}),
-		GetUserListsHandler: GetUserListsHandlerFunc(func(params GetUserListsParams, principal *models.Principal) middleware.Responder {
+		GetUserListsHandler: GetUserListsHandlerFunc(func(params GetUserListsParams, principal *apimodels.Principal) middleware.Responder {
 			return middleware.NotImplemented("operation GetUserLists has not yet been implemented")
 		}),
 		LoginHandler: LoginHandlerFunc(func(params LoginParams) middleware.Responder {
 			return middleware.NotImplemented("operation Login has not yet been implemented")
 		}),
-		PatchListHandler: PatchListHandlerFunc(func(params PatchListParams, principal *models.Principal) middleware.Responder {
+		PatchListHandler: PatchListHandlerFunc(func(params PatchListParams, principal *apimodels.Principal) middleware.Responder {
 			return middleware.NotImplemented("operation PatchList has not yet been implemented")
 		}),
-		PatchUserHandler: PatchUserHandlerFunc(func(params PatchUserParams, principal *models.Principal) middleware.Responder {
+		PatchUserHandler: PatchUserHandlerFunc(func(params PatchUserParams, principal *apimodels.Principal) middleware.Responder {
 			return middleware.NotImplemented("operation PatchUser has not yet been implemented")
 		}),
-		PostListHandler: PostListHandlerFunc(func(params PostListParams, principal *models.Principal) middleware.Responder {
+		PostListHandler: PostListHandlerFunc(func(params PostListParams, principal *apimodels.Principal) middleware.Responder {
 			return middleware.NotImplemented("operation PostList has not yet been implemented")
 		}),
 		RegisterHandler: RegisterHandlerFunc(func(params RegisterParams) middleware.Responder {
@@ -73,7 +73,7 @@ func NewWishesAPI(spec *loads.Document) *WishesAPI {
 		}),
 
 		// Applies when the "x-token" header is set
-		KeySecurityAuth: func(token string) (*models.Principal, error) {
+		KeySecurityAuth: func(token string) (*apimodels.Principal, error) {
 			return nil, errors.NotImplemented("api key auth (KeySecurity) x-token from header param [x-token] has not yet been implemented")
 		},
 		// default authorizer is authorized meaning no requests are blocked
@@ -116,7 +116,7 @@ type WishesAPI struct {
 
 	// KeySecurityAuth registers a function that takes a token and returns a principal
 	// it performs authentication based on an api key x-token provided in the header
-	KeySecurityAuth func(string) (*models.Principal, error)
+	KeySecurityAuth func(string) (*apimodels.Principal, error)
 
 	// APIAuthorizer provides access control (ACL/RBAC/ABAC) by providing access to the request and authenticated principal
 	APIAuthorizer runtime.Authorizer

@@ -76,7 +76,6 @@ class TestUser:
             resp = client.get(f"/users/{u.id}")
             assert resp.status_code == 200
             body = resp.json()
-            assert body["id"] == u.id
             assert body["username"] == u.username
             assert body.get("fname") == ""
             assert body.get("lname") == ""
@@ -107,7 +106,7 @@ class TestUser:
         u1.must_login(client)
         
         resp = client.patch(f"/users/{u1.id}", json=info)
-        assert resp.status_code == 200
+        assert resp.status_code == 204
         resp = client.get(f"/users/{u1.id}")
         assert resp.status_code == 200
         body = resp.json()

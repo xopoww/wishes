@@ -96,8 +96,6 @@ func main() {
 
 	dirs := make([]string, 0)
 	dirs = append(dirs, ".")
-	dirs = append(dirs, path.Join(".", "operations"))
-	dirs = append(dirs, path.Join("..", "internal", "models"))
 
 	for _, dir := range dirs {
 		handleDirectory(path.Clean(path.Join(root, dir)))

@@ -84,7 +84,7 @@ func init() {
         "summary": "Delete existing list",
         "operationId": "DeleteList",
         "responses": {
-          "200": {
+          "204": {
             "description": "Success"
           },
           "403": {
@@ -112,7 +112,7 @@ func init() {
           }
         ],
         "responses": {
-          "200": {
+          "204": {
             "description": "Success"
           },
           "403": {
@@ -241,12 +241,12 @@ func init() {
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/UserInfo"
+              "$ref": "#/definitions/User"
             }
           }
         ],
         "responses": {
-          "200": {
+          "204": {
             "description": "Success"
           },
           "403": {
@@ -315,7 +315,8 @@ func init() {
           }
         },
         "title": {
-          "type": "string"
+          "type": "string",
+          "minLength": 1
         }
       }
     },
@@ -329,15 +330,13 @@ func init() {
           "type": "string"
         },
         "title": {
-          "type": "string"
+          "type": "string",
+          "minLength": 1
         }
       }
     },
     "User": {
       "allOf": [
-        {
-          "$ref": "#/definitions/ID"
-        },
         {
           "type": "object",
           "properties": {
@@ -360,7 +359,9 @@ func init() {
       "properties": {
         "password": {
           "type": "string",
-          "format": "password"
+          "format": "password",
+          "maxLength": 50,
+          "minLength": 8
         },
         "username": {
           "$ref": "#/definitions/UserName"
@@ -383,10 +384,20 @@ func init() {
       }
     },
     "UserName": {
-      "type": "string"
+      "type": "string",
+      "maxLength": 20,
+      "minLength": 3
     },
     "principal": {
-      "type": "string"
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer"
+        },
+        "username": {
+          "type": "string"
+        }
+      }
     }
   },
   "parameters": {
@@ -515,7 +526,7 @@ func init() {
         "summary": "Delete existing list",
         "operationId": "DeleteList",
         "responses": {
-          "200": {
+          "204": {
             "description": "Success"
           },
           "403": {
@@ -554,7 +565,7 @@ func init() {
           }
         ],
         "responses": {
-          "200": {
+          "204": {
             "description": "Success"
           },
           "403": {
@@ -730,12 +741,12 @@ func init() {
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/UserInfo"
+              "$ref": "#/definitions/User"
             }
           }
         ],
         "responses": {
-          "200": {
+          "204": {
             "description": "Success"
           },
           "403": {
@@ -832,7 +843,8 @@ func init() {
           }
         },
         "title": {
-          "type": "string"
+          "type": "string",
+          "minLength": 1
         }
       }
     },
@@ -846,15 +858,13 @@ func init() {
           "type": "string"
         },
         "title": {
-          "type": "string"
+          "type": "string",
+          "minLength": 1
         }
       }
     },
     "User": {
       "allOf": [
-        {
-          "$ref": "#/definitions/ID"
-        },
         {
           "type": "object",
           "properties": {
@@ -877,7 +887,9 @@ func init() {
       "properties": {
         "password": {
           "type": "string",
-          "format": "password"
+          "format": "password",
+          "maxLength": 50,
+          "minLength": 8
         },
         "username": {
           "$ref": "#/definitions/UserName"
@@ -900,10 +912,20 @@ func init() {
       }
     },
     "UserName": {
-      "type": "string"
+      "type": "string",
+      "maxLength": 20,
+      "minLength": 3
     },
     "principal": {
-      "type": "string"
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer"
+        },
+        "username": {
+          "type": "string"
+        }
+      }
     }
   },
   "parameters": {

@@ -15,20 +15,20 @@ import (
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 
-	"github.com/xopoww/wishes/internal/models"
+	"github.com/xopoww/wishes/restapi/apimodels"
 )
 
 // PostListHandlerFunc turns a function with the right signature into a post list handler
-type PostListHandlerFunc func(PostListParams, *models.Principal) middleware.Responder
+type PostListHandlerFunc func(PostListParams, *apimodels.Principal) middleware.Responder
 
 // Handle executing the request and returning a response
-func (fn PostListHandlerFunc) Handle(params PostListParams, principal *models.Principal) middleware.Responder {
+func (fn PostListHandlerFunc) Handle(params PostListParams, principal *apimodels.Principal) middleware.Responder {
 	return fn(params, principal)
 }
 
 // PostListHandler interface for that can handle valid post list params
 type PostListHandler interface {
-	Handle(PostListParams, *models.Principal) middleware.Responder
+	Handle(PostListParams, *apimodels.Principal) middleware.Responder
 }
 
 // NewPostList creates a new http.Handler for the post list operation
@@ -60,9 +60,9 @@ func (o *PostList) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	if aCtx != nil {
 		*r = *aCtx
 	}
-	var principal *models.Principal
+	var principal *apimodels.Principal
 	if uprinc != nil {
-		principal = uprinc.(*models.Principal) // this is really a models.Principal, I promise
+		principal = uprinc.(*apimodels.Principal) // this is really a apimodels.Principal, I promise
 	}
 
 	if err := o.Context.BindValidRequest(r, route, &Params); err != nil { // bind params

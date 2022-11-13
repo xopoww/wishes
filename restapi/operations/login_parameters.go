@@ -14,7 +14,7 @@ import (
 	"github.com/go-openapi/runtime/middleware"
 	"github.com/go-openapi/validate"
 
-	"github.com/xopoww/wishes/internal/models"
+	"github.com/xopoww/wishes/restapi/apimodels"
 )
 
 // NewLoginParams creates a new LoginParams object
@@ -38,7 +38,7 @@ type LoginParams struct {
 	  Required: true
 	  In: body
 	*/
-	Credentials *models.UserCredentials
+	Credentials *apimodels.UserCredentials
 }
 
 // BindRequest both binds and validates a request, it assumes that complex things implement a Validatable(strfmt.Registry) error interface
@@ -52,7 +52,7 @@ func (o *LoginParams) BindRequest(r *http.Request, route *middleware.MatchedRout
 
 	if runtime.HasBody(r) {
 		defer r.Body.Close()
-		var body models.UserCredentials
+		var body apimodels.UserCredentials
 		if err := route.Consumer.Consume(r.Body, &body); err != nil {
 			if err == io.EOF {
 				res = append(res, errors.Required("credentials", "body", ""))

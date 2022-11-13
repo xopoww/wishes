@@ -15,20 +15,20 @@ import (
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 
-	"github.com/xopoww/wishes/internal/models"
+	"github.com/xopoww/wishes/restapi/apimodels"
 )
 
 // DeleteListHandlerFunc turns a function with the right signature into a delete list handler
-type DeleteListHandlerFunc func(DeleteListParams, *models.Principal) middleware.Responder
+type DeleteListHandlerFunc func(DeleteListParams, *apimodels.Principal) middleware.Responder
 
 // Handle executing the request and returning a response
-func (fn DeleteListHandlerFunc) Handle(params DeleteListParams, principal *models.Principal) middleware.Responder {
+func (fn DeleteListHandlerFunc) Handle(params DeleteListParams, principal *apimodels.Principal) middleware.Responder {
 	return fn(params, principal)
 }
 
 // DeleteListHandler interface for that can handle valid delete list params
 type DeleteListHandler interface {
-	Handle(DeleteListParams, *models.Principal) middleware.Responder
+	Handle(DeleteListParams, *apimodels.Principal) middleware.Responder
 }
 
 // NewDeleteList creates a new http.Handler for the delete list operation
@@ -60,9 +60,9 @@ func (o *DeleteList) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	if aCtx != nil {
 		*r = *aCtx
 	}
-	var principal *models.Principal
+	var principal *apimodels.Principal
 	if uprinc != nil {
-		principal = uprinc.(*models.Principal) // this is really a models.Principal, I promise
+		principal = uprinc.(*apimodels.Principal) // this is really a apimodels.Principal, I promise
 	}
 
 	if err := o.Context.BindValidRequest(r, route, &Params); err != nil { // bind params

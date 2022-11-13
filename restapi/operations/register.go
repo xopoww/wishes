@@ -15,7 +15,7 @@ import (
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 
-	"github.com/xopoww/wishes/internal/models"
+	"github.com/xopoww/wishes/restapi/apimodels"
 )
 
 // RegisterHandlerFunc turns a function with the right signature into a register handler
@@ -131,7 +131,7 @@ type RegisterOKBody struct {
 	Ok *bool `json:"ok"`
 
 	// user
-	User *models.ID `json:"user,omitempty"`
+	User *apimodels.ID `json:"user,omitempty"`
 }
 
 // Validate validates this register o k body

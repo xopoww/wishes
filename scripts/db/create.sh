@@ -12,4 +12,4 @@ if [ -f $FILE ] ; then
 fi
 touch $FILE
 
-migrate -path internal/db/migrations/ -database sqlite3://${FILE} up 
+migrate -path internal/repository/sqlite/migrations/ -database sqlite3://${FILE} up 

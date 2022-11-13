@@ -2,7 +2,7 @@ swagger: '2.0'
 
 info:
   title: Wishes API
-  version: 0.0.4
+  version: 0.0.5
 
 basePath: /api
 
@@ -96,9 +96,9 @@ paths:
           in: body
           required: true
           schema:
-            $ref: "#/definitions/UserInfo"
+            $ref: "#/definitions/User"
       responses:
-        200:
+        204:
           description: Success
         403:
           description: Access denied
@@ -151,7 +151,7 @@ paths:
             $ref: "#/definitions/List"
           required: true
       responses:
-        200:
+        204:
           description: Success
         403:
           description: Access denied
@@ -163,7 +163,7 @@ paths:
       summary: Delete existing list
       operationId: DeleteList
       responses:
-        200:
+        204:
           description: Success
         403:
           description: Access denied
@@ -210,7 +210,12 @@ responses:
 definitions:
 
   principal:
-    type: string
+    type: object
+    properties:
+      username:
+        type: string
+      id:
+        type: integer
 
 
   ID:
@@ -221,8 +226,13 @@ definitions:
     required: [id]
 
 
-  UserName:
-    type: string
+  User:
+    allOf:
+      - type: object
+        properties:
+          username:
+            $ref: "#/definitions/UserName"
+      - $ref: "#/definitions/UserInfo"
 
   UserInfo:
     type: object
@@ -233,14 +243,10 @@ definitions:
         type: string
     required: [fname,lname]
 
-  User:
-    allOf:
-      - $ref: "#/definitions/ID"
-      - type: object
-        properties:
-          username:
-            $ref: "#/definitions/UserName"
-      - $ref: "#/definitions/UserInfo"
+  UserName:
+    type: string
+    minLength: 3
+    maxLength: 20
 
   UserCredentials:
     type: object
@@ -251,13 +257,15 @@ definitions:
       password:
         type: string
         format: password
+        minLength: 8
+        maxLength: 50
       
-
   List:
     type: object
     properties:
       title:
         type: string
+        minLength: 1
       items:
         type: array
         items:
@@ -268,6 +276,7 @@ definitions:
     properties:
       title:
         type: string
+        minLength: 1
       desc:
         type: string
     required: [title]

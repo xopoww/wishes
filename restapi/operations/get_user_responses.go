@@ -10,7 +10,7 @@ import (
 
 	"github.com/go-openapi/runtime"
 
-	"github.com/xopoww/wishes/internal/models"
+	"github.com/xopoww/wishes/restapi/apimodels"
 )
 
 // GetUserOKCode is the HTTP code returned for type GetUserOK
@@ -26,7 +26,7 @@ type GetUserOK struct {
 	/*
 	  In: Body
 	*/
-	Payload *models.User `json:"body,omitempty"`
+	Payload *apimodels.User `json:"body,omitempty"`
 }
 
 // NewGetUserOK creates GetUserOK with default headers values
@@ -36,13 +36,13 @@ func NewGetUserOK() *GetUserOK {
 }
 
 // WithPayload adds the payload to the get user o k response
-func (o *GetUserOK) WithPayload(payload *models.User) *GetUserOK {
+func (o *GetUserOK) WithPayload(payload *apimodels.User) *GetUserOK {
 	o.Payload = payload
 	return o
 }
 
 // SetPayload sets the payload to the get user o k response
-func (o *GetUserOK) SetPayload(payload *models.User) {
+func (o *GetUserOK) SetPayload(payload *apimodels.User) {
 	o.Payload = payload
 }
 
