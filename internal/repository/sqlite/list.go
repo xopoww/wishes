@@ -18,20 +18,23 @@ func (r *repository) GetUserLists(ctx context.Context, id int64) (lids []int64, 
 }
 
 func (r *repository) GetList(ctx context.Context, id int64) (*models.List, error) {
-	tx, err := r.db.Beginx()
-	if err != nil {
-		return nil, fmt.Errorf("begin: %w", err)
-	}
-
 	list := &models.List{ID: id}
-	row := r.tracer(tx).QueryRowxContext(ctx, `SELECT title, owner_id FROM Lists WHERE id = $1`, id)
-	err = row.Scan(&list.Title, &list.OwnerID)
+	row := r.tracer(r.db).QueryRowxContext(ctx, `SELECT title, owner_id FROM Lists WHERE id = $1`, id)
+	err := row.Scan(&list.Title, &list.OwnerID)
 	if errors.Is(err, sql.ErrNoRows) {
 		err = fmt.Errorf("list_id %d: %w", id, service.ErrNotFound)
 	}
 	if err != nil {
-		_ = tx.Rollback()
 		return nil, fmt.Errorf("select list: %w", err)
+	}
+
+	return list, nil
+}
+
+func (r *repository) GetListItems(ctx context.Context, list *models.List) (*models.List, error) {
+	tx, err := r.db.Beginx()
+	if err != nil {
+		return nil, fmt.Errorf("begin: %w", err)
 	}
 
 	rows, err := r.tracer(tx).QueryxContext(ctx, `SELECT title, desc FROM Items WHERE list_id = $1`, list.ID)

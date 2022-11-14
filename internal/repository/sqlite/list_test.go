@@ -3,6 +3,7 @@ package sqlite_test
 import (
 	"context"
 	"errors"
+	"fmt"
 	"testing"
 
 	"github.com/golang-migrate/migrate/v4"
@@ -142,6 +143,77 @@ func TestGetList(t *testing.T) {
 	}
 }
 
+func TestGetListItems(t *testing.T) {
+	dbs := newTestDatabase(t,
+		upMigrationFromString(t,
+			`INSERT INTO Users (user_name, pwd_hash) VALUES ("user", "cGFzc3dvcmQ=")`,
+			testMigrationVersionStart,
+		),
+		upMigrationFromString(t,
+			`INSERT INTO Lists (title, owner_id) SELECT title, Users.id AS owner_id FROM `+
+				`(SELECT "list1" AS title) JOIN Users ON Users.user_name = "user"`,
+			testMigrationVersionStart+1,
+		),
+		upMigrationFromString(t,
+			`INSERT INTO Lists (title, owner_id) SELECT title, Users.id AS owner_id FROM `+
+				`(SELECT "list2" AS title) JOIN Users ON Users.user_name = "user"; `+
+				`INSERT INTO Items (title, list_id) SELECT item_title as title, Lists.id AS list_id FROM `+
+				`(SELECT "item" AS item_title) JOIN Lists ON Lists.title = "list2";`,
+			testMigrationVersionStart+2,
+		),
+	)
+	repo, err := sqlite.NewRepository(dbs, trace(t))
+	if err != nil {
+		t.Fatalf("new repo: %s", err)
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	t.Cleanup(cancel)
+
+	uid, err := repo.CheckUsername(ctx, "user")
+	if err != nil {
+		t.Fatalf("check user: %s", err)
+	}
+
+	lids, err := repo.GetUserLists(ctx, uid)
+	if err != nil {
+		t.Fatalf("get user lists: %s", err)
+	}
+	if len(lids) != 2 {
+		t.Fatalf("get user lists: wrong len (%d)", len(lids))
+	}
+
+	for i, lid := range lids {
+		t.Run(fmt.Sprintf("list #%d", i), func(t *testing.T) {
+			cctx, cancel := context.WithCancel(context.Background())
+			t.Cleanup(cancel)
+
+			list, err := repo.GetList(cctx, lid)
+			if err != nil {
+				t.Fatalf("get list: %s", err)
+			}
+
+			var wantItems int
+			switch list.Title {
+			case "list1":
+				wantItems = 0
+			case "list2":
+				wantItems = 1
+			default:
+				t.Fatalf("unexpected list.Title: %q", list.Title)
+			}
+
+			list, err = repo.GetListItems(cctx, list)
+			if err != nil {
+				t.Fatalf("err: %s", err)
+			}
+			if len(list.Items) != wantItems {
+				t.Fatalf("list items: want %d, got %d", wantItems, len(list.Items))
+			}
+		})
+	}
+}
+
 func TestAddList(t *testing.T) {
 	dbs := newTestDatabase(t)
 	repo, err := sqlite.NewRepository(dbs, trace(t))
@@ -230,6 +302,10 @@ func TestAddList(t *testing.T) {
 			got, err = repo.GetList(cctx, want.ID)
 			if err != nil {
 				t.Fatalf("get list: %s", err)
+			}
+			got, err = repo.GetListItems(cctx, got)
+			if err != nil {
+				t.Fatalf("get list items: %s", err)
 			}
 			assertListsEq(t, want, got)
 		})
@@ -374,6 +450,10 @@ func TestEditList(t *testing.T) {
 					got, err := repo.GetList(cctx, new.ID)
 					if err != nil {
 						t.Fatalf("get list: %s", err)
+					}
+					got, err = repo.GetListItems(cctx, got)
+					if err != nil {
+						t.Fatalf("get list items: %s", err)
 					}
 					assertListsEq(t, &new, got)
 				})

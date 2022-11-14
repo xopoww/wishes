@@ -151,6 +151,21 @@ func (mr *MockRepositoryMockRecorder) GetList(arg0, arg1 interface{}) *gomock.Ca
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetList", reflect.TypeOf((*MockRepository)(nil).GetList), arg0, arg1)
 }
 
+// GetListItems mocks base method.
+func (m *MockRepository) GetListItems(arg0 context.Context, arg1 *models.List) (*models.List, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetListItems", arg0, arg1)
+	ret0, _ := ret[0].(*models.List)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetListItems indicates an expected call of GetListItems.
+func (mr *MockRepositoryMockRecorder) GetListItems(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetListItems", reflect.TypeOf((*MockRepository)(nil).GetListItems), arg0, arg1)
+}
+
 // GetUser mocks base method.
 func (m *MockRepository) GetUser(arg0 context.Context, arg1 int64) (*models.User, error) {
 	m.ctrl.T.Helper()
