@@ -5,18 +5,26 @@ import (
 )
 
 type matcherFunc struct {
-	f func(x interface{}) bool
+	f func(x interface{}) error
+	lastProblem string
 }
 
 func (m *matcherFunc) Matches(x interface{}) bool {
-	return m.f(x)
+	if err := m.f(x); err != nil {
+		m.lastProblem = err.Error()
+		return false
+	}
+	return true
 }
 
 func (m *matcherFunc) String() string {
-	return "matcherFunc"
+	return m.lastProblem
 }
 
-func MatcherFunc(f func(x interface{}) bool) gomock.Matcher {
+// MatcherFunc wraps f as gomock.Matcher. Matcher matches x if
+// f(x) == nil. Matcher's String() method returns string representation
+// of the last non-nil return value of f.
+func MatcherFunc(f func(x interface{}) error) gomock.Matcher {
 	return &matcherFunc{
 		f: f,
 	}

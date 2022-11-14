@@ -26,15 +26,18 @@ func TestRegister(t *testing.T) {
 			ctrl, ctx := gomock.WithContext(context.Background(), t)
 			r := NewMockRepository(ctrl)
 			r.EXPECT().
-				AddUser(gomock.Any(), testutil.MatcherFunc(func(x interface{}) bool {
+				AddUser(gomock.Any(), testutil.MatcherFunc(func(x interface{}) error {
 					user, ok := x.(*models.User)
 					if !ok || user == nil {
-						return false
+						return fmt.Errorf("type: want %T", user)
 					}
-					if user.Name != "user" || len(user.PassHash) == 0 {
-						return false
+					if user.Name != "user" {
+						return fmt.Errorf("Name: want %q", "user")
 					}
-					return true
+					if len(user.PassHash) == 0 {
+						return fmt.Errorf("len(Passhash): want > 0")
+					}
+					return nil
 				})).
 				Return(&models.User{ID: tc.id}, tc.err)
 
@@ -105,18 +108,21 @@ func TestEditUser(t *testing.T) {
 
 			if tc.id == client.ID {
 				r.EXPECT().
-					EditUser(gomock.Any(), testutil.MatcherFunc(func(x interface{}) bool {
+					EditUser(gomock.Any(), testutil.MatcherFunc(func(x interface{}) error {
 						user, ok := x.(*models.User)
 						if !ok {
-							return false
+							return fmt.Errorf("type: want %T", user)
 						}
 						if user.ID != tc.id {
-							return false
+							return fmt.Errorf("ID: want %d", tc.id)
 						}
-						if user.Fname != fname || user.Lname != lname {
-							return false
+						if user.Fname != fname {
+							return fmt.Errorf("Fname: want %q", fname)
 						}
-						return true
+						if user.Lname != lname {
+							return fmt.Errorf("Lname: want %q", lname)
+						}
+						return nil
 					})).Return(nil)
 			}
 
