@@ -82,6 +82,13 @@ func configureAPI(api *operations.WishesAPI) http.Handler {
 	api.PatchUserHandler = controller.PatchUser()
 	api.RegisterHandler = controller.Register()
 
+	api.GetUserListsHandler = controller.GetUserLists()
+
+	api.GetListHandler = controller.GetList()
+	api.PostListHandler = controller.PostList()
+	api.PatchListHandler = controller.PatchList()
+	api.DeleteListHandler = controller.DeleteList()
+
 	api.PreServerShutdown = func() {}
 
 	api.ServerShutdown = func() {

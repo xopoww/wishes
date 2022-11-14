@@ -458,7 +458,7 @@ func traceOnGetList(t Trace, listID int64, client *models.User) func(*models.Lis
 		res(p)
 	}
 }
-func traceOnPostList(t Trace, l models.List, client models.User) func(listID int64, _ error) {
+func traceOnPostList(t Trace, l *models.List, client *models.User) func(listID int64, _ error) {
 	var p OnPostListStartInfo
 	p.List = l
 	p.Client = client
@@ -470,7 +470,7 @@ func traceOnPostList(t Trace, l models.List, client models.User) func(listID int
 		res(p)
 	}
 }
-func traceOnPatchList(t Trace, l models.List, client models.User) func(error) {
+func traceOnPatchList(t Trace, l *models.List, client *models.User) func(error) {
 	var p OnPatchListStartInfo
 	p.List = l
 	p.Client = client
@@ -481,9 +481,9 @@ func traceOnPatchList(t Trace, l models.List, client models.User) func(error) {
 		res(p)
 	}
 }
-func traceOnDeleteList(t Trace, listID int64, client models.User) func(error) {
+func traceOnDeleteList(t Trace, l *models.List, client *models.User) func(error) {
 	var p OnDeleteListStartInfo
-	p.ListID = listID
+	p.List = l
 	p.Client = client
 	res := t.onDeleteList(p)
 	return func(e error) {
@@ -492,7 +492,7 @@ func traceOnDeleteList(t Trace, listID int64, client models.User) func(error) {
 		res(p)
 	}
 }
-func traceOnGetUserLists(t Trace, userID int64, client models.User) func(listIDs []int64, _ error) {
+func traceOnGetUserLists(t Trace, userID int64, client *models.User) func(listIDs []int64, _ error) {
 	var p OnGetUserListsStartInfo
 	p.UserID = userID
 	p.Client = client

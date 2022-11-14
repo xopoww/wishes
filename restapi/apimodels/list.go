@@ -24,8 +24,9 @@ type List struct {
 	Items []*ListItem `json:"items"`
 
 	// title
+	// Required: true
 	// Min Length: 1
-	Title string `json:"title,omitempty"`
+	Title *string `json:"title"`
 }
 
 // Validate validates this list
@@ -73,11 +74,12 @@ func (m *List) validateItems(formats strfmt.Registry) error {
 }
 
 func (m *List) validateTitle(formats strfmt.Registry) error {
-	if swag.IsZero(m.Title) { // not required
-		return nil
+
+	if err := validate.Required("title", "body", m.Title); err != nil {
+		return err
 	}
 
-	if err := validate.MinLength("title", "body", m.Title, 1); err != nil {
+	if err := validate.MinLength("title", "body", *m.Title, 1); err != nil {
 		return err
 	}
 

@@ -1,6 +1,8 @@
 package handlers
 
-import "github.com/xopoww/wishes/internal/service"
+import (
+	"github.com/xopoww/wishes/internal/service"
+)
 
 type ApiController struct {
 	t Trace

@@ -27,7 +27,7 @@ func init() {
   "swagger": "2.0",
   "info": {
     "title": "Wishes API",
-    "version": "0.0.4"
+    "version": "0.0.5"
   },
   "basePath": "/api",
   "paths": {
@@ -307,6 +307,9 @@ func init() {
     },
     "List": {
       "type": "object",
+      "required": [
+        "title"
+      ],
       "properties": {
         "items": {
           "type": "array",
@@ -447,7 +450,7 @@ func init() {
   "swagger": "2.0",
   "info": {
     "title": "Wishes API",
-    "version": "0.0.4"
+    "version": "0.0.5"
   },
   "basePath": "/api",
   "paths": {
@@ -835,6 +838,9 @@ func init() {
     },
     "List": {
       "type": "object",
+      "required": [
+        "title"
+      ],
       "properties": {
         "items": {
           "type": "array",

@@ -28,7 +28,7 @@ class TestList:
 
         resp = client.get(f"/users/{u.id}/lists")
         assert resp.status_code == 200
-        assert resp.json == []
+        assert resp.json() == []
 
         resp = client.post("/lists", json={
             "title": "list",

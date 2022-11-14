@@ -270,6 +270,7 @@ definitions:
         type: array
         items:
           $ref: "#/definitions/ListItem"
+    required: [title]
   
   ListItem:
     type: object
