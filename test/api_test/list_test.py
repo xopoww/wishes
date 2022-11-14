@@ -1,5 +1,4 @@
 import typing as ty
-import pytest
 
 from .user import User
 from .client import Client
@@ -97,6 +96,7 @@ class TestList:
         del data["items"][2]["desc"]
         data["items"].append({"title": "quux", "desc": "new item"})
         resp = client.patch(f"/lists/{lid}", json=data)
+        assert resp.status_code == 204
 
         resp = client.get(f"/lists/{lid}")
         assert resp.status_code == 200
@@ -120,4 +120,44 @@ class TestList:
 
         resp = client.patch(f"/lists/{lid}", json=data)
         assert resp.status_code == 403
+    
+    def test_delete(self, client: Client, make_user: ty.Callable[[],User]):
+        u1 = make_user()
+        u1.must_register(client)
+        u1.must_login(client)
+
+        data = {
+            "title": "list",
+            "items": [
+                {"title": "foo"},
+                {"title": "bar", "desc": "with description"},
+                {"title": "baz", "desc": "also with description"}
+            ]
+        }
+        resp = client.post("/lists", json=data)
+        assert resp.status_code == 201
+        lid = resp.json()["id"]
+
+        resp = client.delete(f"/lists/{lid}")
+        assert resp.status_code == 204
         
+        resp = client.get(f"/users/{u1.id}/lists")
+        assert resp.status_code == 200
+        assert resp.json() == []
+
+        resp = client.delete(f"/lists/{lid}")
+        assert resp.status_code == 404
+
+        resp = client.delete(f"/lists/john")
+        assert resp.status_code == 422
+
+        resp = client.post("/lists", json=data)
+        assert resp.status_code == 201
+        lid = resp.json()["id"]
+
+        u2 = make_user()
+        u2.must_register(client)
+        u2.must_login(client)
+
+        resp = client.delete(f"/lists/{lid}")
+        assert resp.status_code == 403
