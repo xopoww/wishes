@@ -69,7 +69,9 @@ class TestList:
 
         resp = client.get(f"/lists/{lid}/items")
         assert resp.status_code == 200
-        assert resp.json()["items"] == list_data["items"]
+        body = resp.json()
+        assert body["items"] == list_data["items"]
+        assert body.get("rev") is not None
 
         resp = client.get(f"/lists/{lid + 50}")
         assert resp.status_code == 404
@@ -98,6 +100,10 @@ class TestList:
         assert resp.status_code == 201
         lid = resp.json()["id"]
 
+        resp = client.get(f"/lists/{lid}/items")
+        assert resp.status_code == 200
+        rev = resp.json()["rev"]
+
         data["title"] = "edited list"
         data["access"] = "public"
         data["items"][0]["desc"] = "now with description"
@@ -114,6 +120,7 @@ class TestList:
         assert resp.status_code == 200
         got |= resp.json()
         self.assert_list_eq(data, got, check_items=True)
+        assert got["rev"] == rev + 1
 
         resp = client.patch(f"/lists/{lid + 50}", json=data)
         assert resp.status_code == 404
@@ -245,6 +252,9 @@ class TestList:
             resp = client.get(f"/lists/{lid}/token")
             assert resp.status_code == 403
     
+
+        
+
 
         
         

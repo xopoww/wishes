@@ -25,9 +25,9 @@ func (s *service) GetListItems(ctx context.Context, list *models.List, client *m
 	return s.r.GetListItems(ctx, list)
 }
 
-func (s *service) EditList(ctx context.Context, list *models.List, client *models.User) error {
+func (s *service) EditList(ctx context.Context, list *models.List, client *models.User) (*models.List, error) {
 	if err := s.checkWriteAccess(ctx, list, client); err != nil {
-		return err
+		return nil, err
 	}
 	return s.r.EditList(ctx, list)
 }

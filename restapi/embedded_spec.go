@@ -194,7 +194,14 @@ func init() {
           "200": {
             "description": "Success",
             "schema": {
-              "$ref": "#/definitions/ListItems"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/ListItems"
+                },
+                {
+                  "$ref": "#/definitions/Revision"
+                }
+              ]
             }
           },
           "403": {
@@ -424,6 +431,9 @@ func init() {
         "desc": {
           "type": "string"
         },
+        "taken_by": {
+          "type": "integer"
+        },
         "title": {
           "type": "string",
           "minLength": 1
@@ -438,6 +448,17 @@ func init() {
           "items": {
             "$ref": "#/definitions/ListItem"
           }
+        }
+      }
+    },
+    "Revision": {
+      "type": "object",
+      "required": [
+        "rev"
+      ],
+      "properties": {
+        "rev": {
+          "type": "integer"
         }
       }
     },
@@ -790,7 +811,14 @@ func init() {
           "200": {
             "description": "Success",
             "schema": {
-              "$ref": "#/definitions/ListItems"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/ListItems"
+                },
+                {
+                  "$ref": "#/definitions/Revision"
+                }
+              ]
             }
           },
           "403": {
@@ -1095,6 +1123,9 @@ func init() {
         "desc": {
           "type": "string"
         },
+        "taken_by": {
+          "type": "integer"
+        },
         "title": {
           "type": "string",
           "minLength": 1
@@ -1109,6 +1140,17 @@ func init() {
           "items": {
             "$ref": "#/definitions/ListItem"
           }
+        }
+      }
+    },
+    "Revision": {
+      "type": "object",
+      "required": [
+        "rev"
+      ],
+      "properties": {
+        "rev": {
+          "type": "integer"
         }
       }
     },

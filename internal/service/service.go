@@ -28,7 +28,7 @@ type Service interface {
 
 	GetListItems(ctx context.Context, list *models.List, client *models.User, token *string) (*models.List, error)
 
-	EditList(ctx context.Context, list *models.List, client *models.User) error
+	EditList(ctx context.Context, list *models.List, client *models.User) (*models.List, error)
 
 	AddList(ctx context.Context, list *models.List, client *models.User) (*models.List, error)
 

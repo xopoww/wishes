@@ -210,14 +210,16 @@ paths:
         200:
           description: Success
           schema:
-            $ref: "#/definitions/ListItems"
+            allOf:
+             - $ref: "#/definitions/ListItems"
+             - $ref: "#/definitions/Revision"
         403:
           description: Access denied
         404:
           description: List not found
         500:
           $ref: "#/responses/ServerError"
-  
+
   /lists/{id}/token:
     parameters:
       - $ref: "#/parameters/PathId"
@@ -272,6 +274,14 @@ definitions:
         type: string
       id:
         type: integer
+  
+
+  Revision:
+    type: object
+    properties:
+      rev:
+        type: integer
+    required: [rev]
 
 
   ID:
@@ -345,4 +355,6 @@ definitions:
         minLength: 1
       desc:
         type: string
+      taken_by:
+        type: integer
     required: [title]

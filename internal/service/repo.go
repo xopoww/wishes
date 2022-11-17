@@ -34,7 +34,7 @@ type Repository interface {
 
 	AddList(ctx context.Context, list *models.List) (*models.List, error)
 
-	EditList(ctx context.Context, list *models.List) error
+	EditList(ctx context.Context, list *models.List) (*models.List, error)
 
 	DeleteList(ctx context.Context, list *models.List) error
 

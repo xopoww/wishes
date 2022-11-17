@@ -111,8 +111,8 @@ func TestGetList(t *testing.T) {
 			testMigrationVersionStart,
 		),
 		upMigrationFromString(t,
-			`INSERT INTO Lists (title, owner_id, access) SELECT title, Users.id AS owner_id, ListAccessEnum.N as access FROM `+
-				`(SELECT "list" AS title) JOIN Users ON Users.user_name = "user" JOIN ListAccessEnum on ListAccessEnum.S = "link"`,
+			`INSERT INTO Lists (title, owner_id, access, revision) SELECT title, Users.id AS owner_id, ListAccessEnum.N as access, revision FROM `+
+				`(SELECT "list" AS title, 42 as revision) JOIN Users ON Users.user_name = "user" JOIN ListAccessEnum on ListAccessEnum.S = "link"`,
 			testMigrationVersionStart+1,
 		),
 	)
@@ -149,6 +149,9 @@ func TestGetList(t *testing.T) {
 		t.Fatalf("get list: %s", err)
 	}
 	assertListsEq(t, want, got)
+	if got.RevisionID != 42 {
+		t.Fatalf("revision: want %d, got %d", 42, got.RevisionID)
+	}
 
 	_, err = repo.GetList(ctx, lid+50)
 	if !errors.Is(err, service.ErrNotFound) {
@@ -163,13 +166,13 @@ func TestGetListItems(t *testing.T) {
 			testMigrationVersionStart,
 		),
 		upMigrationFromString(t,
-			`INSERT INTO Lists (title, owner_id, access) SELECT title, Users.id AS owner_id, ListAccessEnum.N as access FROM `+
-				`(SELECT "list1" AS title) JOIN Users ON Users.user_name = "user" JOIN ListAccessEnum on ListAccessEnum.S = "link"`,
+			`INSERT INTO Lists (title, owner_id, access, revision) SELECT title, Users.id AS owner_id, ListAccessEnum.N as access, revision FROM `+
+				`(SELECT "list1" AS title, 42 as revision) JOIN Users ON Users.user_name = "user" JOIN ListAccessEnum on ListAccessEnum.S = "link"`,
 			testMigrationVersionStart+1,
 		),
 		upMigrationFromString(t,
-			`INSERT INTO Lists (title, owner_id, access) SELECT title, Users.id AS owner_id, ListAccessEnum.N as access FROM `+
-				`(SELECT "list2" AS title) JOIN Users ON Users.user_name = "user" JOIN ListAccessEnum on ListAccessEnum.S = "link"; `+
+			`INSERT INTO Lists (title, owner_id, access, revision) SELECT title, Users.id AS owner_id, ListAccessEnum.N as access, revision FROM `+
+				`(SELECT "list2" AS title, 42 as revision) JOIN Users ON Users.user_name = "user" JOIN ListAccessEnum on ListAccessEnum.S = "link"; `+
 				`INSERT INTO Items (title, list_id) SELECT item_title as title, Lists.id AS list_id FROM `+
 				`(SELECT "item" AS item_title) JOIN Lists ON Lists.title = "list2";`,
 			testMigrationVersionStart+2,
@@ -205,6 +208,7 @@ func TestGetListItems(t *testing.T) {
 			if err != nil {
 				t.Fatalf("get list: %s", err)
 			}
+			list.RevisionID = 0
 
 			var wantItems int
 			switch list.Title {
@@ -222,6 +226,9 @@ func TestGetListItems(t *testing.T) {
 			}
 			if len(list.Items) != wantItems {
 				t.Fatalf("list items: want %d, got %d", wantItems, len(list.Items))
+			}
+			if list.RevisionID != 42 {
+				t.Fatalf("revision: want %d, got %d", 42, list.RevisionID)
 			}
 		})
 	}
@@ -315,6 +322,7 @@ func TestAddList(t *testing.T) {
 			cctx, cancel := context.WithCancel(ctx)
 			t.Cleanup(cancel)
 
+			want.RevisionID = 42
 			got, err := repo.AddList(cctx, want)
 			if !errors.Is(err, tc.wantErr) {
 				t.Fatalf("err: want %#v, got %#v", tc.wantErr, err)
@@ -322,12 +330,18 @@ func TestAddList(t *testing.T) {
 			if err != nil {
 				return
 			}
+			if got.RevisionID != 0 {
+				t.Fatalf("revision: want %d, got %d", 0, got.RevisionID)
+			}
 			want.ID = got.ID
 			assertListsEq(t, want, got)
 
 			got, err = repo.GetList(cctx, want.ID)
 			if err != nil {
 				t.Fatalf("get list: %s", err)
+			}
+			if got.RevisionID != 0 {
+				t.Fatalf("revision: want %d, got %d", 0, got.RevisionID)
 			}
 			got, err = repo.GetListItems(cctx, got)
 			if err != nil {
@@ -479,9 +493,12 @@ func TestEditList(t *testing.T) {
 					new.OwnerID = user.ID
 					new.ID = list.ID
 
-					err = repo.EditList(cctx, &new)
+					l, err := repo.EditList(cctx, &new)
 					if err != nil {
 						t.Fatalf("edit list: %s", err)
+					}
+					if l.RevisionID != list.RevisionID + 1 {
+						t.Fatalf("rev: want %d, got %d", list.RevisionID + 1, l.RevisionID)
 					}
 
 					got, err := repo.GetList(cctx, new.ID)
@@ -502,7 +519,7 @@ func TestEditList(t *testing.T) {
 		cctx, cancel := context.WithCancel(ctx)
 		t.Cleanup(cancel)
 
-		err := repo.EditList(cctx, &models.List{
+		_, err := repo.EditList(cctx, &models.List{
 			ID:      lastLid + 50,
 			OwnerID: user.ID,
 			Title:   "list",

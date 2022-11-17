@@ -23,8 +23,8 @@ func (r *repository) GetUserLists(ctx context.Context, id int64, publicOnly bool
 
 func (r *repository) GetList(ctx context.Context, id int64) (*models.List, error) {
 	list := &models.List{ID: id}
-	row := r.tracer(r.db).QueryRowxContext(ctx, `SELECT title, owner_id, access FROM Lists WHERE id = $1`, id)
-	err := row.Scan(&list.Title, &list.OwnerID, &list.Access)
+	row := r.tracer(r.db).QueryRowxContext(ctx, `SELECT title, owner_id, access, revision FROM Lists WHERE id = $1`, id)
+	err := row.Scan(&list.Title, &list.OwnerID, &list.Access, &list.RevisionID)
 	if errors.Is(err, sql.ErrNoRows) {
 		err = fmt.Errorf("list_id %d: %w", id, service.ErrNotFound)
 	}
@@ -39,6 +39,12 @@ func (r *repository) GetListItems(ctx context.Context, list *models.List) (*mode
 	tx, err := r.db.Beginx()
 	if err != nil {
 		return nil, fmt.Errorf("begin: %w", err)
+	}
+
+	row := r.tracer(tx).QueryRowxContext(ctx, `SELECT revision FROM Lists WHERE id = $1`, list.ID)
+	err = row.Scan(&list.RevisionID)
+	if err != nil {
+		return nil, fmt.Errorf("select revision: %w", err)
 	}
 
 	rows, err := r.tracer(tx).QueryxContext(ctx, `SELECT title, desc FROM Items WHERE list_id = $1`, list.ID)
@@ -91,46 +97,52 @@ func (r *repository) AddList(ctx context.Context, list *models.List) (*models.Li
 		_ = tx.Rollback()
 		return nil, fmt.Errorf("insert items: %w", err)
 	}
+	list.RevisionID = 0
 
 	err = tx.Commit()
 	return list, err
 }
 
-func (r *repository) EditList(ctx context.Context, list *models.List) error {
+func (r *repository) EditList(ctx context.Context, list *models.List) (*models.List, error) {
 	tx, err := r.db.Beginx()
 	if err != nil {
-		return fmt.Errorf("begin: %w", err)
+		return nil, fmt.Errorf("begin: %w", err)
 	}
 
-	res, err := r.tracer(tx).ExecContext(ctx, `UPDATE Lists SET title = $1, access = $2 WHERE id = $3`, list.Title, list.Access, list.ID)
+	// ignore outdated revisions for list edit
+	row := r.tracer(tx).QueryRowxContext(ctx, `SELECT revision FROM Lists WHERE id = $1`, list.ID)
+	err = row.Scan(&list.RevisionID)
+	if errors.Is(err, sql.ErrNoRows) {
+		err = service.ErrNotFound
+	}
+	if err != nil {
+		return nil, fmt.Errorf("select revision: %w", err)
+	}
+
+	_, err = r.tracer(tx).ExecContext(ctx,
+		`UPDATE Lists SET title = $1, access = $2, revision = $3 WHERE id = $4`,
+		list.Title, list.Access, list.RevisionID+1, list.ID,
+	)
 	if err != nil {
 		_ = tx.Rollback()
-		return fmt.Errorf("update list: %w", err)
+		return nil, fmt.Errorf("update list: %w", err)
 	}
-	ra, err := res.RowsAffected()
-	if err != nil {
-		_ = tx.Rollback()
-		return fmt.Errorf("rows affected: %w", err)
-	}
-	if ra == 0 {
-		_ = tx.Rollback()
-		return fmt.Errorf("list_id %d: %w", list.ID, service.ErrNotFound)
-	}
+	list.RevisionID++
 
 	_, err = r.tracer(tx).ExecContext(ctx, `DELETE FROM Items WHERE list_id = $1`, list.ID)
 	if err != nil {
 		_ = tx.Rollback()
-		return fmt.Errorf("delete items: %w", err)
+		return nil, fmt.Errorf("delete items: %w", err)
 	}
 
 	err = r.insertItems(ctx, list.Items, list.ID, tx)
 	if err != nil {
 		_ = tx.Rollback()
-		return fmt.Errorf("insert items: %w", err)
+		return nil, fmt.Errorf("insert items: %w", err)
 	}
 
 	err = tx.Commit()
-	return err
+	return list, err
 }
 
 func (r *repository) DeleteList(ctx context.Context, list *models.List) error {

@@ -85,7 +85,10 @@ func (ac *ApiController) GetListItems() operations.GetListItemsHandler {
 			return operations.NewGetListItemsInternalServerError()
 		}
 		payload = list.Items
-		return operations.NewGetListItemsOK().WithPayload(&apimodels.ListItems{Items: conv.SwagItems(payload)})
+		return operations.NewGetListItemsOK().WithPayload(&operations.GetListItemsOKBody{
+			ListItems: apimodels.ListItems{Items: conv.SwagItems(payload)},
+			Revision: conv.SwagRevision(list.RevisionID),
+		})
 	})
 }
 
@@ -140,7 +143,8 @@ func (ac *ApiController) PatchList() operations.PatchListHandler {
 		var err error
 		defer func() { onDone(err) }()
 
-		err = ac.s.EditList(context.TODO(), list, client)
+		
+		_, err = ac.s.EditList(context.TODO(), list, client)
 		if errors.Is(err, service.ErrNotFound) {
 			return operations.NewPatchListNotFound()
 		}

@@ -259,11 +259,11 @@ func TestEditList(t *testing.T) {
 			if tc.wantErr == nil {
 				repo.EXPECT().
 					EditList(gomock.Any(), gomock.Eq(new)).
-					Return(nil)
+					Return(new, nil)
 			}
 
 			s := service.NewService(repo, NewMockListTokenProvider(ctrl))
-			err := s.EditList(ctx, new, tc.client)
+			_, err := s.EditList(ctx, new, tc.client)
 			if !errors.Is(err, tc.wantErr) {
 				t.Fatalf("err: want %+v, got %+v", tc.wantErr, err)
 			}

@@ -8,11 +8,12 @@ type ListItem struct {
 }
 
 type List struct {
-	ID      int64
-	OwnerID int64
-	Access  ListAccess
-	Title   string
-	Items   []ListItem
+	ID         int64
+	OwnerID    int64
+	Access     ListAccess
+	Title      string
+	RevisionID int64
+	Items      []ListItem
 }
 
 type ListAccess int

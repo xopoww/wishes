@@ -22,6 +22,9 @@ type ListItem struct {
 	// desc
 	Desc string `json:"desc,omitempty"`
 
+	// taken by
+	TakenBy int64 `json:"taken_by,omitempty"`
+
 	// title
 	// Required: true
 	// Min Length: 1

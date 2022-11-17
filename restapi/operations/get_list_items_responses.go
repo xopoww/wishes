@@ -9,8 +9,6 @@ import (
 	"net/http"
 
 	"github.com/go-openapi/runtime"
-
-	"github.com/xopoww/wishes/restapi/apimodels"
 )
 
 // GetListItemsOKCode is the HTTP code returned for type GetListItemsOK
@@ -26,7 +24,7 @@ type GetListItemsOK struct {
 	/*
 	  In: Body
 	*/
-	Payload *apimodels.ListItems `json:"body,omitempty"`
+	Payload *GetListItemsOKBody `json:"body,omitempty"`
 }
 
 // NewGetListItemsOK creates GetListItemsOK with default headers values
@@ -36,13 +34,13 @@ func NewGetListItemsOK() *GetListItemsOK {
 }
 
 // WithPayload adds the payload to the get list items o k response
-func (o *GetListItemsOK) WithPayload(payload *apimodels.ListItems) *GetListItemsOK {
+func (o *GetListItemsOK) WithPayload(payload *GetListItemsOKBody) *GetListItemsOK {
 	o.Payload = payload
 	return o
 }
 
 // SetPayload sets the payload to the get list items o k response
-func (o *GetListItemsOK) SetPayload(payload *apimodels.ListItems) {
+func (o *GetListItemsOK) SetPayload(payload *GetListItemsOKBody) {
 	o.Payload = payload
 }
 
