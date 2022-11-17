@@ -14,11 +14,9 @@ import (
 	"github.com/go-openapi/swag"
 )
 
-// GetListURL generates an URL for the get list operation
-type GetListURL struct {
+// GetListTokenURL generates an URL for the get list token operation
+type GetListTokenURL struct {
 	ID int64
-
-	AccessToken *string
 
 	_basePath string
 	// avoid unkeyed usage
@@ -28,7 +26,7 @@ type GetListURL struct {
 // WithBasePath sets the base path for this url builder, only required when it's different from the
 // base path specified in the swagger spec.
 // When the value of the base path is an empty string
-func (o *GetListURL) WithBasePath(bp string) *GetListURL {
+func (o *GetListTokenURL) WithBasePath(bp string) *GetListTokenURL {
 	o.SetBasePath(bp)
 	return o
 }
@@ -36,21 +34,21 @@ func (o *GetListURL) WithBasePath(bp string) *GetListURL {
 // SetBasePath sets the base path for this url builder, only required when it's different from the
 // base path specified in the swagger spec.
 // When the value of the base path is an empty string
-func (o *GetListURL) SetBasePath(bp string) {
+func (o *GetListTokenURL) SetBasePath(bp string) {
 	o._basePath = bp
 }
 
 // Build a url path and query string
-func (o *GetListURL) Build() (*url.URL, error) {
+func (o *GetListTokenURL) Build() (*url.URL, error) {
 	var _result url.URL
 
-	var _path = "/lists/{id}"
+	var _path = "/lists/{id}/token"
 
 	id := swag.FormatInt64(o.ID)
 	if id != "" {
 		_path = strings.Replace(_path, "{id}", id, -1)
 	} else {
-		return nil, errors.New("id is required on GetListURL")
+		return nil, errors.New("id is required on GetListTokenURL")
 	}
 
 	_basePath := o._basePath
@@ -59,23 +57,11 @@ func (o *GetListURL) Build() (*url.URL, error) {
 	}
 	_result.Path = golangswaggerpaths.Join(_basePath, _path)
 
-	qs := make(url.Values)
-
-	var accessTokenQ string
-	if o.AccessToken != nil {
-		accessTokenQ = *o.AccessToken
-	}
-	if accessTokenQ != "" {
-		qs.Set("accessToken", accessTokenQ)
-	}
-
-	_result.RawQuery = qs.Encode()
-
 	return &_result, nil
 }
 
 // Must is a helper function to panic when the url builder returns an error
-func (o *GetListURL) Must(u *url.URL, err error) *url.URL {
+func (o *GetListTokenURL) Must(u *url.URL, err error) *url.URL {
 	if err != nil {
 		panic(err)
 	}
@@ -86,17 +72,17 @@ func (o *GetListURL) Must(u *url.URL, err error) *url.URL {
 }
 
 // String returns the string representation of the path with query string
-func (o *GetListURL) String() string {
+func (o *GetListTokenURL) String() string {
 	return o.Must(o.Build()).String()
 }
 
 // BuildFull builds a full url with scheme, host, path and query string
-func (o *GetListURL) BuildFull(scheme, host string) (*url.URL, error) {
+func (o *GetListTokenURL) BuildFull(scheme, host string) (*url.URL, error) {
 	if scheme == "" {
-		return nil, errors.New("scheme is required for a full url on GetListURL")
+		return nil, errors.New("scheme is required for a full url on GetListTokenURL")
 	}
 	if host == "" {
-		return nil, errors.New("host is required for a full url on GetListURL")
+		return nil, errors.New("host is required for a full url on GetListTokenURL")
 	}
 
 	base, err := o.Build()
@@ -110,6 +96,6 @@ func (o *GetListURL) BuildFull(scheme, host string) (*url.URL, error) {
 }
 
 // StringFull returns the string representation of a complete url
-func (o *GetListURL) StringFull(scheme, host string) string {
+func (o *GetListTokenURL) StringFull(scheme, host string) string {
 	return o.Must(o.BuildFull(scheme, host)).String()
 }

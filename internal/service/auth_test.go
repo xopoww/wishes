@@ -109,7 +109,7 @@ func TestAuth(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			ctrl, ctx := gomock.WithContext(context.Background(), t)
 			r := NewMockRepository(ctrl)
-			s := service.NewService(r)
+			s := service.NewService(r, NewMockListTokenProvider(ctrl))
 
 			client, err := s.Auth(ctx, tc.token)
 

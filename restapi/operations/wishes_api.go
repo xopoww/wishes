@@ -50,6 +50,12 @@ func NewWishesAPI(spec *loads.Document) *WishesAPI {
 		GetListHandler: GetListHandlerFunc(func(params GetListParams, principal *apimodels.Principal) middleware.Responder {
 			return middleware.NotImplemented("operation GetList has not yet been implemented")
 		}),
+		GetListItemsHandler: GetListItemsHandlerFunc(func(params GetListItemsParams, principal *apimodels.Principal) middleware.Responder {
+			return middleware.NotImplemented("operation GetListItems has not yet been implemented")
+		}),
+		GetListTokenHandler: GetListTokenHandlerFunc(func(params GetListTokenParams, principal *apimodels.Principal) middleware.Responder {
+			return middleware.NotImplemented("operation GetListToken has not yet been implemented")
+		}),
 		GetUserHandler: GetUserHandlerFunc(func(params GetUserParams, principal *apimodels.Principal) middleware.Responder {
 			return middleware.NotImplemented("operation GetUser has not yet been implemented")
 		}),
@@ -125,6 +131,10 @@ type WishesAPI struct {
 	DeleteListHandler DeleteListHandler
 	// GetListHandler sets the operation handler for the get list operation
 	GetListHandler GetListHandler
+	// GetListItemsHandler sets the operation handler for the get list items operation
+	GetListItemsHandler GetListItemsHandler
+	// GetListTokenHandler sets the operation handler for the get list token operation
+	GetListTokenHandler GetListTokenHandler
 	// GetUserHandler sets the operation handler for the get user operation
 	GetUserHandler GetUserHandler
 	// GetUserListsHandler sets the operation handler for the get user lists operation
@@ -225,6 +235,12 @@ func (o *WishesAPI) Validate() error {
 	}
 	if o.GetListHandler == nil {
 		unregistered = append(unregistered, "GetListHandler")
+	}
+	if o.GetListItemsHandler == nil {
+		unregistered = append(unregistered, "GetListItemsHandler")
+	}
+	if o.GetListTokenHandler == nil {
+		unregistered = append(unregistered, "GetListTokenHandler")
 	}
 	if o.GetUserHandler == nil {
 		unregistered = append(unregistered, "GetUserHandler")
@@ -357,11 +373,19 @@ func (o *WishesAPI) initHandlerCache() {
 	if o.handlers["GET"] == nil {
 		o.handlers["GET"] = make(map[string]http.Handler)
 	}
+	o.handlers["GET"]["/lists/{id}/items"] = NewGetListItems(o.context, o.GetListItemsHandler)
+	if o.handlers["GET"] == nil {
+		o.handlers["GET"] = make(map[string]http.Handler)
+	}
+	o.handlers["GET"]["/lists/{id}/token"] = NewGetListToken(o.context, o.GetListTokenHandler)
+	if o.handlers["GET"] == nil {
+		o.handlers["GET"] = make(map[string]http.Handler)
+	}
 	o.handlers["GET"]["/users/{id}"] = NewGetUser(o.context, o.GetUserHandler)
 	if o.handlers["GET"] == nil {
 		o.handlers["GET"] = make(map[string]http.Handler)
 	}
-	o.handlers["GET"]["/users/{id}/lists"] = NewGetUserLists(o.context, o.GetUserListsHandler)
+	o.handlers["GET"]["/lists"] = NewGetUserLists(o.context, o.GetUserListsHandler)
 	if o.handlers["POST"] == nil {
 		o.handlers["POST"] = make(map[string]http.Handler)
 	}

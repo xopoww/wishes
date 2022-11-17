@@ -25,9 +25,9 @@ type Repository interface {
 
 	EditUser(ctx context.Context, user *models.User) error
 
-	GetUserLists(ctx context.Context, id int64) ([]int64, error)
+	GetUserLists(ctx context.Context, id int64, publicOnly bool) ([]int64, error)
 
-	// GetList gets only List heaeder (i.e. it does not get ListItems)
+	// GetList gets only List header (i.e. it does not get ListItems)
 	GetList(ctx context.Context, id int64) (*models.List, error)
 
 	GetListItems(ctx context.Context, list *models.List) (*models.List, error)

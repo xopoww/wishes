@@ -37,9 +37,9 @@ func NewGetUserLists(ctx *middleware.Context, handler GetUserListsHandler) *GetU
 }
 
 /*
-	GetUserLists swagger:route GET /users/{id}/lists getUserLists
+	GetUserLists swagger:route GET /lists getUserLists
 
-Get user list ids (visible by client)
+Get user list IDs (visible by client)
 */
 type GetUserLists struct {
 	Context *middleware.Context

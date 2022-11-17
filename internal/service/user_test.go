@@ -41,7 +41,7 @@ func TestRegister(t *testing.T) {
 				})).
 				Return(&models.User{ID: tc.id}, tc.err)
 
-			s := service.NewService(r)
+			s := service.NewService(r, NewMockListTokenProvider(ctrl))
 			id, err := s.Register(ctx, "user", "password")
 			if id != tc.id {
 				t.Errorf("id: want %d, got %d", tc.id, id)
@@ -74,7 +74,7 @@ func TestGetUser(t *testing.T) {
 				GetUser(gomock.Any(), gomock.Eq(id)).
 				Return(&models.User{ID: id}, tc.err)
 
-			s := service.NewService(r)
+			s := service.NewService(r, NewMockListTokenProvider(ctrl))
 			user, err := s.GetUser(ctx, id, client)
 			if user.ID != id {
 				t.Errorf("user.ID: want %d, got %d", id, user.ID)
@@ -126,7 +126,7 @@ func TestEditUser(t *testing.T) {
 					})).Return(nil)
 			}
 
-			s := service.NewService(r)
+			s := service.NewService(r, NewMockListTokenProvider(ctrl))
 			err := s.EditUser(ctx, &models.User{
 				ID:    tc.id,
 				Fname: fname,

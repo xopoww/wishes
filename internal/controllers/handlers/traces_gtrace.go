@@ -130,6 +130,30 @@ func (t Trace) Compose(x Trace) (ret Trace) {
 		}
 	}
 	switch {
+	case t.OnGetListItems == nil:
+		ret.OnGetListItems = x.OnGetListItems
+	case x.OnGetListItems == nil:
+		ret.OnGetListItems = t.OnGetListItems
+	default:
+		h1 := t.OnGetListItems
+		h2 := x.OnGetListItems
+		ret.OnGetListItems = func(o OnGetListItemsStartInfo) func(OnGetListItemsDoneInfo) {
+			r1 := h1(o)
+			r2 := h2(o)
+			switch {
+			case r1 == nil:
+				return r2
+			case r2 == nil:
+				return r1
+			default:
+				return func(o OnGetListItemsDoneInfo) {
+					r1(o)
+					r2(o)
+				}
+			}
+		}
+	}
+	switch {
 	case t.OnPostList == nil:
 		ret.OnPostList = x.OnPostList
 	case x.OnPostList == nil:
@@ -219,6 +243,30 @@ func (t Trace) Compose(x Trace) (ret Trace) {
 				return r1
 			default:
 				return func(o OnGetUserListsDoneInfo) {
+					r1(o)
+					r2(o)
+				}
+			}
+		}
+	}
+	switch {
+	case t.OnGetListToken == nil:
+		ret.OnGetListToken = x.OnGetListToken
+	case x.OnGetListToken == nil:
+		ret.OnGetListToken = t.OnGetListToken
+	default:
+		h1 := t.OnGetListToken
+		h2 := x.OnGetListToken
+		ret.OnGetListToken = func(o OnGetListTokenStartInfo) func(OnGetListTokenDoneInfo) {
+			r1 := h1(o)
+			r2 := h2(o)
+			switch {
+			case r1 == nil:
+				return r2
+			case r2 == nil:
+				return r1
+			default:
+				return func(o OnGetListTokenDoneInfo) {
 					r1(o)
 					r2(o)
 				}
@@ -326,6 +374,21 @@ func (t Trace) onGetList(o OnGetListStartInfo) func(OnGetListDoneInfo) {
 	}
 	return res
 }
+func (t Trace) onGetListItems(o OnGetListItemsStartInfo) func(OnGetListItemsDoneInfo) {
+	fn := t.OnGetListItems
+	if fn == nil {
+		return func(OnGetListItemsDoneInfo) {
+			return
+		}
+	}
+	res := fn(o)
+	if res == nil {
+		return func(OnGetListItemsDoneInfo) {
+			return
+		}
+	}
+	return res
+}
 func (t Trace) onPostList(o OnPostListStartInfo) func(OnPostListDoneInfo) {
 	fn := t.OnPostList
 	if fn == nil {
@@ -381,6 +444,21 @@ func (t Trace) onGetUserLists(o OnGetUserListsStartInfo) func(OnGetUserListsDone
 	res := fn(o)
 	if res == nil {
 		return func(OnGetUserListsDoneInfo) {
+			return
+		}
+	}
+	return res
+}
+func (t Trace) onGetListToken(o OnGetListTokenStartInfo) func(OnGetListTokenDoneInfo) {
+	fn := t.OnGetListToken
+	if fn == nil {
+		return func(OnGetListTokenDoneInfo) {
+			return
+		}
+	}
+	res := fn(o)
+	if res == nil {
+		return func(OnGetListTokenDoneInfo) {
 			return
 		}
 	}
@@ -446,14 +524,28 @@ func traceOnRegister(t Trace, username string) func(ok bool, _ error) {
 		res(p)
 	}
 }
-func traceOnGetList(t Trace, listID int64, client *models.User) func(*models.List, error) {
+func traceOnGetList(t Trace, listID int64, client *models.User, token *string) func(*models.List, error) {
 	var p OnGetListStartInfo
 	p.ListID = listID
 	p.Client = client
+	p.Token = token
 	res := t.onGetList(p)
 	return func(l *models.List, e error) {
 		var p OnGetListDoneInfo
 		p.List = l
+		p.Error = e
+		res(p)
+	}
+}
+func traceOnGetListItems(t Trace, listID int64, client *models.User, token *string) func(items []models.ListItem, _ error) {
+	var p OnGetListItemsStartInfo
+	p.ListID = listID
+	p.Client = client
+	p.Token = token
+	res := t.onGetListItems(p)
+	return func(items []models.ListItem, e error) {
+		var p OnGetListItemsDoneInfo
+		p.Items = items
 		p.Error = e
 		res(p)
 	}
@@ -500,6 +592,17 @@ func traceOnGetUserLists(t Trace, userID int64, client *models.User) func(listID
 	return func(listIDs []int64, e error) {
 		var p OnGetUserListsDoneInfo
 		p.ListIDs = listIDs
+		p.Error = e
+		res(p)
+	}
+}
+func traceOnGetListToken(t Trace, listID int64, client *models.User) func(error) {
+	var p OnGetListTokenStartInfo
+	p.ListID = listID
+	p.Client = client
+	res := t.onGetListToken(p)
+	return func(e error) {
+		var p OnGetListTokenDoneInfo
 		p.Error = e
 		res(p)
 	}

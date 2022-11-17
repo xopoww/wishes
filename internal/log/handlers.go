@@ -6,6 +6,8 @@ import (
 )
 
 func Handlers(l zerolog.Logger) (t handlers.Trace) {
+	l = l.With().Str(zerolog.CallerFieldName, "handlers").Logger()
+
 	t.OnLogin = func(si handlers.OnLoginStartInfo) func(handlers.OnLoginDoneInfo) {
 		return func(di handlers.OnLoginDoneInfo) {
 			if di.Error != nil {
@@ -97,6 +99,165 @@ func Handlers(l zerolog.Logger) (t handlers.Trace) {
 						Int64("id", di.Client.ID),
 					).
 					Msg("new key auth")
+			}
+		}
+	}
+
+	t.OnGetList = func(si handlers.OnGetListStartInfo) func(handlers.OnGetListDoneInfo) {
+		return func(di handlers.OnGetListDoneInfo) {
+			if di.Error != nil {
+				l.Error().
+					Int64("list_id", si.ListID).
+					Dict("client", zerolog.Dict().
+						Str("name", si.Client.Name).
+						Int64("id", si.Client.ID),
+					).
+					Bool("token", si.Token != nil).
+					Err(di.Error).
+					Msg("get list error")
+			} else {
+				l.Debug().
+					Int64("list_id", si.ListID).
+					Dict("client", zerolog.Dict().
+						Str("name", si.Client.Name).
+						Int64("id", si.Client.ID),
+					).
+					Bool("token", si.Token != nil).
+					Msg("get list done")
+			}
+		}
+	} 
+	t.OnGetListItems = func(si handlers.OnGetListItemsStartInfo) func(handlers.OnGetListItemsDoneInfo) {
+		return func(di handlers.OnGetListItemsDoneInfo) {
+			if di.Error != nil {
+				l.Error().
+					Int64("list_id", si.ListID).
+					Dict("client", zerolog.Dict().
+						Str("name", si.Client.Name).
+						Int64("id", si.Client.ID),
+					).
+					Bool("token", si.Token != nil).
+					Err(di.Error).
+					Msg("get list items error")
+			} else {
+				l.Debug().
+					Int64("list_id", si.ListID).
+					Dict("client", zerolog.Dict().
+						Str("name", si.Client.Name).
+						Int64("id", si.Client.ID),
+					).
+					Bool("token", si.Token != nil).
+					Msg("get list items done")
+			}
+		}
+	} 
+	t.OnPostList = func(si handlers.OnPostListStartInfo) func(handlers.OnPostListDoneInfo) {
+		return func(di handlers.OnPostListDoneInfo) {
+			if di.Error != nil {
+				l.Error().
+					Dict("client", zerolog.Dict().
+						Str("name", si.Client.Name).
+						Int64("id", si.Client.ID),
+					).
+					Err(di.Error).
+					Msg("post list error")
+			} else {
+				l.Debug().
+					Dict("client", zerolog.Dict().
+						Str("name", si.Client.Name).
+						Int64("id", si.Client.ID),
+					).
+					Int64("list_id", di.ListID).
+					Msg("post list done")
+			}
+		}
+	} 
+	t.OnPatchList = func(si handlers.OnPatchListStartInfo) func(handlers.OnPatchListDoneInfo) {
+		return func(di handlers.OnPatchListDoneInfo) {
+			if di.Error != nil {
+				l.Error().
+					Int64("list_id", si.List.ID).
+					Dict("client", zerolog.Dict().
+						Str("name", si.Client.Name).
+						Int64("id", si.Client.ID),
+					).
+					Err(di.Error).
+					Msg("patch list error")
+			} else {
+				l.Debug().
+					Int64("list_id", si.List.ID).
+					Dict("client", zerolog.Dict().
+						Str("name", si.Client.Name).
+						Int64("id", si.Client.ID),
+					).
+					Msg("patch list done")
+			}
+		}
+	} 
+	t.OnDeleteList = func(si handlers.OnDeleteListStartInfo) func(handlers.OnDeleteListDoneInfo) {
+		return func(di handlers.OnDeleteListDoneInfo) {
+			if di.Error != nil {
+				l.Error().
+					Int64("list_id", si.List.ID).
+					Dict("client", zerolog.Dict().
+						Str("name", si.Client.Name).
+						Int64("id", si.Client.ID),
+					).
+					Err(di.Error).
+					Msg("delete list error")
+			} else {
+				l.Debug().
+					Int64("list_id", si.List.ID).
+					Dict("client", zerolog.Dict().
+						Str("name", si.Client.Name).
+						Int64("id", si.Client.ID),
+					).
+					Msg("delete list done")
+			}
+		}
+	} 
+	t.OnGetUserLists = func(si handlers.OnGetUserListsStartInfo) func(handlers.OnGetUserListsDoneInfo) {
+		return func(di handlers.OnGetUserListsDoneInfo) {
+			if di.Error != nil {
+				l.Error().
+					Int64("user_id", si.UserID).
+					Dict("client", zerolog.Dict().
+						Str("name", si.Client.Name).
+						Int64("id", si.Client.ID),
+					).
+					Err(di.Error).
+					Msg("get user lists error")
+			} else {
+				l.Debug().
+					Int64("user_id", si.UserID).
+					Dict("client", zerolog.Dict().
+						Str("name", si.Client.Name).
+						Int64("id", si.Client.ID),
+					).
+					Int("num_lists", len(di.ListIDs)).
+					Msg("get user lists done")
+			}
+		}
+	} 
+	t.OnGetListToken = func(si handlers.OnGetListTokenStartInfo) func(handlers.OnGetListTokenDoneInfo) {
+		return func(di handlers.OnGetListTokenDoneInfo) {
+			if di.Error != nil {
+				l.Error().
+					Int64("list_id", si.ListID).
+					Dict("client", zerolog.Dict().
+						Str("name", si.Client.Name).
+						Int64("id", si.Client.ID),
+					).
+					Err(di.Error).
+					Msg("get list token error")
+			} else {
+				l.Debug().
+					Int64("list_id", si.ListID).
+					Dict("client", zerolog.Dict().
+						Str("name", si.Client.Name).
+						Int64("id", si.Client.ID),
+					).
+					Msg("get list token done")
 			}
 		}
 	}

@@ -75,6 +75,108 @@ func (o *PostList) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 
 }
 
+// PostListBody post list body
+//
+// swagger:model PostListBody
+type PostListBody struct {
+	apimodels.List
+
+	apimodels.ListItems
+}
+
+// UnmarshalJSON unmarshals this object from a JSON structure
+func (o *PostListBody) UnmarshalJSON(raw []byte) error {
+	// PostListParamsBodyAO0
+	var postListParamsBodyAO0 apimodels.List
+	if err := swag.ReadJSON(raw, &postListParamsBodyAO0); err != nil {
+		return err
+	}
+	o.List = postListParamsBodyAO0
+
+	// PostListParamsBodyAO1
+	var postListParamsBodyAO1 apimodels.ListItems
+	if err := swag.ReadJSON(raw, &postListParamsBodyAO1); err != nil {
+		return err
+	}
+	o.ListItems = postListParamsBodyAO1
+
+	return nil
+}
+
+// MarshalJSON marshals this object to a JSON structure
+func (o PostListBody) MarshalJSON() ([]byte, error) {
+	_parts := make([][]byte, 0, 2)
+
+	postListParamsBodyAO0, err := swag.WriteJSON(o.List)
+	if err != nil {
+		return nil, err
+	}
+	_parts = append(_parts, postListParamsBodyAO0)
+
+	postListParamsBodyAO1, err := swag.WriteJSON(o.ListItems)
+	if err != nil {
+		return nil, err
+	}
+	_parts = append(_parts, postListParamsBodyAO1)
+	return swag.ConcatJSON(_parts...), nil
+}
+
+// Validate validates this post list body
+func (o *PostListBody) Validate(formats strfmt.Registry) error {
+	var res []error
+
+	// validation for a type composition with apimodels.List
+	if err := o.List.Validate(formats); err != nil {
+		res = append(res, err)
+	}
+	// validation for a type composition with apimodels.ListItems
+	if err := o.ListItems.Validate(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+// ContextValidate validate this post list body based on the context it is used
+func (o *PostListBody) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	// validation for a type composition with apimodels.List
+	if err := o.List.ContextValidate(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+	// validation for a type composition with apimodels.ListItems
+	if err := o.ListItems.ContextValidate(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+// MarshalBinary interface implementation
+func (o *PostListBody) MarshalBinary() ([]byte, error) {
+	if o == nil {
+		return nil, nil
+	}
+	return swag.WriteJSON(o)
+}
+
+// UnmarshalBinary interface implementation
+func (o *PostListBody) UnmarshalBinary(b []byte) error {
+	var res PostListBody
+	if err := swag.ReadJSON(b, &res); err != nil {
+		return err
+	}
+	*o = res
+	return nil
+}
+
 // PostListInternalServerErrorBody post list internal server error body
 //
 // swagger:model PostListInternalServerErrorBody

@@ -8,6 +8,8 @@ import (
 )
 
 func Sqlite(l zerolog.Logger) (t sqlite.Trace) {
+	l = l.With().Str(zerolog.CallerFieldName, "sqlite").Logger()
+
 	t.OnQuery = func(si sqlite.OnQueryStartInfo) func(sqlite.OnQueryDoneInfo) {
 		e := l.Trace().
 			Str("method", si.Method).

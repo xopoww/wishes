@@ -39,7 +39,7 @@ func NewGetList(ctx *middleware.Context, handler GetListHandler) *GetList {
 /*
 	GetList swagger:route GET /lists/{id} getList
 
-Get list info
+Get list info (title, etc)
 */
 type GetList struct {
 	Context *middleware.Context

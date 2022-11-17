@@ -9,6 +9,7 @@ import (
 	"net/http"
 
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/runtime"
 	"github.com/go-openapi/runtime/middleware"
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
@@ -31,11 +32,10 @@ type GetUserListsParams struct {
 	// HTTP Request Object
 	HTTPRequest *http.Request `json:"-"`
 
-	/*
-	  Required: true
-	  In: path
+	/*ID of user in question. If empty, client ID is used.
+	  In: query
 	*/
-	ID int64
+	UserID *int64
 }
 
 // BindRequest both binds and validates a request, it assumes that complex things implement a Validatable(strfmt.Registry) error interface
@@ -47,8 +47,10 @@ func (o *GetUserListsParams) BindRequest(r *http.Request, route *middleware.Matc
 
 	o.HTTPRequest = r
 
-	rID, rhkID, _ := route.Params.GetOK("id")
-	if err := o.bindID(rID, rhkID, route.Formats); err != nil {
+	qs := runtime.Values(r.URL.Query())
+
+	qUserID, qhkUserID, _ := qs.GetOK("UserID")
+	if err := o.bindUserID(qUserID, qhkUserID, route.Formats); err != nil {
 		res = append(res, err)
 	}
 	if len(res) > 0 {
@@ -57,21 +59,25 @@ func (o *GetUserListsParams) BindRequest(r *http.Request, route *middleware.Matc
 	return nil
 }
 
-// bindID binds and validates parameter ID from path.
-func (o *GetUserListsParams) bindID(rawData []string, hasKey bool, formats strfmt.Registry) error {
+// bindUserID binds and validates parameter UserID from query.
+func (o *GetUserListsParams) bindUserID(rawData []string, hasKey bool, formats strfmt.Registry) error {
 	var raw string
 	if len(rawData) > 0 {
 		raw = rawData[len(rawData)-1]
 	}
 
-	// Required: true
-	// Parameter is provided by construction from the route
+	// Required: false
+	// AllowEmptyValue: false
+
+	if raw == "" { // empty values pass all other validations
+		return nil
+	}
 
 	value, err := swag.ConvertInt64(raw)
 	if err != nil {
-		return errors.InvalidType("id", "path", "int64", raw)
+		return errors.InvalidType("UserID", "query", "int64", raw)
 	}
-	o.ID = value
+	o.UserID = &value
 
 	return nil
 }

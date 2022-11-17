@@ -15,8 +15,6 @@ import (
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
-
-	"github.com/xopoww/wishes/restapi/apimodels"
 )
 
 // NewPatchListParams creates a new PatchListParams object
@@ -45,7 +43,7 @@ type PatchListParams struct {
 	  Required: true
 	  In: body
 	*/
-	List *apimodels.List
+	List PatchListBody
 }
 
 // BindRequest both binds and validates a request, it assumes that complex things implement a Validatable(strfmt.Registry) error interface
@@ -64,7 +62,7 @@ func (o *PatchListParams) BindRequest(r *http.Request, route *middleware.Matched
 
 	if runtime.HasBody(r) {
 		defer r.Body.Close()
-		var body apimodels.List
+		var body PatchListBody
 		if err := route.Consumer.Consume(r.Body, &body); err != nil {
 			if err == io.EOF {
 				res = append(res, errors.Required("list", "body", ""))
@@ -83,7 +81,7 @@ func (o *PatchListParams) BindRequest(r *http.Request, route *middleware.Matched
 			}
 
 			if len(res) == 0 {
-				o.List = &body
+				o.List = body
 			}
 		}
 	} else {

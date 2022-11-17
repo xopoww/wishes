@@ -27,11 +27,41 @@ func init() {
   "swagger": "2.0",
   "info": {
     "title": "Wishes API",
-    "version": "0.0.5"
+    "version": "0.0.6"
   },
   "basePath": "/api",
   "paths": {
     "/lists": {
+      "get": {
+        "summary": "Get user list IDs (visible by client)",
+        "operationId": "GetUserLists",
+        "parameters": [
+          {
+            "type": "integer",
+            "description": "ID of user in question. If empty, client ID is used.",
+            "name": "UserID",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "type": "array",
+              "uniqueItems": true,
+              "items": {
+                "type": "integer"
+              }
+            }
+          },
+          "404": {
+            "description": "User not found"
+          },
+          "500": {
+            "$ref": "#/responses/ServerError"
+          }
+        }
+      },
       "post": {
         "summary": "Create new list",
         "operationId": "PostList",
@@ -41,7 +71,14 @@ func init() {
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/List"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/List"
+                },
+                {
+                  "$ref": "#/definitions/ListItems"
+                }
+              ]
             }
           }
         ],
@@ -60,8 +97,13 @@ func init() {
     },
     "/lists/{id}": {
       "get": {
-        "summary": "Get list info",
+        "summary": "Get list info (title, etc)",
         "operationId": "GetList",
+        "parameters": [
+          {
+            "$ref": "#/parameters/AccessToken"
+          }
+        ],
         "responses": {
           "200": {
             "description": "Success",
@@ -107,13 +149,86 @@ func init() {
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/List"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/List"
+                },
+                {
+                  "$ref": "#/definitions/ListItems"
+                }
+              ]
             }
           }
         ],
         "responses": {
           "204": {
             "description": "Success"
+          },
+          "403": {
+            "description": "Access denied"
+          },
+          "404": {
+            "description": "List not found"
+          },
+          "500": {
+            "$ref": "#/responses/ServerError"
+          }
+        }
+      },
+      "parameters": [
+        {
+          "$ref": "#/parameters/PathId"
+        }
+      ]
+    },
+    "/lists/{id}/items": {
+      "get": {
+        "summary": "Get list items",
+        "operationId": "GetListItems",
+        "parameters": [
+          {
+            "$ref": "#/parameters/AccessToken"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/ListItems"
+            }
+          },
+          "403": {
+            "description": "Access denied"
+          },
+          "404": {
+            "description": "List not found"
+          },
+          "500": {
+            "$ref": "#/responses/ServerError"
+          }
+        }
+      },
+      "parameters": [
+        {
+          "$ref": "#/parameters/PathId"
+        }
+      ]
+    },
+    "/lists/{id}/token": {
+      "get": {
+        "summary": "Get access token for a list",
+        "operationId": "GetListToken",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "token": {
+                  "type": "string"
+                }
+              }
+            }
           },
           "403": {
             "description": "Access denied"
@@ -262,35 +377,6 @@ func init() {
           "$ref": "#/parameters/PathId"
         }
       ]
-    },
-    "/users/{id}/lists": {
-      "get": {
-        "summary": "Get user list ids (visible by client)",
-        "operationId": "GetUserLists",
-        "responses": {
-          "200": {
-            "description": "Success",
-            "schema": {
-              "type": "array",
-              "uniqueItems": true,
-              "items": {
-                "type": "integer"
-              }
-            }
-          },
-          "404": {
-            "description": "User not found"
-          },
-          "500": {
-            "$ref": "#/responses/ServerError"
-          }
-        }
-      },
-      "parameters": [
-        {
-          "$ref": "#/parameters/PathId"
-        }
-      ]
     }
   },
   "definitions": {
@@ -308,14 +394,20 @@ func init() {
     "List": {
       "type": "object",
       "required": [
-        "title"
+        "title",
+        "access"
       ],
       "properties": {
-        "items": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/ListItem"
-          }
+        "access": {
+          "type": "string",
+          "enum": [
+            "private",
+            "link",
+            "public"
+          ]
+        },
+        "ownerID": {
+          "type": "integer"
         },
         "title": {
           "type": "string",
@@ -335,6 +427,17 @@ func init() {
         "title": {
           "type": "string",
           "minLength": 1
+        }
+      }
+    },
+    "ListItems": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ListItem"
+          }
         }
       }
     },
@@ -404,6 +507,12 @@ func init() {
     }
   },
   "parameters": {
+    "AccessToken": {
+      "type": "string",
+      "description": "Optional access token for a list provided by list owner",
+      "name": "accessToken",
+      "in": "query"
+    },
     "PathId": {
       "type": "integer",
       "name": "id",
@@ -450,11 +559,52 @@ func init() {
   "swagger": "2.0",
   "info": {
     "title": "Wishes API",
-    "version": "0.0.5"
+    "version": "0.0.6"
   },
   "basePath": "/api",
   "paths": {
     "/lists": {
+      "get": {
+        "summary": "Get user list IDs (visible by client)",
+        "operationId": "GetUserLists",
+        "parameters": [
+          {
+            "type": "integer",
+            "description": "ID of user in question. If empty, client ID is used.",
+            "name": "UserID",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "type": "array",
+              "uniqueItems": true,
+              "items": {
+                "type": "integer"
+              }
+            }
+          },
+          "404": {
+            "description": "User not found"
+          },
+          "500": {
+            "description": "Server error",
+            "schema": {
+              "type": "object",
+              "required": [
+                "error"
+              ],
+              "properties": {
+                "error": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
       "post": {
         "summary": "Create new list",
         "operationId": "PostList",
@@ -464,7 +614,14 @@ func init() {
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/List"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/List"
+                },
+                {
+                  "$ref": "#/definitions/ListItems"
+                }
+              ]
             }
           }
         ],
@@ -494,8 +651,16 @@ func init() {
     },
     "/lists/{id}": {
       "get": {
-        "summary": "Get list info",
+        "summary": "Get list info (title, etc)",
         "operationId": "GetList",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Optional access token for a list provided by list owner",
+            "name": "accessToken",
+            "in": "query"
+          }
+        ],
         "responses": {
           "200": {
             "description": "Success",
@@ -563,13 +728,117 @@ func init() {
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/List"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/List"
+                },
+                {
+                  "$ref": "#/definitions/ListItems"
+                }
+              ]
             }
           }
         ],
         "responses": {
           "204": {
             "description": "Success"
+          },
+          "403": {
+            "description": "Access denied"
+          },
+          "404": {
+            "description": "List not found"
+          },
+          "500": {
+            "description": "Server error",
+            "schema": {
+              "type": "object",
+              "required": [
+                "error"
+              ],
+              "properties": {
+                "error": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "parameters": [
+        {
+          "type": "integer",
+          "name": "id",
+          "in": "path",
+          "required": true
+        }
+      ]
+    },
+    "/lists/{id}/items": {
+      "get": {
+        "summary": "Get list items",
+        "operationId": "GetListItems",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Optional access token for a list provided by list owner",
+            "name": "accessToken",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/ListItems"
+            }
+          },
+          "403": {
+            "description": "Access denied"
+          },
+          "404": {
+            "description": "List not found"
+          },
+          "500": {
+            "description": "Server error",
+            "schema": {
+              "type": "object",
+              "required": [
+                "error"
+              ],
+              "properties": {
+                "error": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "parameters": [
+        {
+          "type": "integer",
+          "name": "id",
+          "in": "path",
+          "required": true
+        }
+      ]
+    },
+    "/lists/{id}/token": {
+      "get": {
+        "summary": "Get access token for a list",
+        "operationId": "GetListToken",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "token": {
+                  "type": "string"
+                }
+              }
+            }
           },
           "403": {
             "description": "Access denied"
@@ -779,49 +1048,6 @@ func init() {
           "required": true
         }
       ]
-    },
-    "/users/{id}/lists": {
-      "get": {
-        "summary": "Get user list ids (visible by client)",
-        "operationId": "GetUserLists",
-        "responses": {
-          "200": {
-            "description": "Success",
-            "schema": {
-              "type": "array",
-              "uniqueItems": true,
-              "items": {
-                "type": "integer"
-              }
-            }
-          },
-          "404": {
-            "description": "User not found"
-          },
-          "500": {
-            "description": "Server error",
-            "schema": {
-              "type": "object",
-              "required": [
-                "error"
-              ],
-              "properties": {
-                "error": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        }
-      },
-      "parameters": [
-        {
-          "type": "integer",
-          "name": "id",
-          "in": "path",
-          "required": true
-        }
-      ]
     }
   },
   "definitions": {
@@ -839,14 +1065,20 @@ func init() {
     "List": {
       "type": "object",
       "required": [
-        "title"
+        "title",
+        "access"
       ],
       "properties": {
-        "items": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/ListItem"
-          }
+        "access": {
+          "type": "string",
+          "enum": [
+            "private",
+            "link",
+            "public"
+          ]
+        },
+        "ownerID": {
+          "type": "integer"
         },
         "title": {
           "type": "string",
@@ -866,6 +1098,17 @@ func init() {
         "title": {
           "type": "string",
           "minLength": 1
+        }
+      }
+    },
+    "ListItems": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ListItem"
+          }
         }
       }
     },
@@ -935,6 +1178,12 @@ func init() {
     }
   },
   "parameters": {
+    "AccessToken": {
+      "type": "string",
+      "description": "Optional access token for a list provided by list owner",
+      "name": "accessToken",
+      "in": "query"
+    },
     "PathId": {
       "type": "integer",
       "name": "id",

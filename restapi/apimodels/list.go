@@ -7,7 +7,7 @@ package apimodels
 
 import (
 	"context"
-	"strconv"
+	"encoding/json"
 
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/strfmt"
@@ -20,8 +20,13 @@ import (
 // swagger:model List
 type List struct {
 
-	// items
-	Items []*ListItem `json:"items"`
+	// access
+	// Required: true
+	// Enum: [private link public]
+	Access *string `json:"access"`
+
+	// owner ID
+	OwnerID int64 `json:"ownerID,omitempty"`
 
 	// title
 	// Required: true
@@ -33,7 +38,7 @@ type List struct {
 func (m *List) Validate(formats strfmt.Registry) error {
 	var res []error
 
-	if err := m.validateItems(formats); err != nil {
+	if err := m.validateAccess(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -47,27 +52,47 @@ func (m *List) Validate(formats strfmt.Registry) error {
 	return nil
 }
 
-func (m *List) validateItems(formats strfmt.Registry) error {
-	if swag.IsZero(m.Items) { // not required
-		return nil
+var listTypeAccessPropEnum []interface{}
+
+func init() {
+	var res []string
+	if err := json.Unmarshal([]byte(`["private","link","public"]`), &res); err != nil {
+		panic(err)
+	}
+	for _, v := range res {
+		listTypeAccessPropEnum = append(listTypeAccessPropEnum, v)
+	}
+}
+
+const (
+
+	// ListAccessPrivate captures enum value "private"
+	ListAccessPrivate string = "private"
+
+	// ListAccessLink captures enum value "link"
+	ListAccessLink string = "link"
+
+	// ListAccessPublic captures enum value "public"
+	ListAccessPublic string = "public"
+)
+
+// prop value enum
+func (m *List) validateAccessEnum(path, location string, value string) error {
+	if err := validate.EnumCase(path, location, value, listTypeAccessPropEnum, true); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (m *List) validateAccess(formats strfmt.Registry) error {
+
+	if err := validate.Required("access", "body", m.Access); err != nil {
+		return err
 	}
 
-	for i := 0; i < len(m.Items); i++ {
-		if swag.IsZero(m.Items[i]) { // not required
-			continue
-		}
-
-		if m.Items[i] != nil {
-			if err := m.Items[i].Validate(formats); err != nil {
-				if ve, ok := err.(*errors.Validation); ok {
-					return ve.ValidateName("items" + "." + strconv.Itoa(i))
-				} else if ce, ok := err.(*errors.CompositeError); ok {
-					return ce.ValidateName("items" + "." + strconv.Itoa(i))
-				}
-				return err
-			}
-		}
-
+	// value enum
+	if err := m.validateAccessEnum("access", "body", *m.Access); err != nil {
+		return err
 	}
 
 	return nil
@@ -86,37 +111,8 @@ func (m *List) validateTitle(formats strfmt.Registry) error {
 	return nil
 }
 
-// ContextValidate validate this list based on the context it is used
+// ContextValidate validates this list based on context it is used
 func (m *List) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
-	var res []error
-
-	if err := m.contextValidateItems(ctx, formats); err != nil {
-		res = append(res, err)
-	}
-
-	if len(res) > 0 {
-		return errors.CompositeValidationError(res...)
-	}
-	return nil
-}
-
-func (m *List) contextValidateItems(ctx context.Context, formats strfmt.Registry) error {
-
-	for i := 0; i < len(m.Items); i++ {
-
-		if m.Items[i] != nil {
-			if err := m.Items[i].ContextValidate(ctx, formats); err != nil {
-				if ve, ok := err.(*errors.Validation); ok {
-					return ve.ValidateName("items" + "." + strconv.Itoa(i))
-				} else if ce, ok := err.(*errors.CompositeError); ok {
-					return ce.ValidateName("items" + "." + strconv.Itoa(i))
-				}
-				return err
-			}
-		}
-
-	}
-
 	return nil
 }
 

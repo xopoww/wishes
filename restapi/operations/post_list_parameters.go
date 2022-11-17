@@ -13,8 +13,6 @@ import (
 	"github.com/go-openapi/runtime"
 	"github.com/go-openapi/runtime/middleware"
 	"github.com/go-openapi/validate"
-
-	"github.com/xopoww/wishes/restapi/apimodels"
 )
 
 // NewPostListParams creates a new PostListParams object
@@ -38,7 +36,7 @@ type PostListParams struct {
 	  Required: true
 	  In: body
 	*/
-	List *apimodels.List
+	List PostListBody
 }
 
 // BindRequest both binds and validates a request, it assumes that complex things implement a Validatable(strfmt.Registry) error interface
@@ -52,7 +50,7 @@ func (o *PostListParams) BindRequest(r *http.Request, route *middleware.MatchedR
 
 	if runtime.HasBody(r) {
 		defer r.Body.Close()
-		var body apimodels.List
+		var body PostListBody
 		if err := route.Consumer.Consume(r.Body, &body); err != nil {
 			if err == io.EOF {
 				res = append(res, errors.Required("list", "body", ""))
@@ -71,7 +69,7 @@ func (o *PostListParams) BindRequest(r *http.Request, route *middleware.MatchedR
 			}
 
 			if len(res) == 0 {
-				o.List = &body
+				o.List = body
 			}
 		}
 	} else {

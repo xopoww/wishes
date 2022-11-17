@@ -14,9 +14,10 @@ import (
 
 func TestGetUserLists(t *testing.T) {
 	tcs := []struct {
-		name    string
-		migs    []*migrate.Migration
-		wantLen int
+		name          string
+		migs          []*migrate.Migration
+		wantLen       int
+		wantLenPublic int
 	}{
 		{
 			name: "no lists",
@@ -26,42 +27,45 @@ func TestGetUserLists(t *testing.T) {
 					testMigrationVersionStart,
 				),
 			},
-			wantLen: 0,
+			wantLen:       0,
+			wantLenPublic: 0,
 		},
 		{
-			name: "one list",
+			name: "public list",
 			migs: []*migrate.Migration{
 				upMigrationFromString(t,
 					`INSERT INTO Users (user_name, pwd_hash) VALUES ("user", "cGFzc3dvcmQ=")`,
 					testMigrationVersionStart,
 				),
 				upMigrationFromString(t,
-					`INSERT INTO Lists (title, owner_id) SELECT title, Users.id AS owner_id FROM `+
-						`(SELECT "list" AS title) JOIN Users ON Users.user_name = "user"`,
+					`INSERT INTO Lists (title, owner_id, access) SELECT title, Users.id AS owner_id, ListAccessEnum.N as access FROM `+
+						`(SELECT "list" AS title) JOIN Users ON Users.user_name = "user" JOIN ListAccessEnum on ListAccessEnum.S = "public"`,
 					testMigrationVersionStart+1,
 				),
 			},
-			wantLen: 1,
+			wantLen:       1,
+			wantLenPublic: 1,
 		},
 		{
-			name: "two lists",
+			name: "private lists",
 			migs: []*migrate.Migration{
 				upMigrationFromString(t,
 					`INSERT INTO Users (user_name, pwd_hash) VALUES ("user", "cGFzc3dvcmQ=")`,
 					testMigrationVersionStart,
 				),
 				upMigrationFromString(t,
-					`INSERT INTO Lists (title, owner_id) SELECT title, Users.id AS owner_id FROM `+
-						`(SELECT "list" AS title) JOIN Users ON Users.user_name = "user"`,
+					`INSERT INTO Lists (title, owner_id, access) SELECT title, Users.id AS owner_id, ListAccessEnum.N as access FROM `+
+						`(SELECT "list1" AS title) JOIN Users ON Users.user_name = "user" JOIN ListAccessEnum on ListAccessEnum.S = "private"`,
 					testMigrationVersionStart+1,
 				),
 				upMigrationFromString(t,
-					`INSERT INTO Lists (title, owner_id) SELECT title, Users.id AS owner_id FROM `+
-						`(SELECT "list" AS title) JOIN Users ON Users.user_name = "user"`,
+					`INSERT INTO Lists (title, owner_id, access) SELECT title, Users.id AS owner_id, ListAccessEnum.N as access FROM `+
+						`(SELECT "list2" AS title) JOIN Users ON Users.user_name = "user" JOIN ListAccessEnum on ListAccessEnum.S = "link"`,
 					testMigrationVersionStart+1,
 				),
 			},
-			wantLen: 2,
+			wantLen:       2,
+			wantLenPublic: 0,
 		},
 	}
 
@@ -81,12 +85,20 @@ func TestGetUserLists(t *testing.T) {
 				t.Fatalf("check user: %s", err)
 			}
 
-			lids, err := repo.GetUserLists(ctx, uid)
+			lids, err := repo.GetUserLists(ctx, uid, true)
 			if err != nil {
-				t.Fatalf("get user lists: %s", err)
+				t.Errorf("get public user lists: %s", err)
+			}
+			if len(lids) != tc.wantLenPublic {
+				t.Errorf("public lids len: want %d, got %d", tc.wantLenPublic, len(lids))
+			}
+
+			lids, err = repo.GetUserLists(ctx, uid, false)
+			if err != nil {
+				t.Errorf("get user lists: %s", err)
 			}
 			if len(lids) != tc.wantLen {
-				t.Fatalf("lids len: want %d, got %d", tc.wantLen, len(lids))
+				t.Errorf("lids len: want %d, got %d", tc.wantLen, len(lids))
 			}
 		})
 	}
@@ -99,8 +111,8 @@ func TestGetList(t *testing.T) {
 			testMigrationVersionStart,
 		),
 		upMigrationFromString(t,
-			`INSERT INTO Lists (title, owner_id) SELECT title, Users.id AS owner_id FROM `+
-				`(SELECT "list" AS title) JOIN Users ON Users.user_name = "user"`,
+			`INSERT INTO Lists (title, owner_id, access) SELECT title, Users.id AS owner_id, ListAccessEnum.N as access FROM `+
+				`(SELECT "list" AS title) JOIN Users ON Users.user_name = "user" JOIN ListAccessEnum on ListAccessEnum.S = "link"`,
 			testMigrationVersionStart+1,
 		),
 	)
@@ -117,7 +129,7 @@ func TestGetList(t *testing.T) {
 		t.Fatalf("check user: %s", err)
 	}
 
-	lids, err := repo.GetUserLists(ctx, uid)
+	lids, err := repo.GetUserLists(ctx, uid, false)
 	if err != nil {
 		t.Fatalf("get user lists: %s", err)
 	}
@@ -130,6 +142,7 @@ func TestGetList(t *testing.T) {
 		ID:      lid,
 		OwnerID: uid,
 		Title:   "list",
+		Access:  models.LinkAccess,
 	}
 	got, err := repo.GetList(ctx, lid)
 	if err != nil {
@@ -150,13 +163,13 @@ func TestGetListItems(t *testing.T) {
 			testMigrationVersionStart,
 		),
 		upMigrationFromString(t,
-			`INSERT INTO Lists (title, owner_id) SELECT title, Users.id AS owner_id FROM `+
-				`(SELECT "list1" AS title) JOIN Users ON Users.user_name = "user"`,
+			`INSERT INTO Lists (title, owner_id, access) SELECT title, Users.id AS owner_id, ListAccessEnum.N as access FROM `+
+				`(SELECT "list1" AS title) JOIN Users ON Users.user_name = "user" JOIN ListAccessEnum on ListAccessEnum.S = "link"`,
 			testMigrationVersionStart+1,
 		),
 		upMigrationFromString(t,
-			`INSERT INTO Lists (title, owner_id) SELECT title, Users.id AS owner_id FROM `+
-				`(SELECT "list2" AS title) JOIN Users ON Users.user_name = "user"; `+
+			`INSERT INTO Lists (title, owner_id, access) SELECT title, Users.id AS owner_id, ListAccessEnum.N as access FROM `+
+				`(SELECT "list2" AS title) JOIN Users ON Users.user_name = "user" JOIN ListAccessEnum on ListAccessEnum.S = "link"; `+
 				`INSERT INTO Items (title, list_id) SELECT item_title as title, Lists.id AS list_id FROM `+
 				`(SELECT "item" AS item_title) JOIN Lists ON Lists.title = "list2";`,
 			testMigrationVersionStart+2,
@@ -175,7 +188,7 @@ func TestGetListItems(t *testing.T) {
 		t.Fatalf("check user: %s", err)
 	}
 
-	lids, err := repo.GetUserLists(ctx, uid)
+	lids, err := repo.GetUserLists(ctx, uid, false)
 	if err != nil {
 		t.Fatalf("get user lists: %s", err)
 	}
@@ -235,12 +248,24 @@ func TestAddList(t *testing.T) {
 	tcs := []struct {
 		name    string
 		owner   int64
+		access  models.ListAccess
 		items   []models.ListItem
 		wantErr error
 	}{
 		{
-			name:  "no items",
-			owner: user.ID,
+			name:   "no items public",
+			owner:  user.ID,
+			access: models.PublicAccess,
+		},
+		{
+			name:   "no items private",
+			owner:  user.ID,
+			access: models.PrivateAccess,
+		},
+		{
+			name:   "no items link",
+			owner:  user.ID,
+			access: models.LinkAccess,
 		},
 		{
 			name:  "one item",
@@ -285,6 +310,7 @@ func TestAddList(t *testing.T) {
 				Title:   "list",
 				OwnerID: tc.owner,
 				Items:   tc.items,
+				Access:  tc.access,
 			}
 			cctx, cancel := context.WithCancel(ctx)
 			t.Cleanup(cancel)
@@ -342,6 +368,17 @@ func TestEditList(t *testing.T) {
 			},
 			b: models.List{
 				Title: "new_list",
+			},
+		},
+		{
+			name: "change access",
+			a: models.List{
+				Title:  "list",
+				Access: models.PublicAccess,
+			},
+			b: models.List{
+				Title:  "list",
+				Access: models.PrivateAccess,
 			},
 		},
 		{
@@ -532,6 +569,9 @@ func assertListsEq(t *testing.T, want, got *models.List) {
 		t.Fatalf("want %+v, got %+v", want, got)
 	}
 	if want.OwnerID != got.OwnerID {
+		t.Fatalf("want %+v, got %+v", want, got)
+	}
+	if want.Access != got.Access {
 		t.Fatalf("want %+v, got %+v", want, got)
 	}
 	if len(want.Items) != len(got.Items) {

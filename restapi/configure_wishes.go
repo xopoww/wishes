@@ -4,6 +4,7 @@ package restapi
 
 import (
 	"crypto/tls"
+	"encoding/base64"
 	"net/http"
 	"os"
 	"runtime/debug"
@@ -70,7 +71,15 @@ func configureAPI(api *operations.WishesAPI) http.Handler {
 	// Example:
 	// api.APIAuthorizer = security.Authorized()
 
-	serv := service.NewService(repo)
+	listSecretStr, exists := os.LookupEnv("WISHES_LIST_SECRET")
+	if !exists {
+		l.Fatal().Msg("WISHES_LIST_SECRET is not set")
+	}
+	listSecret, err := base64.RawStdEncoding.DecodeString(listSecretStr)
+	if err != nil {
+		l.Fatal().Err(err).Msg("decode WISHES_LIST_SECRET failed")
+	}
+	serv := service.NewService(repo, service.NewListTokenProvider(listSecret))
 	controller := handlers.NewApiController(log.Handlers(l), serv)
 
 	// Applies when the "x-token" header is set
@@ -85,9 +94,11 @@ func configureAPI(api *operations.WishesAPI) http.Handler {
 	api.GetUserListsHandler = controller.GetUserLists()
 
 	api.GetListHandler = controller.GetList()
+	api.GetListItemsHandler = controller.GetListItems()
 	api.PostListHandler = controller.PostList()
 	api.PatchListHandler = controller.PatchList()
 	api.DeleteListHandler = controller.DeleteList()
+	api.GetListTokenHandler = controller.GetListToken()
 
 	api.PreServerShutdown = func() {}
 

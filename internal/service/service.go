@@ -24,19 +24,24 @@ type Service interface {
 
 	GetUserLists(ctx context.Context, id int64, client *models.User) ([]int64, error)
 
-	GetList(ctx context.Context, id int64, client *models.User) (*models.List, error)
+	GetList(ctx context.Context, id int64, client *models.User, token *string) (*models.List, error)
+
+	GetListItems(ctx context.Context, list *models.List, client *models.User, token *string) (*models.List, error)
 
 	EditList(ctx context.Context, list *models.List, client *models.User) error
 
 	AddList(ctx context.Context, list *models.List, client *models.User) (*models.List, error)
 
+	GetListToken(ctx context.Context, id int64, client *models.User) (string, error)
+
 	DeleteList(ctx context.Context, list *models.List, client *models.User) error
 }
 
 type service struct {
-	r Repository
+	r  Repository
+	ltp ListTokenProvider
 }
 
-func NewService(r Repository) Service {
-	return &service{r: r}
+func NewService(r Repository, ltp ListTokenProvider) Service {
+	return &service{r: r, ltp: ltp}
 }

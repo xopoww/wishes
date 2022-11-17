@@ -5,10 +5,38 @@ import (
 	"github.com/xopoww/wishes/restapi/apimodels"
 )
 
+func Access(a *string) models.ListAccess {
+	switch *a {
+	case apimodels.ListAccessPrivate:
+		return models.PrivateAccess
+	case apimodels.ListAccessLink:
+		return models.LinkAccess
+	case apimodels.ListAccessPublic:
+		return models.PublicAccess
+	default:
+		panic("wrong access")
+	}
+}
+
+func SwagAccess(a models.ListAccess) *string {
+	var s string
+	switch a {
+	case models.PrivateAccess:
+		s = apimodels.ListAccessPrivate
+	case models.LinkAccess:
+		s = apimodels.ListAccessLink
+	case models.PublicAccess:
+		s = apimodels.ListAccessPublic
+	default:
+		panic("wrong access")
+	}
+	return &s
+}
+
 func List(l *apimodels.List) *models.List {
 	return &models.List{
 		Title: *l.Title,
-		Items: Items(l.Items),
+		Access: Access(l.Access),
 	}
 }
 
@@ -30,7 +58,7 @@ func Items(is []*apimodels.ListItem) []models.ListItem {
 func SwagList(l *models.List) *apimodels.List {
 	return &apimodels.List{
 		Title: &l.Title,
-		Items: SwagItems(l.Items),
+		Access: SwagAccess(l.Access),
 	}
 }
 

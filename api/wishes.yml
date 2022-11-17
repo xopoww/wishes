@@ -2,7 +2,7 @@ swagger: '2.0'
 
 info:
   title: Wishes API
-  version: 0.0.5
+  version: 0.0.6
 
 basePath: /api
 
@@ -105,12 +105,16 @@ paths:
         500:
           $ref: "#/responses/ServerError"
 
-  /users/{id}/lists:
-    parameters:
-      - $ref: "#/parameters/PathId"
+  /lists:
     get:
       operationId: GetUserLists
-      summary: Get user list ids (visible by client)
+      summary: Get user list IDs (visible by client)
+      parameters:
+       - name: UserID
+         in: query
+         type: integer
+         required: false
+         description: ID of user in question. If empty, client ID is used.
       responses:
         200:
           description: Success
@@ -123,12 +127,32 @@ paths:
           description: User not found
         500:
           $ref: "#/responses/ServerError"
+    post:
+        summary: Create new list
+        operationId: PostList
+        parameters:
+          - name: list
+            in: body
+            schema:
+              allOf:
+               - $ref: "#/definitions/List"
+               - $ref: "#/definitions/ListItems"
+            required: true
+        responses:
+          201:
+            description: Success
+            schema:
+              $ref: "#/definitions/ID"
+          500:
+            $ref: "#/responses/ServerError"
 
   /lists/{id}:
     parameters:
       - $ref: "#/parameters/PathId"
     get:
-      summary: Get list info
+      parameters:
+      - $ref: "#/parameters/AccessToken"
+      summary: Get list info (title, etc)
       operationId: GetList
       responses:
         200:
@@ -148,7 +172,9 @@ paths:
         - name: list
           in: body
           schema:
-            $ref: "#/definitions/List"
+            allOf:
+             - $ref: "#/definitions/List"
+             - $ref: "#/definitions/ListItems"
           required: true
       responses:
         204:
@@ -172,23 +198,46 @@ paths:
         500:
           $ref: "#/responses/ServerError"
 
-  /lists:
-    post:
-        summary: Create new list
-        operationId: PostList
-        parameters:
-          - name: list
-            in: body
-            schema:
-              $ref: "#/definitions/List"
-            required: true
-        responses:
-          201:
-            description: Success
-            schema:
-              $ref: "#/definitions/ID"
-          500:
-            $ref: "#/responses/ServerError"
+  /lists/{id}/items:
+    parameters:
+      - $ref: "#/parameters/PathId"
+    get:
+      parameters:
+      - $ref: "#/parameters/AccessToken"
+      summary: Get list items
+      operationId: GetListItems
+      responses:
+        200:
+          description: Success
+          schema:
+            $ref: "#/definitions/ListItems"
+        403:
+          description: Access denied
+        404:
+          description: List not found
+        500:
+          $ref: "#/responses/ServerError"
+  
+  /lists/{id}/token:
+    parameters:
+      - $ref: "#/parameters/PathId"
+    get:
+      operationId: GetListToken
+      summary: Get access token for a list
+      responses:
+        200:
+          description: Success
+          schema:
+            type: object
+            properties:
+              token:
+                type: string
+        403:
+          description: Access denied
+        404:
+          description: List not found
+        500:
+          $ref: "#/responses/ServerError"
       
 parameters:
   PathId:
@@ -196,6 +245,13 @@ parameters:
     in: path
     required: true
     type: integer
+
+  AccessToken:
+    name: accessToken
+    in: query
+    required: false
+    type: string
+    description: Optional access token for a list provided by list owner
 
 responses:
   ServerError:
@@ -266,11 +322,20 @@ definitions:
       title:
         type: string
         minLength: 1
+      ownerID:
+        type: integer
+      access:
+        type: string
+        enum: [private, link, public]
+    required: [title, access]
+  
+  ListItems:
+    type: object
+    properties:
       items:
         type: array
         items:
           $ref: "#/definitions/ListItem"
-    required: [title]
   
   ListItem:
     type: object

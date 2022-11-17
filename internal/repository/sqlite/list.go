@@ -12,15 +12,19 @@ import (
 	"github.com/xopoww/wishes/internal/service"
 )
 
-func (r *repository) GetUserLists(ctx context.Context, id int64) (lids []int64, err error) {
-	err = sqlx.SelectContext(ctx, r.tracer(r.db), &lids, `SELECT id FROM Lists WHERE owner_id = $1`, id)
+func (r *repository) GetUserLists(ctx context.Context, id int64, publicOnly bool) (lids []int64, err error) {
+	query := `SELECT Lists.id FROM Lists JOIN ListAccessEnum ON Lists.access = ListAccessEnum.N WHERE Lists.owner_id = $1`
+	if publicOnly {
+		query += ` AND ListAccessEnum.S = 'public'`
+	}
+	err = sqlx.SelectContext(ctx, r.tracer(r.db), &lids, query, id)
 	return
 }
 
 func (r *repository) GetList(ctx context.Context, id int64) (*models.List, error) {
 	list := &models.List{ID: id}
-	row := r.tracer(r.db).QueryRowxContext(ctx, `SELECT title, owner_id FROM Lists WHERE id = $1`, id)
-	err := row.Scan(&list.Title, &list.OwnerID)
+	row := r.tracer(r.db).QueryRowxContext(ctx, `SELECT title, owner_id, access FROM Lists WHERE id = $1`, id)
+	err := row.Scan(&list.Title, &list.OwnerID, &list.Access)
 	if errors.Is(err, sql.ErrNoRows) {
 		err = fmt.Errorf("list_id %d: %w", id, service.ErrNotFound)
 	}
@@ -67,7 +71,7 @@ func (r *repository) AddList(ctx context.Context, list *models.List) (*models.Li
 		return nil, fmt.Errorf("begin: %w", err)
 	}
 
-	res, err := r.tracer(tx).ExecContext(ctx, `INSERT INTO Lists (title, owner_id) VALUES ($1, $2)`, list.Title, list.OwnerID)
+	res, err := r.tracer(tx).ExecContext(ctx, `INSERT INTO Lists (title, owner_id, access) VALUES ($1, $2, $3)`, list.Title, list.OwnerID, list.Access)
 	var serr sqlite3.Error
 	if errors.As(err, &serr) && serr.ExtendedCode == sqlite3.ErrConstraintForeignKey {
 		err = fmt.Errorf("user_id %d: %w", list.OwnerID, service.ErrNotFound)
@@ -98,7 +102,7 @@ func (r *repository) EditList(ctx context.Context, list *models.List) error {
 		return fmt.Errorf("begin: %w", err)
 	}
 
-	res, err := r.tracer(tx).ExecContext(ctx, `UPDATE Lists SET title = $1 WHERE id = $2`, list.Title, list.ID)
+	res, err := r.tracer(tx).ExecContext(ctx, `UPDATE Lists SET title = $1, access = $2 WHERE id = $3`, list.Title, list.Access, list.ID)
 	if err != nil {
 		_ = tx.Rollback()
 		return fmt.Errorf("update list: %w", err)

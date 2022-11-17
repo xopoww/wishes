@@ -9,14 +9,13 @@ import (
 	"errors"
 	"net/url"
 	golangswaggerpaths "path"
-	"strings"
 
 	"github.com/go-openapi/swag"
 )
 
 // GetUserListsURL generates an URL for the get user lists operation
 type GetUserListsURL struct {
-	ID int64
+	UserID *int64
 
 	_basePath string
 	// avoid unkeyed usage
@@ -42,20 +41,25 @@ func (o *GetUserListsURL) SetBasePath(bp string) {
 func (o *GetUserListsURL) Build() (*url.URL, error) {
 	var _result url.URL
 
-	var _path = "/users/{id}/lists"
-
-	id := swag.FormatInt64(o.ID)
-	if id != "" {
-		_path = strings.Replace(_path, "{id}", id, -1)
-	} else {
-		return nil, errors.New("id is required on GetUserListsURL")
-	}
+	var _path = "/lists"
 
 	_basePath := o._basePath
 	if _basePath == "" {
 		_basePath = "/api"
 	}
 	_result.Path = golangswaggerpaths.Join(_basePath, _path)
+
+	qs := make(url.Values)
+
+	var userIDQ string
+	if o.UserID != nil {
+		userIDQ = swag.FormatInt64(*o.UserID)
+	}
+	if userIDQ != "" {
+		qs.Set("UserID", userIDQ)
+	}
+
+	_result.RawQuery = qs.Encode()
 
 	return &_result, nil
 }

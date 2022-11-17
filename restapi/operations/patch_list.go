@@ -75,6 +75,108 @@ func (o *PatchList) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 
 }
 
+// PatchListBody patch list body
+//
+// swagger:model PatchListBody
+type PatchListBody struct {
+	apimodels.List
+
+	apimodels.ListItems
+}
+
+// UnmarshalJSON unmarshals this object from a JSON structure
+func (o *PatchListBody) UnmarshalJSON(raw []byte) error {
+	// PatchListParamsBodyAO0
+	var patchListParamsBodyAO0 apimodels.List
+	if err := swag.ReadJSON(raw, &patchListParamsBodyAO0); err != nil {
+		return err
+	}
+	o.List = patchListParamsBodyAO0
+
+	// PatchListParamsBodyAO1
+	var patchListParamsBodyAO1 apimodels.ListItems
+	if err := swag.ReadJSON(raw, &patchListParamsBodyAO1); err != nil {
+		return err
+	}
+	o.ListItems = patchListParamsBodyAO1
+
+	return nil
+}
+
+// MarshalJSON marshals this object to a JSON structure
+func (o PatchListBody) MarshalJSON() ([]byte, error) {
+	_parts := make([][]byte, 0, 2)
+
+	patchListParamsBodyAO0, err := swag.WriteJSON(o.List)
+	if err != nil {
+		return nil, err
+	}
+	_parts = append(_parts, patchListParamsBodyAO0)
+
+	patchListParamsBodyAO1, err := swag.WriteJSON(o.ListItems)
+	if err != nil {
+		return nil, err
+	}
+	_parts = append(_parts, patchListParamsBodyAO1)
+	return swag.ConcatJSON(_parts...), nil
+}
+
+// Validate validates this patch list body
+func (o *PatchListBody) Validate(formats strfmt.Registry) error {
+	var res []error
+
+	// validation for a type composition with apimodels.List
+	if err := o.List.Validate(formats); err != nil {
+		res = append(res, err)
+	}
+	// validation for a type composition with apimodels.ListItems
+	if err := o.ListItems.Validate(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+// ContextValidate validate this patch list body based on the context it is used
+func (o *PatchListBody) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	// validation for a type composition with apimodels.List
+	if err := o.List.ContextValidate(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+	// validation for a type composition with apimodels.ListItems
+	if err := o.ListItems.ContextValidate(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+// MarshalBinary interface implementation
+func (o *PatchListBody) MarshalBinary() ([]byte, error) {
+	if o == nil {
+		return nil, nil
+	}
+	return swag.WriteJSON(o)
+}
+
+// UnmarshalBinary interface implementation
+func (o *PatchListBody) UnmarshalBinary(b []byte) error {
+	var res PatchListBody
+	if err := swag.ReadJSON(b, &res); err != nil {
+		return err
+	}
+	*o = res
+	return nil
+}
+
 // PatchListInternalServerErrorBody patch list internal server error body
 //
 // swagger:model PatchListInternalServerErrorBody
