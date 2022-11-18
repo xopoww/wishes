@@ -497,8 +497,8 @@ func TestEditList(t *testing.T) {
 					if err != nil {
 						t.Fatalf("edit list: %s", err)
 					}
-					if l.RevisionID != list.RevisionID + 1 {
-						t.Fatalf("rev: want %d, got %d", list.RevisionID + 1, l.RevisionID)
+					if l.RevisionID != list.RevisionID+1 {
+						t.Fatalf("rev: want %d, got %d", list.RevisionID+1, l.RevisionID)
 					}
 
 					got, err := r.GetList(cctx, new.ID)

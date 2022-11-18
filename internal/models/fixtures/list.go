@@ -23,7 +23,7 @@ func Items(n int) []models.ListItem {
 func ItemDesc() models.ListItem {
 	return models.ListItem{
 		Title: "item with desc",
-		Desc: "some description",
+		Desc:  "some description",
 	}
 }
 

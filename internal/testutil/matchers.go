@@ -5,7 +5,7 @@ import (
 )
 
 type matcherFunc struct {
-	f func(x interface{}) error
+	f           func(x interface{}) error
 	lastProblem string
 }
 

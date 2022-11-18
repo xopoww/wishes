@@ -15,7 +15,7 @@ import (
 
 func TestGetUserLists(t *testing.T) {
 	a, b := fixtures.TwoUsers()
-	rets := []struct{
+	rets := []struct {
 		lids []int64
 		err  error
 	}{
@@ -34,7 +34,7 @@ func TestGetUserLists(t *testing.T) {
 					r.EXPECT().
 						GetUserLists(gomock.Any(), gomock.Eq(a.ID), gomock.Eq(client.ID != a.ID)).
 						Return(ret.lids, ret.err)
-					
+
 					s := service.NewService(r, NewMockListTokenProvider(ctrl))
 					lids, err := s.GetUserLists(ctx, a.ID, client)
 					if !errors.Is(err, ret.err) {
@@ -76,7 +76,7 @@ func TestGetListToken(t *testing.T) {
 					GenerateToken(gomock.Eq(service.ListClaims{ListID: list.ID})).
 					Return(token, nil)
 			}
-			
+
 			s := service.NewService(r, ltp)
 			got, err := s.GetListToken(ctx, list.ID, client)
 			if client.ID == a.ID {
@@ -94,15 +94,15 @@ func TestGetListToken(t *testing.T) {
 
 func TestGetList(t *testing.T) {
 	a, b := fixtures.TwoUsers()
-	
+
 	list := *fixtures.List()
 	list.ID = 42
 	list.OwnerID = a.ID
 
 	var (
-		goodToken = "good token"
+		goodToken  = "good token"
 		wrongToken = "wrong token"
-		badToken = "bad token"
+		badToken   = "bad token"
 	)
 
 	for _, client := range []*models.User{a, b} {
@@ -133,7 +133,7 @@ func TestGetList(t *testing.T) {
 					r.EXPECT().
 						GetList(gomock.Any(), gomock.Eq(list.ID)).
 						Return(&list, nil)
-					
+
 					if token != nil {
 						ltp.EXPECT().
 							ValidateToken(gomock.Eq(*token)).
@@ -142,7 +142,7 @@ func TestGetList(t *testing.T) {
 								case goodToken:
 									return service.ListClaims{ListID: list.ID}, nil
 								case wrongToken:
-									return service.ListClaims{ListID: list.ID+1}, nil
+									return service.ListClaims{ListID: list.ID + 1}, nil
 								default:
 									return service.ListClaims{}, errors.New("bad token")
 								}
@@ -166,7 +166,7 @@ func TestGetList(t *testing.T) {
 					tx.EXPECT().
 						GetList(gomock.Any(), gomock.Eq(list.ID)).
 						Return(&list, nil)
-					
+
 					if token != nil {
 						ltp.EXPECT().
 							ValidateToken(gomock.Eq(*token)).
@@ -175,7 +175,7 @@ func TestGetList(t *testing.T) {
 								case goodToken:
 									return service.ListClaims{ListID: list.ID}, nil
 								case wrongToken:
-									return service.ListClaims{ListID: list.ID+1}, nil
+									return service.ListClaims{ListID: list.ID + 1}, nil
 								default:
 									return service.ListClaims{}, errors.New("bad token")
 								}
@@ -219,13 +219,13 @@ func TestAddList(t *testing.T) {
 			}
 			return nil
 		})).
-		DoAndReturn(func (_ interface{}, l *models.List) (*models.List, error) {
+		DoAndReturn(func(_ interface{}, l *models.List) (*models.List, error) {
 			ll := &models.List{}
 			*ll = *l
 			ll.ID = lid
 			return ll, nil
 		})
-	
+
 	s := service.NewService(r, NewMockListTokenProvider(ctrl))
 	got, err := s.AddList(ctx, list, client)
 	if err != nil {
@@ -241,35 +241,35 @@ func TestAddList(t *testing.T) {
 
 func TestEditList(t *testing.T) {
 	a, b := fixtures.TwoUsers()
-	
+
 	old := fixtures.List()
 	old.ID = 42
 	old.OwnerID = a.ID
 
 	badId := int64(404)
 
-	tcs := []struct{
+	tcs := []struct {
 		client  *models.User
 		lid     int64
 		wantErr error
 	}{
 		{
 			client: a,
-			lid: old.ID,
+			lid:    old.ID,
 		},
 		{
-			client: b,
-			lid: old.ID,
+			client:  b,
+			lid:     old.ID,
 			wantErr: service.ErrAccessDenied,
 		},
 		{
-			client: a,
-			lid: badId,
+			client:  a,
+			lid:     badId,
 			wantErr: service.ErrNotFound,
 		},
 		{
-			client: b,
-			lid: badId,
+			client:  b,
+			lid:     badId,
 			wantErr: service.ErrNotFound,
 		},
 	}
@@ -279,14 +279,14 @@ func TestEditList(t *testing.T) {
 			new := fixtures.List()
 			new.ID = tc.lid
 			new.Title = "new title"
-			
+
 			ctrl, ctx := gomock.WithContext(context.Background(), t)
 			r := NewMockRepository(ctrl)
 			tx := NewMockTransaction(ctrl)
 			r.EXPECT().Begin().Return(tx, nil)
 
 			var (
-				rerr error
+				rerr  error
 				rlist *models.List
 			)
 			if tc.lid == badId {
@@ -297,7 +297,7 @@ func TestEditList(t *testing.T) {
 			tx.EXPECT().
 				GetList(gomock.Any(), gomock.Eq(new.ID)).
 				Return(rlist, rerr)
-			
+
 			if tc.wantErr == nil {
 				tx.EXPECT().
 					EditList(gomock.Any(), gomock.Eq(new)).
@@ -318,35 +318,35 @@ func TestEditList(t *testing.T) {
 
 func TestDeleteList(t *testing.T) {
 	a, b := fixtures.TwoUsers()
-	
+
 	old := fixtures.List()
 	old.ID = 42
 	old.OwnerID = a.ID
 
 	badId := int64(404)
 
-	tcs := []struct{
+	tcs := []struct {
 		client  *models.User
 		lid     int64
 		wantErr error
 	}{
 		{
 			client: a,
-			lid: old.ID,
+			lid:    old.ID,
 		},
 		{
-			client: b,
-			lid: old.ID,
+			client:  b,
+			lid:     old.ID,
 			wantErr: service.ErrAccessDenied,
 		},
 		{
-			client: a,
-			lid: badId,
+			client:  a,
+			lid:     badId,
 			wantErr: service.ErrNotFound,
 		},
 		{
-			client: b,
-			lid: badId,
+			client:  b,
+			lid:     badId,
 			wantErr: service.ErrNotFound,
 		},
 	}
@@ -355,14 +355,14 @@ func TestDeleteList(t *testing.T) {
 		t.Run(fmt.Sprintf("client=%s,bad_id=%t", tc.client.Name, tc.lid == badId), func(t *testing.T) {
 			new := fixtures.List()
 			new.ID = tc.lid
-			
+
 			ctrl, ctx := gomock.WithContext(context.Background(), t)
 			r := NewMockRepository(ctrl)
 			tx := NewMockTransaction(ctrl)
 			r.EXPECT().Begin().Return(tx, nil)
 
 			var (
-				rerr error
+				rerr  error
 				rlist *models.List
 			)
 			if tc.lid == badId {
@@ -373,7 +373,7 @@ func TestDeleteList(t *testing.T) {
 			tx.EXPECT().
 				GetList(gomock.Any(), gomock.Eq(new.ID)).
 				Return(rlist, rerr)
-			
+
 			if tc.wantErr == nil {
 				tx.EXPECT().
 					DeleteList(gomock.Any(), gomock.Eq(old)).

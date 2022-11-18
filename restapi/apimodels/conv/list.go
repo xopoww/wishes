@@ -35,7 +35,7 @@ func SwagAccess(a models.ListAccess) *string {
 
 func List(l *apimodels.List) *models.List {
 	return &models.List{
-		Title: *l.Title,
+		Title:  *l.Title,
 		Access: Access(l.Access),
 	}
 }
@@ -43,7 +43,7 @@ func List(l *apimodels.List) *models.List {
 func Item(i *apimodels.ListItem) models.ListItem {
 	return models.ListItem{
 		Title: *i.Title,
-		Desc: i.Desc,
+		Desc:  i.Desc,
 	}
 }
 
@@ -57,7 +57,7 @@ func Items(is []*apimodels.ListItem) []models.ListItem {
 
 func SwagList(l *models.List) *apimodels.List {
 	return &apimodels.List{
-		Title: &l.Title,
+		Title:  &l.Title,
 		Access: SwagAccess(l.Access),
 	}
 }
@@ -65,7 +65,7 @@ func SwagList(l *models.List) *apimodels.List {
 func SwagItem(i models.ListItem) *apimodels.ListItem {
 	return &apimodels.ListItem{
 		Title: &i.Title,
-		Desc: i.Desc,
+		Desc:  i.Desc,
 	}
 }
 

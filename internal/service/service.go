@@ -45,7 +45,7 @@ type Service interface {
 }
 
 type service struct {
-	r  repository.Repository
+	r   repository.Repository
 	ltp ListTokenProvider
 }
 

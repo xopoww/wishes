@@ -10,7 +10,7 @@ import (
 
 func init() {
 	output := zerolog.ConsoleWriter{
-		Out: os.Stderr,
+		Out:        os.Stderr,
 		TimeFormat: "01-02-2006 15:04:05",
 		FormatCaller: func(i interface{}) string {
 			s, ok := i.(string)

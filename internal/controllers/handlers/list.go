@@ -35,7 +35,7 @@ func (ac *ApiController) GetList() operations.GetListHandler {
 			err     error
 		)
 		defer func() { onDone(payload, err) }()
-		
+
 		payload, err = ac.s.GetList(context.TODO(), glp.ID, client, token)
 		if errors.Is(err, service.ErrNotFound) {
 			return operations.NewGetListNotFound()
@@ -87,7 +87,7 @@ func (ac *ApiController) GetListItems() operations.GetListItemsHandler {
 		payload = list.Items
 		return operations.NewGetListItemsOK().WithPayload(&operations.GetListItemsOKBody{
 			ListItems: apimodels.ListItems{Items: conv.SwagItems(payload)},
-			Revision: conv.SwagRevision(list.RevisionID),
+			Revision:  conv.SwagRevision(list.RevisionID),
 		})
 	})
 }
@@ -108,7 +108,7 @@ func (ac *ApiController) PostList() operations.PostListHandler {
 		client := conv.Client(p)
 		list := conv.List(&plp.List.List)
 		list.Items = conv.Items(plp.List.Items)
-		
+
 		onDone := traceOnPostList(ac.t, list, client)
 		var err error
 		defer func() { onDone(list.ID, err) }()
@@ -143,7 +143,6 @@ func (ac *ApiController) PatchList() operations.PatchListHandler {
 		var err error
 		defer func() { onDone(err) }()
 
-		
 		_, err = ac.s.EditList(context.TODO(), list, client)
 		if errors.Is(err, service.ErrNotFound) {
 			return operations.NewPatchListNotFound()
@@ -246,7 +245,7 @@ func (ac *ApiController) GetListToken() operations.GetListTokenHandler {
 
 		onDone := traceOnGetListToken(ac.t, gltp.ID, client)
 		var err error
-		defer func(){ onDone(err) }()
+		defer func() { onDone(err) }()
 
 		token, err := ac.s.GetListToken(context.TODO(), gltp.ID, client)
 		if errors.Is(err, service.ErrNotFound) {

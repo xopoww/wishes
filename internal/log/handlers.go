@@ -126,7 +126,7 @@ func Handlers(l zerolog.Logger) (t handlers.Trace) {
 					Msg("get list done")
 			}
 		}
-	} 
+	}
 	t.OnGetListItems = func(si handlers.OnGetListItemsStartInfo) func(handlers.OnGetListItemsDoneInfo) {
 		return func(di handlers.OnGetListItemsDoneInfo) {
 			if di.Error != nil {
@@ -150,7 +150,7 @@ func Handlers(l zerolog.Logger) (t handlers.Trace) {
 					Msg("get list items done")
 			}
 		}
-	} 
+	}
 	t.OnPostList = func(si handlers.OnPostListStartInfo) func(handlers.OnPostListDoneInfo) {
 		return func(di handlers.OnPostListDoneInfo) {
 			if di.Error != nil {
@@ -171,7 +171,7 @@ func Handlers(l zerolog.Logger) (t handlers.Trace) {
 					Msg("post list done")
 			}
 		}
-	} 
+	}
 	t.OnPatchList = func(si handlers.OnPatchListStartInfo) func(handlers.OnPatchListDoneInfo) {
 		return func(di handlers.OnPatchListDoneInfo) {
 			if di.Error != nil {
@@ -193,7 +193,7 @@ func Handlers(l zerolog.Logger) (t handlers.Trace) {
 					Msg("patch list done")
 			}
 		}
-	} 
+	}
 	t.OnDeleteList = func(si handlers.OnDeleteListStartInfo) func(handlers.OnDeleteListDoneInfo) {
 		return func(di handlers.OnDeleteListDoneInfo) {
 			if di.Error != nil {
@@ -215,7 +215,7 @@ func Handlers(l zerolog.Logger) (t handlers.Trace) {
 					Msg("delete list done")
 			}
 		}
-	} 
+	}
 	t.OnGetUserLists = func(si handlers.OnGetUserListsStartInfo) func(handlers.OnGetUserListsDoneInfo) {
 		return func(di handlers.OnGetUserListsDoneInfo) {
 			if di.Error != nil {
@@ -238,7 +238,7 @@ func Handlers(l zerolog.Logger) (t handlers.Trace) {
 					Msg("get user lists done")
 			}
 		}
-	} 
+	}
 	t.OnGetListToken = func(si handlers.OnGetListTokenStartInfo) func(handlers.OnGetListTokenDoneInfo) {
 		return func(di handlers.OnGetListTokenDoneInfo) {
 			if di.Error != nil {

@@ -7,7 +7,7 @@ import (
 )
 
 type ListClaims struct {
-	ListID 	 int64 `json:"lid"`
+	ListID   int64 `json:"lid"`
 	ReadOnly bool  `json:"ro"`
 }
 
