@@ -1,4 +1,4 @@
-package service
+package repository
 
 import (
 	"context"
@@ -14,9 +14,7 @@ var (
 	ErrConflict = errors.New("conflict")
 )
 
-//go:generate mockgen -destination mock_repo_test.go -package service_test . Repository
-
-type Repository interface {
+type Handle interface {
 	CheckUsername(ctx context.Context, username string) (int64, error)
 
 	GetUser(ctx context.Context, id int64) (*models.User, error)
@@ -37,6 +35,21 @@ type Repository interface {
 	EditList(ctx context.Context, list *models.List) (*models.List, error)
 
 	DeleteList(ctx context.Context, list *models.List) error
+}
+
+type Transaction interface {
+	Handle
+
+	Commit() error
+	Rollback() error
+}
+
+//go:generate mockgen -destination ../mock_repo_test.go -package service_test . Repository
+
+type Repository interface {
+	Handle
+
+	Begin() (Transaction, error)
 
 	Close() error
 }

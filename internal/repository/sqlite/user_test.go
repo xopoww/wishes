@@ -18,7 +18,7 @@ func TestCheckUsername(t *testing.T) {
 			testMigrationVersionStart,
 		),
 	)
-	repo, err := sqlite.NewRepository(dbs, trace(t))
+	r, err := sqlite.NewRepository(dbs, trace(t))
 	if err != nil {
 		t.Fatalf("new repo: %s", err)
 	}
@@ -34,7 +34,7 @@ func TestCheckUsername(t *testing.T) {
 			ctx, cancel := context.WithCancel(context.Background())
 			t.Cleanup(cancel)
 
-			_, err := repo.CheckUsername(ctx, username)
+			_, err := r.CheckUsername(ctx, username)
 			if username == "user" {
 				if err != nil {
 					t.Fatalf("want %#v, got %#v", nil, err)
@@ -50,7 +50,7 @@ func TestCheckUsername(t *testing.T) {
 
 func TestAddUser(t *testing.T) {
 	dbs := newTestDatabase(t)
-	repo, err := sqlite.NewRepository(dbs, trace(t))
+	r, err := sqlite.NewRepository(dbs, trace(t))
 	if err != nil {
 		t.Fatalf("new repo: %s", err)
 	}
@@ -58,7 +58,7 @@ func TestAddUser(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	t.Cleanup(cancel)
 
-	user, err := repo.AddUser(ctx, &models.User{
+	user, err := r.AddUser(ctx, &models.User{
 		Name:     "user",
 		PassHash: []byte("password"),
 	})
@@ -69,7 +69,7 @@ func TestAddUser(t *testing.T) {
 		t.Fatalf("user: got %+v", user)
 	}
 
-	id, err := repo.CheckUsername(ctx, "user")
+	id, err := r.CheckUsername(ctx, "user")
 	if err != nil {
 		t.Fatalf("check user error: want %#v, got %#v", nil, err)
 	}
@@ -77,7 +77,7 @@ func TestAddUser(t *testing.T) {
 		t.Fatalf("check user id: want %d, got %d", user.ID, id)
 	}
 
-	_, err = repo.AddUser(ctx, &models.User{
+	_, err = r.AddUser(ctx, &models.User{
 		Name:     "user",
 		PassHash: []byte("password"),
 	})
@@ -88,7 +88,7 @@ func TestAddUser(t *testing.T) {
 
 func TestGetUser(t *testing.T) {
 	dbs := newTestDatabase(t)
-	repo, err := sqlite.NewRepository(dbs, trace(t))
+	r, err := sqlite.NewRepository(dbs, trace(t))
 	if err != nil {
 		t.Fatalf("new repo: %s", err)
 	}
@@ -96,7 +96,7 @@ func TestGetUser(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	t.Cleanup(cancel)
 
-	want, err := repo.AddUser(ctx, &models.User{
+	want, err := r.AddUser(ctx, &models.User{
 		Name:     "user",
 		PassHash: []byte("password"),
 	})
@@ -107,13 +107,13 @@ func TestGetUser(t *testing.T) {
 		t.Fatalf("add: got nil user")
 	}
 
-	got, err := repo.GetUser(ctx, want.ID)
+	got, err := r.GetUser(ctx, want.ID)
 	if err != nil {
 		t.Fatalf("err: %s", err)
 	}
 	assertUserEq(t, want, got)
 
-	_, err = repo.GetUser(ctx, want.ID+50)
+	_, err = r.GetUser(ctx, want.ID+50)
 	if !errors.Is(err, service.ErrNotFound) {
 		t.Fatalf("get wrong id: want %#v, got %#v", service.ErrNotFound, err)
 	}
@@ -121,7 +121,7 @@ func TestGetUser(t *testing.T) {
 
 func TestEditUser(t *testing.T) {
 	dbs := newTestDatabase(t)
-	repo, err := sqlite.NewRepository(dbs, trace(t))
+	r, err := sqlite.NewRepository(dbs, trace(t))
 	if err != nil {
 		t.Fatalf("new repo: %s", err)
 	}
@@ -129,7 +129,7 @@ func TestEditUser(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	t.Cleanup(cancel)
 
-	want, err := repo.AddUser(ctx, &models.User{
+	want, err := r.AddUser(ctx, &models.User{
 		Name:     "user",
 		PassHash: []byte("password"),
 	})
@@ -142,12 +142,12 @@ func TestEditUser(t *testing.T) {
 
 	want.Fname = "John"
 	want.Lname = "Doe"
-	err = repo.EditUser(ctx, want)
+	err = r.EditUser(ctx, want)
 	if err != nil {
 		t.Fatalf("edit user: %s", err)
 	}
 
-	got, err := repo.GetUser(ctx, want.ID)
+	got, err := r.GetUser(ctx, want.ID)
 	if err != nil {
 		t.Fatalf("get user: %s", err)
 	}

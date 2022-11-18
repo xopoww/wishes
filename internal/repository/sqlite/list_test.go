@@ -72,7 +72,7 @@ func TestGetUserLists(t *testing.T) {
 	for _, tc := range tcs {
 		t.Run(tc.name, func(t *testing.T) {
 			dbs := newTestDatabase(t, tc.migs...)
-			repo, err := sqlite.NewRepository(dbs, trace(t))
+			r, err := sqlite.NewRepository(dbs, trace(t))
 			if err != nil {
 				t.Fatalf("new repo: %s", err)
 			}
@@ -80,12 +80,12 @@ func TestGetUserLists(t *testing.T) {
 			ctx, cancel := context.WithCancel(context.Background())
 			t.Cleanup(cancel)
 
-			uid, err := repo.CheckUsername(ctx, "user")
+			uid, err := r.CheckUsername(ctx, "user")
 			if err != nil {
 				t.Fatalf("check user: %s", err)
 			}
 
-			lids, err := repo.GetUserLists(ctx, uid, true)
+			lids, err := r.GetUserLists(ctx, uid, true)
 			if err != nil {
 				t.Errorf("get public user lists: %s", err)
 			}
@@ -93,7 +93,7 @@ func TestGetUserLists(t *testing.T) {
 				t.Errorf("public lids len: want %d, got %d", tc.wantLenPublic, len(lids))
 			}
 
-			lids, err = repo.GetUserLists(ctx, uid, false)
+			lids, err = r.GetUserLists(ctx, uid, false)
 			if err != nil {
 				t.Errorf("get user lists: %s", err)
 			}
@@ -116,7 +116,7 @@ func TestGetList(t *testing.T) {
 			testMigrationVersionStart+1,
 		),
 	)
-	repo, err := sqlite.NewRepository(dbs, trace(t))
+	r, err := sqlite.NewRepository(dbs, trace(t))
 	if err != nil {
 		t.Fatalf("new repo: %s", err)
 	}
@@ -124,12 +124,12 @@ func TestGetList(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	t.Cleanup(cancel)
 
-	uid, err := repo.CheckUsername(ctx, "user")
+	uid, err := r.CheckUsername(ctx, "user")
 	if err != nil {
 		t.Fatalf("check user: %s", err)
 	}
 
-	lids, err := repo.GetUserLists(ctx, uid, false)
+	lids, err := r.GetUserLists(ctx, uid, false)
 	if err != nil {
 		t.Fatalf("get user lists: %s", err)
 	}
@@ -144,7 +144,7 @@ func TestGetList(t *testing.T) {
 		Title:   "list",
 		Access:  models.LinkAccess,
 	}
-	got, err := repo.GetList(ctx, lid)
+	got, err := r.GetList(ctx, lid)
 	if err != nil {
 		t.Fatalf("get list: %s", err)
 	}
@@ -153,7 +153,7 @@ func TestGetList(t *testing.T) {
 		t.Fatalf("revision: want %d, got %d", 42, got.RevisionID)
 	}
 
-	_, err = repo.GetList(ctx, lid+50)
+	_, err = r.GetList(ctx, lid+50)
 	if !errors.Is(err, service.ErrNotFound) {
 		t.Fatalf("get wrong list: want %#v, got %#v", service.ErrNotFound, err)
 	}
@@ -178,7 +178,7 @@ func TestGetListItems(t *testing.T) {
 			testMigrationVersionStart+2,
 		),
 	)
-	repo, err := sqlite.NewRepository(dbs, trace(t))
+	r, err := sqlite.NewRepository(dbs, trace(t))
 	if err != nil {
 		t.Fatalf("new repo: %s", err)
 	}
@@ -186,12 +186,12 @@ func TestGetListItems(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	t.Cleanup(cancel)
 
-	uid, err := repo.CheckUsername(ctx, "user")
+	uid, err := r.CheckUsername(ctx, "user")
 	if err != nil {
 		t.Fatalf("check user: %s", err)
 	}
 
-	lids, err := repo.GetUserLists(ctx, uid, false)
+	lids, err := r.GetUserLists(ctx, uid, false)
 	if err != nil {
 		t.Fatalf("get user lists: %s", err)
 	}
@@ -204,7 +204,7 @@ func TestGetListItems(t *testing.T) {
 			cctx, cancel := context.WithCancel(context.Background())
 			t.Cleanup(cancel)
 
-			list, err := repo.GetList(cctx, lid)
+			list, err := r.GetList(cctx, lid)
 			if err != nil {
 				t.Fatalf("get list: %s", err)
 			}
@@ -220,7 +220,7 @@ func TestGetListItems(t *testing.T) {
 				t.Fatalf("unexpected list.Title: %q", list.Title)
 			}
 
-			list, err = repo.GetListItems(cctx, list)
+			list, err = r.GetListItems(cctx, list)
 			if err != nil {
 				t.Fatalf("err: %s", err)
 			}
@@ -236,7 +236,7 @@ func TestGetListItems(t *testing.T) {
 
 func TestAddList(t *testing.T) {
 	dbs := newTestDatabase(t)
-	repo, err := sqlite.NewRepository(dbs, trace(t))
+	r, err := sqlite.NewRepository(dbs, trace(t))
 	if err != nil {
 		t.Fatalf("new repo: %s", err)
 	}
@@ -244,7 +244,7 @@ func TestAddList(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	t.Cleanup(cancel)
 
-	user, err := repo.AddUser(ctx, &models.User{
+	user, err := r.AddUser(ctx, &models.User{
 		Name:     "user",
 		PassHash: []byte("password"),
 	})
@@ -323,7 +323,7 @@ func TestAddList(t *testing.T) {
 			t.Cleanup(cancel)
 
 			want.RevisionID = 42
-			got, err := repo.AddList(cctx, want)
+			got, err := r.AddList(cctx, want)
 			if !errors.Is(err, tc.wantErr) {
 				t.Fatalf("err: want %#v, got %#v", tc.wantErr, err)
 			}
@@ -336,14 +336,14 @@ func TestAddList(t *testing.T) {
 			want.ID = got.ID
 			assertListsEq(t, want, got)
 
-			got, err = repo.GetList(cctx, want.ID)
+			got, err = r.GetList(cctx, want.ID)
 			if err != nil {
 				t.Fatalf("get list: %s", err)
 			}
 			if got.RevisionID != 0 {
 				t.Fatalf("revision: want %d, got %d", 0, got.RevisionID)
 			}
-			got, err = repo.GetListItems(cctx, got)
+			got, err = r.GetListItems(cctx, got)
 			if err != nil {
 				t.Fatalf("get list items: %s", err)
 			}
@@ -354,7 +354,7 @@ func TestAddList(t *testing.T) {
 
 func TestEditList(t *testing.T) {
 	dbs := newTestDatabase(t)
-	repo, err := sqlite.NewRepository(dbs, trace(t))
+	r, err := sqlite.NewRepository(dbs, trace(t))
 	if err != nil {
 		t.Fatalf("new repo: %s", err)
 	}
@@ -362,7 +362,7 @@ func TestEditList(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	t.Cleanup(cancel)
 
-	user, err := repo.AddUser(ctx, &models.User{
+	user, err := r.AddUser(ctx, &models.User{
 		Name:     "user",
 		PassHash: []byte("password"),
 	})
@@ -483,7 +483,7 @@ func TestEditList(t *testing.T) {
 					cctx, cancel := context.WithCancel(ctx)
 					t.Cleanup(cancel)
 
-					list, err := repo.AddList(cctx, &old)
+					list, err := r.AddList(cctx, &old)
 					if err != nil {
 						t.Fatalf("add list: %s", err)
 					}
@@ -493,7 +493,7 @@ func TestEditList(t *testing.T) {
 					new.OwnerID = user.ID
 					new.ID = list.ID
 
-					l, err := repo.EditList(cctx, &new)
+					l, err := r.EditList(cctx, &new)
 					if err != nil {
 						t.Fatalf("edit list: %s", err)
 					}
@@ -501,11 +501,11 @@ func TestEditList(t *testing.T) {
 						t.Fatalf("rev: want %d, got %d", list.RevisionID + 1, l.RevisionID)
 					}
 
-					got, err := repo.GetList(cctx, new.ID)
+					got, err := r.GetList(cctx, new.ID)
 					if err != nil {
 						t.Fatalf("get list: %s", err)
 					}
-					got, err = repo.GetListItems(cctx, got)
+					got, err = r.GetListItems(cctx, got)
 					if err != nil {
 						t.Fatalf("get list items: %s", err)
 					}
@@ -519,7 +519,7 @@ func TestEditList(t *testing.T) {
 		cctx, cancel := context.WithCancel(ctx)
 		t.Cleanup(cancel)
 
-		_, err := repo.EditList(cctx, &models.List{
+		_, err := r.EditList(cctx, &models.List{
 			ID:      lastLid + 50,
 			OwnerID: user.ID,
 			Title:   "list",
@@ -532,7 +532,7 @@ func TestEditList(t *testing.T) {
 
 func TestDeleteList(t *testing.T) {
 	dbs := newTestDatabase(t)
-	repo, err := sqlite.NewRepository(dbs, trace(t))
+	r, err := sqlite.NewRepository(dbs, trace(t))
 	if err != nil {
 		t.Fatalf("new repo: %s", err)
 	}
@@ -540,7 +540,7 @@ func TestDeleteList(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	t.Cleanup(cancel)
 
-	user, err := repo.AddUser(ctx, &models.User{
+	user, err := r.AddUser(ctx, &models.User{
 		Name:     "user",
 		PassHash: []byte("password"),
 	})
@@ -548,7 +548,7 @@ func TestDeleteList(t *testing.T) {
 		t.Fatalf("add: %s", err)
 	}
 
-	list, err := repo.AddList(ctx, &models.List{
+	list, err := r.AddList(ctx, &models.List{
 		OwnerID: user.ID,
 		Title:   "list",
 	})
@@ -556,17 +556,17 @@ func TestDeleteList(t *testing.T) {
 		t.Fatalf("add list: %s", err)
 	}
 
-	err = repo.DeleteList(ctx, list)
+	err = r.DeleteList(ctx, list)
 	if err != nil {
 		t.Fatalf("delete list: %s", err)
 	}
 
-	_, err = repo.GetList(ctx, list.ID)
+	_, err = r.GetList(ctx, list.ID)
 	if !errors.Is(err, service.ErrNotFound) {
 		t.Fatalf("get list: want %#v, got %#v", service.ErrNotFound, err)
 	}
 
-	err = repo.DeleteList(ctx, list)
+	err = r.DeleteList(ctx, list)
 	if !errors.Is(err, service.ErrNotFound) {
 		t.Fatalf("delete again: want %#v, got %#v", service.ErrNotFound, err)
 	}

@@ -12,8 +12,8 @@ type extTracer struct {
 	t Trace
 }
 
-func (r *repository) tracer(ext sqlx.ExtContext) sqlx.ExtContext {
-	return &extTracer{ext, r.t}
+func (r *handle) tracer() sqlx.ExtContext {
+	return &extTracer{r.ext, r.t}
 }
 
 func (et *extTracer) QueryContext(ctx context.Context, query string, args ...interface{}) (rows *sql.Rows, err error) {

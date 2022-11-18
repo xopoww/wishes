@@ -12,18 +12,18 @@ import (
 	"github.com/xopoww/wishes/internal/service"
 )
 
-func (r *repository) GetUserLists(ctx context.Context, id int64, publicOnly bool) (lids []int64, err error) {
+func (r *handle) GetUserLists(ctx context.Context, id int64, publicOnly bool) (lids []int64, err error) {
 	query := `SELECT Lists.id FROM Lists JOIN ListAccessEnum ON Lists.access = ListAccessEnum.N WHERE Lists.owner_id = $1`
 	if publicOnly {
 		query += ` AND ListAccessEnum.S = 'public'`
 	}
-	err = sqlx.SelectContext(ctx, r.tracer(r.db), &lids, query, id)
+	err = sqlx.SelectContext(ctx, r.tracer(), &lids, query, id)
 	return
 }
 
-func (r *repository) GetList(ctx context.Context, id int64) (*models.List, error) {
+func (r *handle) GetList(ctx context.Context, id int64) (*models.List, error) {
 	list := &models.List{ID: id}
-	row := r.tracer(r.db).QueryRowxContext(ctx, `SELECT title, owner_id, access, revision FROM Lists WHERE id = $1`, id)
+	row := r.tracer().QueryRowxContext(ctx, `SELECT title, owner_id, access, revision FROM Lists WHERE id = $1`, id)
 	err := row.Scan(&list.Title, &list.OwnerID, &list.Access, &list.RevisionID)
 	if errors.Is(err, sql.ErrNoRows) {
 		err = fmt.Errorf("list_id %d: %w", id, service.ErrNotFound)
@@ -35,83 +35,59 @@ func (r *repository) GetList(ctx context.Context, id int64) (*models.List, error
 	return list, nil
 }
 
-func (r *repository) GetListItems(ctx context.Context, list *models.List) (*models.List, error) {
-	tx, err := r.db.Beginx()
-	if err != nil {
-		return nil, fmt.Errorf("begin: %w", err)
-	}
-
-	row := r.tracer(tx).QueryRowxContext(ctx, `SELECT revision FROM Lists WHERE id = $1`, list.ID)
-	err = row.Scan(&list.RevisionID)
+func (r *handle) GetListItems(ctx context.Context, list *models.List) (*models.List, error) {
+	row := r.tracer().QueryRowxContext(ctx, `SELECT revision FROM Lists WHERE id = $1`, list.ID)
+	err := row.Scan(&list.RevisionID)
 	if err != nil {
 		return nil, fmt.Errorf("select revision: %w", err)
 	}
 
-	rows, err := r.tracer(tx).QueryxContext(ctx, `SELECT title, desc FROM Items WHERE list_id = $1`, list.ID)
+	rows, err := r.tracer().QueryxContext(ctx, `SELECT title, desc FROM Items WHERE list_id = $1`, list.ID)
 	if err != nil {
-		_ = tx.Rollback()
 		return nil, fmt.Errorf("select items: %w", err)
 	}
 	for rows.Next() {
 		item := models.ListItem{}
 		err = rows.Scan(&item.Title, &item.Desc)
 		if err != nil {
-			_ = tx.Rollback()
 			return nil, fmt.Errorf("scan item: %w", err)
 		}
 		list.Items = append(list.Items, item)
 	}
 	err = rows.Err()
 	if err != nil {
-		_ = tx.Rollback()
 		return nil, fmt.Errorf("scan rows: %w", err)
 	}
-
-	_ = tx.Commit()
 	return list, nil
 }
 
-func (r *repository) AddList(ctx context.Context, list *models.List) (*models.List, error) {
-	tx, err := r.db.Beginx()
-	if err != nil {
-		return nil, fmt.Errorf("begin: %w", err)
-	}
-
-	res, err := r.tracer(tx).ExecContext(ctx, `INSERT INTO Lists (title, owner_id, access) VALUES ($1, $2, $3)`, list.Title, list.OwnerID, list.Access)
+func (r *handle) AddList(ctx context.Context, list *models.List) (*models.List, error) {
+	res, err := r.tracer().ExecContext(ctx, `INSERT INTO Lists (title, owner_id, access) VALUES ($1, $2, $3)`, list.Title, list.OwnerID, list.Access)
 	var serr sqlite3.Error
 	if errors.As(err, &serr) && serr.ExtendedCode == sqlite3.ErrConstraintForeignKey {
 		err = fmt.Errorf("user_id %d: %w", list.OwnerID, service.ErrNotFound)
 	}
 	if err != nil {
-		_ = tx.Rollback()
 		return nil, fmt.Errorf("insert list: %w", err)
 	}
 	list.ID, err = res.LastInsertId()
 	if err != nil {
-		_ = tx.Rollback()
 		return nil, fmt.Errorf("last insert id: %w", err)
 	}
 
-	err = r.insertItems(ctx, list.Items, list.ID, tx)
+	err = r.insertItems(ctx, list.Items, list.ID)
 	if err != nil {
-		_ = tx.Rollback()
 		return nil, fmt.Errorf("insert items: %w", err)
 	}
 	list.RevisionID = 0
 
-	err = tx.Commit()
-	return list, err
+	return list, nil
 }
 
-func (r *repository) EditList(ctx context.Context, list *models.List) (*models.List, error) {
-	tx, err := r.db.Beginx()
-	if err != nil {
-		return nil, fmt.Errorf("begin: %w", err)
-	}
-
+func (r *handle) EditList(ctx context.Context, list *models.List) (*models.List, error) {
 	// ignore outdated revisions for list edit
-	row := r.tracer(tx).QueryRowxContext(ctx, `SELECT revision FROM Lists WHERE id = $1`, list.ID)
-	err = row.Scan(&list.RevisionID)
+	row := r.tracer().QueryRowxContext(ctx, `SELECT revision FROM Lists WHERE id = $1`, list.ID)
+	err := row.Scan(&list.RevisionID)
 	if errors.Is(err, sql.ErrNoRows) {
 		err = service.ErrNotFound
 	}
@@ -119,34 +95,30 @@ func (r *repository) EditList(ctx context.Context, list *models.List) (*models.L
 		return nil, fmt.Errorf("select revision: %w", err)
 	}
 
-	_, err = r.tracer(tx).ExecContext(ctx,
+	_, err = r.tracer().ExecContext(ctx,
 		`UPDATE Lists SET title = $1, access = $2, revision = $3 WHERE id = $4`,
 		list.Title, list.Access, list.RevisionID+1, list.ID,
 	)
 	if err != nil {
-		_ = tx.Rollback()
 		return nil, fmt.Errorf("update list: %w", err)
 	}
 	list.RevisionID++
 
-	_, err = r.tracer(tx).ExecContext(ctx, `DELETE FROM Items WHERE list_id = $1`, list.ID)
+	_, err = r.tracer().ExecContext(ctx, `DELETE FROM Items WHERE list_id = $1`, list.ID)
 	if err != nil {
-		_ = tx.Rollback()
 		return nil, fmt.Errorf("delete items: %w", err)
 	}
 
-	err = r.insertItems(ctx, list.Items, list.ID, tx)
+	err = r.insertItems(ctx, list.Items, list.ID)
 	if err != nil {
-		_ = tx.Rollback()
 		return nil, fmt.Errorf("insert items: %w", err)
 	}
 
-	err = tx.Commit()
-	return list, err
+	return list, nil
 }
 
-func (r *repository) DeleteList(ctx context.Context, list *models.List) error {
-	res, err := r.tracer(r.db).ExecContext(ctx, `DELETE FROM Lists WHERE id = $1`, list.ID)
+func (r *handle) DeleteList(ctx context.Context, list *models.List) error {
+	res, err := r.tracer().ExecContext(ctx, `DELETE FROM Lists WHERE id = $1`, list.ID)
 	if err != nil {
 		return fmt.Errorf("delete list: %w", err)
 	}
@@ -160,9 +132,9 @@ func (r *repository) DeleteList(ctx context.Context, list *models.List) error {
 	return nil
 }
 
-func (r *repository) insertItems(ctx context.Context, items []models.ListItem, lid int64, ext sqlx.ExtContext) error {
+func (r *handle) insertItems(ctx context.Context, items []models.ListItem, lid int64) error {
 	for i, item := range items {
-		_, err := r.tracer(ext).ExecContext(ctx,
+		_, err := r.tracer().ExecContext(ctx,
 			`INSERT INTO Items (title, desc, list_id) VALUES ($1, $2, $3)`,
 			item.Title, item.Desc, lid,
 		)

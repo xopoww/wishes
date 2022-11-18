@@ -13,16 +13,16 @@ import (
 	"github.com/xopoww/wishes/internal/service"
 )
 
-func (r *repository) CheckUsername(ctx context.Context, username string) (id int64, err error) {
-	err = sqlx.GetContext(ctx, r.tracer(r.db), &id, `SELECT id FROM Users WHERE user_name = $1`, username)
+func (r *handle) CheckUsername(ctx context.Context, username string) (id int64, err error) {
+	err = sqlx.GetContext(ctx, r.tracer(), &id, `SELECT id FROM Users WHERE user_name = $1`, username)
 	if errors.Is(err, sql.ErrNoRows) {
 		err = service.ErrNotFound
 	}
 	return id, err
 }
 
-func (r *repository) GetUser(ctx context.Context, id int64) (*models.User, error) {
-	row := r.tracer(r.db).QueryRowxContext(ctx, `SELECT user_name, fname, lname, pwd_hash FROM Users WHERE id = $1`, id)
+func (r *handle) GetUser(ctx context.Context, id int64) (*models.User, error) {
+	row := r.tracer().QueryRowxContext(ctx, `SELECT user_name, fname, lname, pwd_hash FROM Users WHERE id = $1`, id)
 
 	user := &models.User{ID: id}
 	var b64 string
@@ -41,9 +41,9 @@ func (r *repository) GetUser(ctx context.Context, id int64) (*models.User, error
 	return user, nil
 }
 
-func (r *repository) AddUser(ctx context.Context, user *models.User) (*models.User, error) {
+func (r *handle) AddUser(ctx context.Context, user *models.User) (*models.User, error) {
 	b64 := base64.RawStdEncoding.EncodeToString(user.PassHash)
-	res, err := r.tracer(r.db).ExecContext(ctx, `INSERT INTO Users (user_name, pwd_hash) VALUES ($1, $2)`, user.Name, b64)
+	res, err := r.tracer().ExecContext(ctx, `INSERT INTO Users (user_name, pwd_hash) VALUES ($1, $2)`, user.Name, b64)
 	var serr sqlite3.Error
 	if errors.As(err, &serr) && serr.ExtendedCode == sqlite3.ErrConstraintUnique {
 		err = fmt.Errorf("user_name %q: %w", user.Name, service.ErrConflict)
@@ -58,8 +58,8 @@ func (r *repository) AddUser(ctx context.Context, user *models.User) (*models.Us
 	return user, nil
 }
 
-func (r *repository) EditUser(ctx context.Context, user *models.User) error {
-	res, err := r.tracer(r.db).ExecContext(ctx,
+func (r *handle) EditUser(ctx context.Context, user *models.User) error {
+	res, err := r.tracer().ExecContext(ctx,
 		`UPDATE Users SET fname = $1, lname = $2 WHERE id = $3`,
 		user.Fname, user.Lname, user.ID,
 	)

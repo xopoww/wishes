@@ -5,10 +5,14 @@ import (
 	"errors"
 
 	"github.com/xopoww/wishes/internal/models"
+	"github.com/xopoww/wishes/internal/service/repository"
 )
 
 var (
 	ErrAccessDenied = errors.New("access denied")
+
+	ErrNotFound = repository.ErrNotFound
+	ErrConflict = repository.ErrConflict
 )
 
 type Service interface {
@@ -38,10 +42,10 @@ type Service interface {
 }
 
 type service struct {
-	r  Repository
+	r  repository.Repository
 	ltp ListTokenProvider
 }
 
-func NewService(r Repository, ltp ListTokenProvider) Service {
+func NewService(r repository.Repository, ltp ListTokenProvider) Service {
 	return &service{r: r, ltp: ltp}
 }
