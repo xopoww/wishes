@@ -43,20 +43,31 @@ func (s *service) Auth(ctx context.Context, raw string) (*models.User, error) {
 	}, nil
 }
 
-func (s *service) Login(ctx context.Context, username string, password string) (token string, ok bool) {
-	id, err := s.r.CheckUsername(ctx, username)
+func (s *service) Login(ctx context.Context, username string, password string) (token string, err error) {
+	tx, err := s.r.Begin()
 	if err != nil {
-		return "", false
+		return "", err
 	}
-	user, err := s.r.GetUser(ctx, id)
+	id, err := tx.CheckUsername(ctx, username)
+	if errors.Is(err, ErrNotFound) {
+		err = ErrAccessDenied
+	}
 	if err != nil {
-		return "", false
+		_ = tx.Rollback()
+		return "", err
+	}
+	user, err := tx.GetUser(ctx, id)
+	if err != nil {
+		_ = tx.Rollback()
+		return "", err
 	}
 	if !s.comparePassword(password, user.PassHash) {
-		return "", false
+		_ = tx.Rollback()
+		return "", ErrAccessDenied
 	}
+	_ = tx.Commit()
 	token, err = s.generateToken(user)
-	return token, err == nil
+	return token, err
 }
 
 func (s *service) hashPassword(password string) ([]byte, error) {

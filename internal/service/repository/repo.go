@@ -44,7 +44,7 @@ type Transaction interface {
 	Rollback() error
 }
 
-//go:generate mockgen -destination ../mock_repo_test.go -package service_test . Repository
+//go:generate mockgen -destination ../mock_repo_test.go -package service_test . Repository,Transaction
 
 type Repository interface {
 	Handle

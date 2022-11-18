@@ -13,23 +13,62 @@ func (s *service) GetUserLists(ctx context.Context, id int64, client *models.Use
 }
 
 func (s *service) GetList(ctx context.Context, id int64, client *models.User, token *string) (*models.List, error) {
-	list := &models.List{ID: id}
-	err := s.checkReadAccess(ctx, list, client, token)
-	return list, err
+	list, err := s.r.GetList(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	err = s.checkReadAccess(list, client, token)
+	if err != nil {
+		return nil, err
+	}
+	return list, nil
 }
 
 func (s *service) GetListItems(ctx context.Context, list *models.List, client *models.User, token *string) (*models.List, error) {
-	if err := s.checkReadAccess(ctx, list, client, token); err != nil {
+	tx, err := s.r.Begin()
+	if err != nil {
 		return nil, err
 	}
-	return s.r.GetListItems(ctx, list)
+	list, err = tx.GetList(ctx, list.ID)
+	if err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
+	err = s.checkReadAccess(list, client, token)
+	if err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
+	list, err = tx.GetListItems(ctx, list)
+	if err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
+	_ = tx.Commit()
+	return list, nil
 }
 
 func (s *service) EditList(ctx context.Context, list *models.List, client *models.User) (*models.List, error) {
-	if err := s.checkWriteAccess(ctx, list, client); err != nil {
+	tx, err := s.r.Begin()
+	if err != nil {
 		return nil, err
 	}
-	return s.r.EditList(ctx, list)
+	l, err := tx.GetList(ctx, list.ID)
+	if err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
+	err = s.checkWriteAccess(l, client)
+	if err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
+	list, err = tx.EditList(ctx, list)
+	if err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
+	return list, tx.Commit()
 }
 
 func (s *service) AddList(ctx context.Context, list *models.List, client *models.User) (*models.List, error) {
@@ -38,53 +77,62 @@ func (s *service) AddList(ctx context.Context, list *models.List, client *models
 }
 
 func (s *service) DeleteList(ctx context.Context, list *models.List, client *models.User) error {
-	if err := s.checkWriteAccess(ctx, list, client); err != nil {
+	tx, err := s.r.Begin()
+	if err != nil {
 		return err
 	}
-	return s.r.DeleteList(ctx, list)
+	list, err = tx.GetList(ctx, list.ID)
+	if err != nil {
+		_ = tx.Rollback()
+		return err
+	}
+	err = s.checkWriteAccess(list, client)
+	if err != nil {
+		_ = tx.Rollback()
+		return err
+	}
+	err = tx.DeleteList(ctx, list)
+	if err != nil {
+		_ = tx.Rollback()
+		return err
+	}
+	return tx.Commit()
 }
 
 func (s *service) GetListToken(ctx context.Context, id int64, client *models.User) (string, error) {
-	if err := s.checkWriteAccess(ctx, &models.List{ID: id}, client); err != nil {
+	list, err := s.r.GetList(ctx, id)
+	if err != nil {
+		return "", err
+	}
+	err = s.checkWriteAccess(list, client)
+	if err != nil {
 		return "", err
 	}
 	return s.ltp.GenerateToken(ListClaims{ListID: id})
 }
 
-func (s *service) checkWriteAccess(ctx context.Context, list *models.List, client *models.User) error {
-	l, err := s.r.GetList(ctx, list.ID)
-	if err != nil {
-		return err
-	}
-	list.OwnerID = l.OwnerID
-	if l.OwnerID != client.ID {
+func (s *service) checkWriteAccess(list *models.List, client *models.User) error {
+	if list.OwnerID != client.ID {
 		return ErrAccessDenied
 	}
 	return nil
 }
 
-func (s *service) checkReadAccess(ctx context.Context, list *models.List, client *models.User, token *string) error {
-	l, err := s.r.GetList(ctx, list.ID)
-	if err != nil {
-		return err
-	}
-	list.Title = l.Title
-	list.OwnerID = l.OwnerID
-	list.Access = l.Access
+func (s *service) checkReadAccess(list *models.List, client *models.User, token *string) error {
 	if token != nil {
-		if l.Access == models.PrivateAccess {
+		if list.Access == models.PrivateAccess {
 			return ErrAccessDenied
 		}
 		claims, err := s.ltp.ValidateToken(*token)
 		if err != nil {
 			return fmt.Errorf("%w (%s)", ErrAccessDenied, err)
 		}
-		if claims.ListID != l.ID {
-			return fmt.Errorf("%w (token for %d)", ErrAccessDenied, l.ID)
+		if claims.ListID != list.ID {
+			return fmt.Errorf("%w (token for %d)", ErrAccessDenied, list.ID)
 		}
 		return nil
 	}
-	if l.Access != models.PublicAccess && l.OwnerID != client.ID {
+	if list.Access != models.PublicAccess && list.OwnerID != client.ID {
 		return ErrAccessDenied
 	}
 	return nil

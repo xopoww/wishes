@@ -18,7 +18,10 @@ var (
 type Service interface {
 	Auth(ctx context.Context, token string) (*models.User, error)
 
-	Login(ctx context.Context, username, password string) (token string, ok bool)
+	// Login returns ErrAccessDenied on any problem with login credentials (i.e. it
+	// does not distinguish between bad username or bad password). Other errors indicate
+	// internal server-side error.
+	Login(ctx context.Context, username, password string) (token string, err error)
 
 	Register(ctx context.Context, username, password string) (int64, error)
 

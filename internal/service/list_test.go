@@ -29,13 +29,13 @@ func TestGetUserLists(t *testing.T) {
 			for _, ret := range rets {
 				t.Run(fmt.Sprintf("ret=%+v", ret), func(t *testing.T) {
 					ctrl, ctx := gomock.WithContext(context.Background(), t)
-					repo := NewMockRepository(ctrl)
+					r := NewMockRepository(ctrl)
 
-					repo.EXPECT().
+					r.EXPECT().
 						GetUserLists(gomock.Any(), gomock.Eq(a.ID), gomock.Eq(client.ID != a.ID)).
 						Return(ret.lids, ret.err)
 					
-					s := service.NewService(repo, NewMockListTokenProvider(ctrl))
+					s := service.NewService(r, NewMockListTokenProvider(ctrl))
 					lids, err := s.GetUserLists(ctx, a.ID, client)
 					if !errors.Is(err, ret.err) {
 						t.Fatalf("err: want %+v, got %+v", ret.err, err)
@@ -64,9 +64,9 @@ func TestGetListToken(t *testing.T) {
 	for _, client := range []*models.User{a, b} {
 		t.Run(client.Name, func(t *testing.T) {
 			ctrl, ctx := gomock.WithContext(context.Background(), t)
-			repo := NewMockRepository(ctrl)
+			r := NewMockRepository(ctrl)
 
-			repo.EXPECT().
+			r.EXPECT().
 				GetList(gomock.Any(), gomock.Eq(list.ID)).
 				Return(list, nil)
 
@@ -77,7 +77,7 @@ func TestGetListToken(t *testing.T) {
 					Return(token, nil)
 			}
 			
-			s := service.NewService(repo, ltp)
+			s := service.NewService(r, ltp)
 			got, err := s.GetListToken(ctx, list.ID, client)
 			if client.ID == a.ID {
 				if got != token {
@@ -127,10 +127,10 @@ func TestGetList(t *testing.T) {
 
 				t.Run(name, func(t *testing.T) {
 					ctrl, ctx := gomock.WithContext(context.Background(), t)
-					repo := NewMockRepository(ctrl)
+					r := NewMockRepository(ctrl)
 					ltp := NewMockListTokenProvider(ctrl)
 
-					repo.EXPECT().
+					r.EXPECT().
 						GetList(gomock.Any(), gomock.Eq(list.ID)).
 						Return(&list, nil)
 					
@@ -149,8 +149,48 @@ func TestGetList(t *testing.T) {
 							}).AnyTimes()
 					}
 
-					s := service.NewService(repo, ltp)
+					s := service.NewService(r, ltp)
 					_, err := s.GetList(ctx, list.ID, client, token)
+					if !errors.Is(err, wantErr) {
+						t.Fatalf("want %+v, got %+v", wantErr, err)
+					}
+				})
+
+				t.Run(fmt.Sprintf("(items)%s", name), func(t *testing.T) {
+					ctrl, ctx := gomock.WithContext(context.Background(), t)
+					r := NewMockRepository(ctrl)
+					tx := NewMockTransaction(ctrl)
+					r.EXPECT().Begin().Return(tx, nil)
+					ltp := NewMockListTokenProvider(ctrl)
+
+					tx.EXPECT().
+						GetList(gomock.Any(), gomock.Eq(list.ID)).
+						Return(&list, nil)
+					
+					if token != nil {
+						ltp.EXPECT().
+							ValidateToken(gomock.Eq(*token)).
+							DoAndReturn(func(t string) (service.ListClaims, error) {
+								switch t {
+								case goodToken:
+									return service.ListClaims{ListID: list.ID}, nil
+								case wrongToken:
+									return service.ListClaims{ListID: list.ID+1}, nil
+								default:
+									return service.ListClaims{}, errors.New("bad token")
+								}
+							}).AnyTimes()
+					}
+
+					if wantErr == nil {
+						tx.EXPECT().GetListItems(gomock.Any(), gomock.Eq(&list)).Return(&list, nil)
+						tx.EXPECT().Commit().Return(nil)
+					} else {
+						tx.EXPECT().Rollback().Return(nil)
+					}
+
+					s := service.NewService(r, ltp)
+					_, err := s.GetListItems(ctx, &models.List{ID: list.ID}, client, token)
 					if !errors.Is(err, wantErr) {
 						t.Fatalf("want %+v, got %+v", wantErr, err)
 					}
@@ -166,9 +206,9 @@ func TestAddList(t *testing.T) {
 	lid := int64(42)
 
 	ctrl, ctx := gomock.WithContext(context.Background(), t)
-	repo := NewMockRepository(ctrl)
+	r := NewMockRepository(ctrl)
 
-	repo.EXPECT().
+	r.EXPECT().
 		AddList(gomock.Any(), testutil.MatcherFunc(func(x interface{}) error {
 			l, ok := x.(*models.List)
 			if !ok || l == nil {
@@ -186,7 +226,7 @@ func TestAddList(t *testing.T) {
 			return ll, nil
 		})
 	
-	s := service.NewService(repo, NewMockListTokenProvider(ctrl))
+	s := service.NewService(r, NewMockListTokenProvider(ctrl))
 	got, err := s.AddList(ctx, list, client)
 	if err != nil {
 		t.Fatalf("add list: %s", err)
@@ -241,7 +281,9 @@ func TestEditList(t *testing.T) {
 			new.Title = "new title"
 			
 			ctrl, ctx := gomock.WithContext(context.Background(), t)
-			repo := NewMockRepository(ctrl)
+			r := NewMockRepository(ctrl)
+			tx := NewMockTransaction(ctrl)
+			r.EXPECT().Begin().Return(tx, nil)
 
 			var (
 				rerr error
@@ -252,17 +294,20 @@ func TestEditList(t *testing.T) {
 			} else {
 				rlist = old
 			}
-			repo.EXPECT().
+			tx.EXPECT().
 				GetList(gomock.Any(), gomock.Eq(new.ID)).
 				Return(rlist, rerr)
 			
 			if tc.wantErr == nil {
-				repo.EXPECT().
+				tx.EXPECT().
 					EditList(gomock.Any(), gomock.Eq(new)).
 					Return(new, nil)
+				tx.EXPECT().Commit().Return(nil)
+			} else {
+				tx.EXPECT().Rollback().Return(nil)
 			}
 
-			s := service.NewService(repo, NewMockListTokenProvider(ctrl))
+			s := service.NewService(r, NewMockListTokenProvider(ctrl))
 			_, err := s.EditList(ctx, new, tc.client)
 			if !errors.Is(err, tc.wantErr) {
 				t.Fatalf("err: want %+v, got %+v", tc.wantErr, err)
@@ -312,7 +357,9 @@ func TestDeleteList(t *testing.T) {
 			new.ID = tc.lid
 			
 			ctrl, ctx := gomock.WithContext(context.Background(), t)
-			repo := NewMockRepository(ctrl)
+			r := NewMockRepository(ctrl)
+			tx := NewMockTransaction(ctrl)
+			r.EXPECT().Begin().Return(tx, nil)
 
 			var (
 				rerr error
@@ -323,17 +370,20 @@ func TestDeleteList(t *testing.T) {
 			} else {
 				rlist = old
 			}
-			repo.EXPECT().
+			tx.EXPECT().
 				GetList(gomock.Any(), gomock.Eq(new.ID)).
 				Return(rlist, rerr)
 			
 			if tc.wantErr == nil {
-				repo.EXPECT().
+				tx.EXPECT().
 					DeleteList(gomock.Any(), gomock.Eq(old)).
 					Return(nil)
+				tx.EXPECT().Commit().Return(nil)
+			} else {
+				tx.EXPECT().Rollback().Return(nil)
 			}
 
-			s := service.NewService(repo, NewMockListTokenProvider(ctrl))
+			s := service.NewService(r, NewMockListTokenProvider(ctrl))
 			err := s.DeleteList(ctx, new, tc.client)
 			if !errors.Is(err, tc.wantErr) {
 				t.Fatalf("err: want %+v, got %+v", tc.wantErr, err)

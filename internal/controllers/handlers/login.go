@@ -31,7 +31,10 @@ func (ac *ApiController) Login() operations.LoginHandler {
 			onDone(ok, err)
 		}()
 
-		token, ok := ac.s.Login(context.TODO(), username, password)
+		var token string
+		token, err = ac.s.Login(context.TODO(), username, password)
+		// TODO: handle internal server error
+		ok = err == nil
 
 		payload := &operations.LoginOKBody{}
 		payload.Ok = &ok
