@@ -158,20 +158,170 @@ func TestGetList(t *testing.T) {
 	}
 }
 
-func TestGetListItems(t *testing.T) {
+func TestGetItemTaken(t *testing.T) {
 	dbs := newTestDatabase(t,
 		upMigrationFromString(t,
-			`INSERT INTO Users (user_name, pwd_hash) VALUES ("user", "cGFzc3dvcmQ=")`,
+			`INSERT INTO Users (user_name, pwd_hash) VALUES ("user1", "cGFzc3dvcmQ=");`+
+				`INSERT INTO Users (user_name, pwd_hash) VALUES ("user2", "cGFzc3dvcmQ=")`,
 			testMigrationVersionStart,
 		),
 		upMigrationFromString(t,
 			`INSERT INTO Lists (title, owner_id, access, revision) SELECT title, Users.id AS owner_id, ListAccessEnum.N as access, revision FROM `+
-				`(SELECT "list1" AS title, 0 as revision) JOIN Users ON Users.user_name = "user" JOIN ListAccessEnum on ListAccessEnum.S = "link"`,
+				`(SELECT "list1" AS title, 0 as revision) JOIN Users ON Users.user_name = "user1" JOIN ListAccessEnum on ListAccessEnum.S = "link"; `+
+
+				`INSERT INTO Items (title, list_id, id) SELECT item_title as title, Lists.id AS list_id, item_id as id FROM `+
+				`(SELECT "item" AS item_title, 1 as item_id) JOIN Lists ON Lists.title = "list1";`+
+
+				`INSERT INTO Items (title, list_id, id, taken_by) `+
+				`SELECT item_title as title, Lists.id AS list_id, item_id as id, Users.id as taken_by FROM `+
+				`(SELECT "item" AS item_title, 2 as item_id) JOIN Lists ON Lists.title = "list1" JOIN Users ON Users.user_name == "user2";`+
+
+				`INSERT INTO Lists (title, owner_id, access, revision) SELECT title, Users.id AS owner_id, ListAccessEnum.N as access, revision FROM `+
+				`(SELECT "list2" AS title, 0 as revision) JOIN Users ON Users.user_name = "user1" JOIN ListAccessEnum on ListAccessEnum.S = "link"`,
+			testMigrationVersionStart+2,
+		),
+	)
+	r, err := sqlite.NewRepository(dbs, trace(t))
+	if err != nil {
+		t.Fatalf("new repo: %s", err)
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	t.Cleanup(cancel)
+
+	uid1, err := r.CheckUsername(ctx, "user1")
+	if err != nil {
+		t.Fatalf("check user1: %s", err)
+	}
+
+	lids, err := r.GetUserLists(ctx, uid1, false)
+	if err != nil {
+		t.Fatalf("get lists: %s", err)
+	}
+	if len(lids) != 2 {
+		t.Fatalf("get user lists: wrong len (%d)", len(lids))
+	}
+	lid1 := lids[0]
+	lid2 := lids[1]
+
+	taken, err := r.GetItemTaken(ctx, lid1, 1)
+	if err != nil {
+		t.Fatalf("item1: %s", err)
+	}
+	assertInt64PtrEq(t, nil, taken)
+
+	uid2, err := r.CheckUsername(ctx, "user2")
+	if err != nil {
+		t.Fatalf("check user2: %s", err)
+	}
+
+	taken, err = r.GetItemTaken(ctx, lid1, 2)
+	if err != nil {
+		t.Fatalf("item2: %s", err)
+	}
+	assertInt64PtrEq(t, &uid2, taken)
+
+	_, err = r.GetItemTaken(ctx, lid2, 1)
+	if !errors.Is(err, service.ErrNotFound) {
+		t.Fatalf("wrong lid: want %+v, got %+v", service.ErrNotFound, err)
+	}
+	_, err = r.GetItemTaken(ctx, lid1, 3)
+	if !errors.Is(err, service.ErrNotFound) {
+		t.Fatalf("wrong lid: want %+v, got %+v", service.ErrNotFound, err)
+	}
+}
+
+func TestSetItemTaken(t *testing.T) {
+	dbs := newTestDatabase(t,
+		upMigrationFromString(t,
+			`INSERT INTO Users (user_name, pwd_hash) VALUES ("user1", "cGFzc3dvcmQ=")`,
+			testMigrationVersionStart,
+		),
+		upMigrationFromString(t,
+			`INSERT INTO Lists (title, owner_id, access, revision) SELECT title, Users.id AS owner_id, ListAccessEnum.N as access, revision FROM `+
+				`(SELECT "list1" AS title, 0 as revision) JOIN Users ON Users.user_name = "user1" JOIN ListAccessEnum on ListAccessEnum.S = "link"; `+
+
+				`INSERT INTO Items (title, list_id, id) SELECT item_title as title, Lists.id AS list_id, item_id as id FROM `+
+				`(SELECT "item" AS item_title, 1 as item_id) JOIN Lists ON Lists.title = "list1"; `+
+
+				`INSERT INTO Lists (title, owner_id, access, revision) SELECT title, Users.id AS owner_id, ListAccessEnum.N as access, revision FROM `+
+				`(SELECT "list2" AS title, 0 as revision) JOIN Users ON Users.user_name = "user1" JOIN ListAccessEnum on ListAccessEnum.S = "link"`,
+			testMigrationVersionStart+2,
+		),
+	)
+	r, err := sqlite.NewRepository(dbs, trace(t))
+	if err != nil {
+		t.Fatalf("new repo: %s", err)
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	t.Cleanup(cancel)
+
+	uid1, err := r.CheckUsername(ctx, "user1")
+	if err != nil {
+		t.Fatalf("check user1: %s", err)
+	}
+
+	lids, err := r.GetUserLists(ctx, uid1, false)
+	if err != nil {
+		t.Fatalf("get lists: %s", err)
+	}
+	if len(lids) != 2 {
+		t.Fatalf("get user lists: wrong len (%d)", len(lids))
+	}
+	lid1 := lids[0]
+	lid2 := lids[1]
+
+	u2, err := r.AddUser(ctx, &models.User{
+		Name:     "user2",
+		PassHash: []byte("password"),
+	})
+	if err != nil {
+		t.Fatalf("add user: %s", err)
+	}
+
+	for _, taken := range []*int64{&u2.ID, nil} {
+		err := r.SetItemTaken(ctx, lid1, 1, taken)
+		if err != nil {
+			t.Fatalf("err: %s", err)
+		}
+		got, err := r.GetItemTaken(ctx, lid1, 1)
+		if err != nil {
+			t.Fatalf("get item taken: %s", err)
+		}
+		assertInt64PtrEq(t, taken, got)
+	}
+
+	err = r.SetItemTaken(ctx, lid2, 1, &u2.ID)
+	if !errors.Is(err, service.ErrNotFound) {
+		t.Fatalf("wrong lid: want %+v, got %+v", service.ErrNotFound, err)
+	}
+	err = r.SetItemTaken(ctx, lid1, 3, &u2.ID)
+	if !errors.Is(err, service.ErrNotFound) {
+		t.Fatalf("wrong iid: want %+v, got %+v", service.ErrNotFound, err)
+	}
+	badUid := u2.ID + 50
+	err = r.SetItemTaken(ctx, lid1, 1, &badUid)
+	if !errors.Is(err, service.ErrNotFound) {
+		t.Fatalf("wrong uid: want %+v, got %+v", service.ErrNotFound, err)
+	}
+}
+
+func TestGetListItems(t *testing.T) {
+	dbs := newTestDatabase(t,
+		upMigrationFromString(t,
+			`INSERT INTO Users (user_name, pwd_hash) VALUES ("user1", "cGFzc3dvcmQ=")`,
+			testMigrationVersionStart,
+		),
+		upMigrationFromString(t,
+			`INSERT INTO Lists (title, owner_id, access, revision) SELECT title, Users.id AS owner_id, ListAccessEnum.N as access, revision FROM `+
+				`(SELECT "list1" AS title, 0 as revision) JOIN Users ON Users.user_name = "user1" JOIN ListAccessEnum on ListAccessEnum.S = "link"`,
 			testMigrationVersionStart+1,
 		),
 		upMigrationFromString(t,
 			`INSERT INTO Lists (title, owner_id, access, revision) SELECT title, Users.id AS owner_id, ListAccessEnum.N as access, revision FROM `+
-				`(SELECT "list2" AS title, 0 as revision) JOIN Users ON Users.user_name = "user" JOIN ListAccessEnum on ListAccessEnum.S = "link"; `+
+				`(SELECT "list2" AS title, 0 as revision) JOIN Users ON Users.user_name = "user1" JOIN ListAccessEnum on ListAccessEnum.S = "link"; `+
+
 				`INSERT INTO Items (title, list_id, id) SELECT item_title as title, Lists.id AS list_id, item_id as id FROM `+
 				`(SELECT "item" AS item_title, 42 as item_id) JOIN Lists ON Lists.title = "list2";`,
 			testMigrationVersionStart+2,
@@ -185,17 +335,25 @@ func TestGetListItems(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	t.Cleanup(cancel)
 
-	uid, err := r.CheckUsername(ctx, "user")
+	uid1, err := r.CheckUsername(ctx, "user1")
 	if err != nil {
-		t.Fatalf("check user: %s", err)
+		t.Fatalf("check user1: %s", err)
 	}
 
-	lids, err := r.GetUserLists(ctx, uid, false)
+	lids, err := r.GetUserLists(ctx, uid1, false)
 	if err != nil {
 		t.Fatalf("get user lists: %s", err)
 	}
 	if len(lids) != 2 {
 		t.Fatalf("get user lists: wrong len (%d)", len(lids))
+	}
+
+	u2, err := r.AddUser(ctx, &models.User{
+		Name:     "user2",
+		PassHash: []byte("password"),
+	})
+	if err != nil {
+		t.Fatalf("add user: %s", err)
 	}
 
 	for i, lid := range lids {
@@ -226,6 +384,22 @@ func TestGetListItems(t *testing.T) {
 				t.Fatalf("err: %s", err)
 			}
 			assertListsEq(t, &want, list)
+
+			if want.Title == "list1" {
+				return
+			}
+			err = r.SetItemTaken(ctx, list.ID, list.Items[0].ID, &u2.ID)
+			if err != nil {
+				t.Fatalf("set item taken: %s", err)
+			}
+
+			list.Items, err = r.GetListItems(cctx, list)
+			if err != nil {
+				t.Fatalf("err: %s", err)
+			}
+			want.Items[0].TakenBy = &u2.ID
+			assertListsEq(t, &want, list)
+
 		})
 	}
 }
@@ -567,8 +741,31 @@ func assertListsEq(t *testing.T, want, got *models.List) {
 		t.Fatalf("want %+v, got %+v", want, got)
 	}
 	for i := range want.Items {
-		if want.Items[i] != got.Items[i] {
+		if want.Items[i].ID != got.Items[i].ID {
 			t.Fatalf("want %+v, got %+v", want, got)
 		}
+		if want.Items[i].Title != got.Items[i].Title {
+			t.Fatalf("want %+v, got %+v", want, got)
+		}
+		if want.Items[i].Desc != got.Items[i].Desc {
+			t.Fatalf("want %+v, got %+v", want, got)
+		}
+		assertInt64PtrEq(t, want.Items[i].TakenBy, got.Items[i].TakenBy)
+	}
+}
+
+func assertInt64PtrEq(t *testing.T, want, got *int64) {
+	p2s := func(p *int64) string {
+		if p == nil {
+			return "<nil>"
+		}
+		return fmt.Sprint(*p)
+	}
+
+	if want == nil && got == nil {
+		return
+	}
+	if want == nil || got == nil || *want != *got {
+		t.Fatalf("want %s, got %s", p2s(want), p2s(got))
 	}
 }

@@ -182,6 +182,21 @@ func (mr *MockRepositoryMockRecorder) EditUser(arg0, arg1 interface{}) *gomock.C
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EditUser", reflect.TypeOf((*MockRepository)(nil).EditUser), arg0, arg1)
 }
 
+// GetItemTaken mocks base method.
+func (m *MockRepository) GetItemTaken(arg0 context.Context, arg1, arg2 int64) (*int64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetItemTaken", arg0, arg1, arg2)
+	ret0, _ := ret[0].(*int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetItemTaken indicates an expected call of GetItemTaken.
+func (mr *MockRepositoryMockRecorder) GetItemTaken(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetItemTaken", reflect.TypeOf((*MockRepository)(nil).GetItemTaken), arg0, arg1, arg2)
+}
+
 // GetList mocks base method.
 func (m *MockRepository) GetList(arg0 context.Context, arg1 int64) (*models.List, error) {
 	m.ctrl.T.Helper()
@@ -240,6 +255,20 @@ func (m *MockRepository) GetUserLists(arg0 context.Context, arg1 int64, arg2 boo
 func (mr *MockRepositoryMockRecorder) GetUserLists(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserLists", reflect.TypeOf((*MockRepository)(nil).GetUserLists), arg0, arg1, arg2)
+}
+
+// SetItemTaken mocks base method.
+func (m *MockRepository) SetItemTaken(arg0 context.Context, arg1, arg2 int64, arg3 *int64) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SetItemTaken", arg0, arg1, arg2, arg3)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SetItemTaken indicates an expected call of SetItemTaken.
+func (mr *MockRepositoryMockRecorder) SetItemTaken(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetItemTaken", reflect.TypeOf((*MockRepository)(nil).SetItemTaken), arg0, arg1, arg2, arg3)
 }
 
 // MockTransaction is a mock of Transaction interface.
@@ -396,6 +425,21 @@ func (mr *MockTransactionMockRecorder) EditUser(arg0, arg1 interface{}) *gomock.
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EditUser", reflect.TypeOf((*MockTransaction)(nil).EditUser), arg0, arg1)
 }
 
+// GetItemTaken mocks base method.
+func (m *MockTransaction) GetItemTaken(arg0 context.Context, arg1, arg2 int64) (*int64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetItemTaken", arg0, arg1, arg2)
+	ret0, _ := ret[0].(*int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetItemTaken indicates an expected call of GetItemTaken.
+func (mr *MockTransactionMockRecorder) GetItemTaken(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetItemTaken", reflect.TypeOf((*MockTransaction)(nil).GetItemTaken), arg0, arg1, arg2)
+}
+
 // GetList mocks base method.
 func (m *MockTransaction) GetList(arg0 context.Context, arg1 int64) (*models.List, error) {
 	m.ctrl.T.Helper()
@@ -468,4 +512,18 @@ func (m *MockTransaction) Rollback() error {
 func (mr *MockTransactionMockRecorder) Rollback() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Rollback", reflect.TypeOf((*MockTransaction)(nil).Rollback))
+}
+
+// SetItemTaken mocks base method.
+func (m *MockTransaction) SetItemTaken(arg0 context.Context, arg1, arg2 int64, arg3 *int64) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SetItemTaken", arg0, arg1, arg2, arg3)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SetItemTaken indicates an expected call of SetItemTaken.
+func (mr *MockTransactionMockRecorder) SetItemTaken(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetItemTaken", reflect.TypeOf((*MockTransaction)(nil).SetItemTaken), arg0, arg1, arg2, arg3)
 }

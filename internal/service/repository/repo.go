@@ -39,6 +39,10 @@ type Handle interface {
 	DeleteList(ctx context.Context, list *models.List) error
 
 	DeleteListItems(ctx context.Context, list *models.List, ids []int64) error
+
+	SetItemTaken(ctx context.Context, listId, itemId int64, takenBy *int64) error
+
+	GetItemTaken(ctx context.Context, listId, itemId int64) (*int64, error)
 }
 
 type Transaction interface {

@@ -37,16 +37,20 @@ func (r *handle) GetList(ctx context.Context, id int64) (*models.List, error) {
 }
 
 func (r *handle) GetListItems(ctx context.Context, list *models.List) ([]models.ListItem, error) {
-	rows, err := r.tracer().QueryxContext(ctx, `SELECT id, title, desc FROM Items WHERE list_id = $1`, list.ID)
+	rows, err := r.tracer().QueryxContext(ctx, `SELECT id, title, desc, taken_by FROM Items WHERE list_id = $1`, list.ID)
 	if err != nil {
 		return nil, fmt.Errorf("select items: %w", err)
 	}
 	items := make([]models.ListItem, 0)
 	for rows.Next() {
 		item := models.ListItem{}
-		err = rows.Scan(&item.ID, &item.Title, &item.Desc)
+		var nv sql.NullInt64
+		err = rows.Scan(&item.ID, &item.Title, &item.Desc, &nv)
 		if err != nil {
 			return nil, fmt.Errorf("scan item: %w", err)
+		}
+		if nv.Valid {
+			item.TakenBy = &nv.Int64
 		}
 		items = append(items, item)
 	}
@@ -150,6 +154,47 @@ func (r *handle) DeleteList(ctx context.Context, list *models.List) error {
 		return fmt.Errorf("list_id %d: %w", list.ID, service.ErrNotFound)
 	}
 	return nil
+}
+
+func (r *handle) SetItemTaken(ctx context.Context, listId, itemId int64, takenBy *int64) error {
+	var nv sql.NullInt64
+	if takenBy != nil {
+		nv.Valid = true
+		nv.Int64 = *takenBy
+	}
+	res, err := r.tracer().ExecContext(ctx, `UPDATE Items SET taken_by = $1 WHERE list_id = $2 AND id = $3`, nv, listId, itemId)
+	var serr sqlite3.Error
+	if errors.As(err, &serr) && serr.ExtendedCode == sqlite3.ErrConstraintForeignKey {
+		err = fmt.Errorf("user_id %d: %w", *takenBy, service.ErrNotFound)
+	}
+	if err != nil {
+		return fmt.Errorf("update: %w", err)
+	}
+	ra, err := res.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("rows affected: %w", err)
+	}
+	if ra == 0 {
+		return fmt.Errorf("list_id %d, item_id %d: %w", listId, itemId, service.ErrNotFound)
+	}
+	return nil
+}
+
+func (r *handle) GetItemTaken(ctx context.Context, listId, itemId int64) (*int64, error) {
+	row := r.tracer().QueryRowxContext(ctx, `SELECT taken_by FROM Items WHERE list_id = $1 AND id = $2`, listId, itemId)
+	var nv sql.NullInt64
+	err := row.Scan(&nv)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, fmt.Errorf("list_id %d, item_id %d: %w", listId, itemId, service.ErrNotFound)
+	}
+	if err != nil {
+		return nil, err
+	}
+	if nv.Valid {
+		return &nv.Int64, nil
+	} else {
+		return nil, nil
+	}
 }
 
 func (r *handle) insertItems(ctx context.Context, items []models.ListItem, lid int64) ([]models.ListItem, error) {

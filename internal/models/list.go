@@ -3,9 +3,10 @@ package models
 import "fmt"
 
 type ListItem struct {
-	ID    int64
-	Title string
-	Desc  string
+	ID      int64
+	Title   string
+	Desc    string
+	TakenBy *int64
 }
 
 type List struct {
