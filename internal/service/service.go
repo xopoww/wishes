@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/xopoww/wishes/internal/models"
 	"github.com/xopoww/wishes/internal/service/repository"
@@ -13,6 +14,7 @@ var (
 
 	ErrNotFound = repository.ErrNotFound
 	ErrConflict = repository.ErrConflict
+	ErrOutdated = fmt.Errorf("%w: outdated revision", ErrConflict)
 )
 
 type Service interface {
@@ -46,6 +48,10 @@ type Service interface {
 	DeleteList(ctx context.Context, list *models.List, client *models.User) error
 
 	DeleteListItems(ctx context.Context, list *models.List, ids []int64, client *models.User) (*models.List, error)
+
+	TakeItem(ctx context.Context, list *models.List, itemId int64, client *models.User, token *string) error
+
+	UntakeItem(ctx context.Context, list *models.List, itemId int64, client *models.User, token *string) error
 }
 
 type service struct {

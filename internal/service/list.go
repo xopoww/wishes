@@ -44,6 +44,11 @@ func (s *service) GetListItems(ctx context.Context, list *models.List, client *m
 		_ = tx.Rollback()
 		return nil, err
 	}
+	if s.checkWriteAccess(list, client) == nil {
+		for i := range list.Items {
+			list.Items[i].TakenBy = nil
+		}
+	}
 	_ = tx.Commit()
 	return list, nil
 }
@@ -93,7 +98,7 @@ func (s *service) AddListItems(ctx context.Context, list *models.List, items []m
 	}
 	if list.RevisionID < l.RevisionID {
 		_ = tx.Rollback()
-		return nil, ErrConflict
+		return nil, ErrOutdated
 	}
 	_, err = tx.AddListItems(ctx, list, items)
 	if err != nil {
@@ -149,7 +154,7 @@ func (s *service) DeleteListItems(ctx context.Context, list *models.List, ids []
 	}
 	if list.RevisionID < l.RevisionID {
 		_ = tx.Rollback()
-		return nil, ErrConflict
+		return nil, ErrOutdated
 	}
 	err = tx.DeleteListItems(ctx, list, ids)
 	if err != nil {
@@ -175,6 +180,88 @@ func (s *service) GetListToken(ctx context.Context, id int64, client *models.Use
 		return "", err
 	}
 	return s.ltp.GenerateToken(ListClaims{ListID: id})
+}
+
+func (s *service) TakeItem(ctx context.Context, list *models.List, itemId int64, client *models.User, token *string) error {
+	tx, err := s.r.Begin()
+	if err != nil {
+		return err
+	}
+	l, err := tx.GetList(ctx, list.ID)
+	if err != nil {
+		_ = tx.Rollback()
+		return err
+	}
+	err = s.checkReadAccess(l, client, token)
+	if err != nil {
+		_ = tx.Rollback()
+		return err
+	}
+	if s.checkWriteAccess(l, client) == nil {
+		_ = tx.Rollback()
+		return ErrAccessDenied
+	}
+	if list.RevisionID < l.RevisionID {
+		_ = tx.Rollback()
+		return ErrOutdated
+	}
+	taken, err := tx.GetItemTaken(ctx, list.ID, itemId)
+	if err != nil {
+		_ = tx.Rollback()
+		return err
+	}
+	if taken != nil {
+		_ = tx.Rollback()
+		return ErrConflict
+	}
+	err = tx.SetItemTaken(ctx, list.ID, itemId, &client.ID)
+	if err != nil {
+		_ = tx.Rollback()
+		return err
+	}
+	err = tx.Commit()
+	return err
+}
+
+func (s *service) UntakeItem(ctx context.Context, list *models.List, itemId int64, client *models.User, token *string) error {
+	tx, err := s.r.Begin()
+	if err != nil {
+		return err
+	}
+	l, err := tx.GetList(ctx, list.ID)
+	if err != nil {
+		_ = tx.Rollback()
+		return err
+	}
+	err = s.checkReadAccess(l, client, token)
+	if err != nil {
+		_ = tx.Rollback()
+		return err
+	}
+	if s.checkWriteAccess(l, client) == nil {
+		_ = tx.Rollback()
+		return ErrAccessDenied
+	}
+	if list.RevisionID < l.RevisionID {
+		_ = tx.Rollback()
+		return ErrOutdated
+	}
+	taken, err := tx.GetItemTaken(ctx, list.ID, itemId)
+	if err != nil {
+		_ = tx.Rollback()
+		return err
+	}
+	if taken == nil || *taken != client.ID {
+		_ = tx.Rollback()
+		return ErrConflict
+	}
+	err = tx.SetItemTaken(ctx, list.ID, itemId, nil)
+	if err != nil {
+		_ = tx.Rollback()
+		return err
+	}
+	err = tx.Commit()
+	return err
 }
 
 func (s *service) checkWriteAccess(list *models.List, client *models.User) error {

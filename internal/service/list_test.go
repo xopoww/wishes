@@ -183,16 +183,22 @@ func TestGetList(t *testing.T) {
 					}
 
 					if wantErr == nil {
-						tx.EXPECT().GetListItems(gomock.Any(), gomock.Eq(&list)).Return(list.Items, nil)
+						items := fixtures.Items(1)
+						taken := int64(42)
+						items[0].TakenBy = &taken
+						tx.EXPECT().GetListItems(gomock.Any(), gomock.Eq(&list)).Return(items, nil)
 						tx.EXPECT().Commit().Return(nil)
 					} else {
 						tx.EXPECT().Rollback().Return(nil)
 					}
 
 					s := service.NewService(r, ltp)
-					_, err := s.GetListItems(ctx, &models.List{ID: list.ID}, client, token)
+					l, err := s.GetListItems(ctx, &models.List{ID: list.ID}, client, token)
 					if !errors.Is(err, wantErr) {
 						t.Fatalf("want %+v, got %+v", wantErr, err)
+					}
+					if err == nil && client.ID == a.ID && l.Items[0].TakenBy != nil {
+						t.Fatalf("taken_by not obscured")
 					}
 				})
 			}
@@ -335,7 +341,7 @@ func TestAddListItems(t *testing.T) {
 
 			_, err = s.AddListItems(ctx, &models.List{ID: old.ID, RevisionID: old.RevisionID - 1}, items, client)
 			if wantErr == nil {
-				wantErr = service.ErrConflict
+				wantErr = service.ErrOutdated
 			}
 			if !errors.Is(err, wantErr) {
 				t.Fatalf("err: want %+v, got %+v", wantErr, err)
@@ -395,7 +401,7 @@ func TestDeleteListItems(t *testing.T) {
 
 			_, err = s.DeleteListItems(ctx, &models.List{ID: old.ID, RevisionID: old.RevisionID - 1}, ids, client)
 			if wantErr == nil {
-				wantErr = service.ErrConflict
+				wantErr = service.ErrOutdated
 			}
 			if !errors.Is(err, wantErr) {
 				t.Fatalf("err: want %+v, got %+v", wantErr, err)
@@ -477,5 +483,167 @@ func TestDeleteList(t *testing.T) {
 				t.Fatalf("err: want %+v, got %+v", tc.wantErr, err)
 			}
 		})
+	}
+}
+
+func TestTakeItem(t *testing.T) {
+	a, b := fixtures.TwoUsers()
+	list := &models.List{
+		ID:         1,
+		RevisionID: 1,
+	}
+	iid := int64(2)
+	taken := b.ID + 1
+
+	ctrl, ctx := gomock.WithContext(context.Background(), t)
+	r := NewMockRepository(ctrl)
+	tx := NewMockTransaction(ctrl)
+
+	tx.EXPECT().
+		GetList(gomock.Any(), gomock.Eq(list.ID)).
+		Return(&models.List{
+			ID:         list.ID,
+			RevisionID: list.RevisionID,
+			OwnerID:    a.ID,
+			Access:     models.PublicAccess,
+		}, nil).AnyTimes()
+
+	s := service.NewService(r, NewMockListTokenProvider(ctrl))
+
+	// happy
+	r.EXPECT().Begin().Return(tx, nil)
+	tx.EXPECT().
+		GetItemTaken(gomock.Any(), gomock.Any(), gomock.Eq(iid)).
+		Return(nil, nil)
+	tx.EXPECT().
+		SetItemTaken(gomock.Any(), gomock.Eq(list.ID), gomock.Eq(iid), testutil.MatcherFunc(func(x interface{}) error {
+			p, ok := x.(*int64)
+			if !ok {
+				return fmt.Errorf("type: want %T", p)
+			}
+			if p == nil || *p != b.ID {
+				return fmt.Errorf("want &(%d)", b.ID)
+			}
+			return nil
+		})).
+		Return(nil)
+	tx.EXPECT().Commit().Return(nil)
+
+	err := s.TakeItem(ctx, list, iid, b, nil)
+	if !errors.Is(err, nil) {
+		t.Errorf("happy: want %+v, got %+v", nil, err)
+	}
+
+	// already taken
+	r.EXPECT().Begin().Return(tx, nil)
+	tx.EXPECT().
+		GetItemTaken(gomock.Any(), gomock.Any(), gomock.Eq(iid)).
+		Return(&taken, nil)
+	tx.EXPECT().Rollback().Return(nil)
+
+	err = s.TakeItem(ctx, list, iid, b, nil)
+	if !errors.Is(err, service.ErrConflict) {
+		t.Errorf("already taken: want %+v, got %+v", service.ErrConflict, err)
+	}
+
+	// bad revision
+	r.EXPECT().Begin().Return(tx, nil)
+	tx.EXPECT().Rollback().Return(nil)
+
+	err = s.TakeItem(ctx, &models.List{ID: list.ID, RevisionID: list.RevisionID - 1}, iid, b, nil)
+	if !errors.Is(err, service.ErrOutdated) {
+		t.Errorf("bad revision: want %+v, got %+v", service.ErrOutdated, err)
+	}
+
+	// take by owner
+	r.EXPECT().Begin().Return(tx, nil)
+	tx.EXPECT().Rollback().Return(nil)
+
+	err = s.TakeItem(ctx, list, iid, a, nil)
+	if !errors.Is(err, service.ErrAccessDenied) {
+		t.Errorf("take by owner: want %+v, got %+v", service.ErrAccessDenied, err)
+	}
+}
+
+func TestUntakeItem(t *testing.T) {
+	a, b := fixtures.TwoUsers()
+	c := fixtures.User()
+	c.ID = b.ID + 1
+	list := &models.List{
+		ID:         1,
+		RevisionID: 1,
+	}
+	iid := int64(2)
+
+	ctrl, ctx := gomock.WithContext(context.Background(), t)
+	r := NewMockRepository(ctrl)
+	tx := NewMockTransaction(ctrl)
+
+	tx.EXPECT().
+		GetList(gomock.Any(), gomock.Eq(list.ID)).
+		Return(&models.List{
+			ID:         list.ID,
+			RevisionID: list.RevisionID,
+			OwnerID:    a.ID,
+			Access:     models.PublicAccess,
+		}, nil).AnyTimes()
+
+	s := service.NewService(r, NewMockListTokenProvider(ctrl))
+
+	// happy
+	r.EXPECT().Begin().Return(tx, nil)
+	tx.EXPECT().
+		GetItemTaken(gomock.Any(), gomock.Any(), gomock.Eq(iid)).
+		Return(&b.ID, nil)
+	tx.EXPECT().
+		SetItemTaken(gomock.Any(), gomock.Eq(list.ID), gomock.Eq(iid), gomock.Eq((*int64)(nil))).
+		Return(nil)
+	tx.EXPECT().Commit().Return(nil)
+
+	err := s.UntakeItem(ctx, list, iid, b, nil)
+	if !errors.Is(err, nil) {
+		t.Errorf("happy: want %+v, got %+v", nil, err)
+	}
+
+	// not taken by anyone
+	r.EXPECT().Begin().Return(tx, nil)
+	tx.EXPECT().
+		GetItemTaken(gomock.Any(), gomock.Any(), gomock.Eq(iid)).
+		Return(nil, nil)
+	tx.EXPECT().Rollback().Return(nil)
+
+	err = s.UntakeItem(ctx, list, iid, b, nil)
+	if !errors.Is(err, service.ErrConflict) {
+		t.Errorf("not taken by anyone: want %+v, got %+v", nil, err)
+	}
+
+	// taken by another
+	r.EXPECT().Begin().Return(tx, nil)
+	tx.EXPECT().
+		GetItemTaken(gomock.Any(), gomock.Any(), gomock.Eq(iid)).
+		Return(&c.ID, nil)
+	tx.EXPECT().Rollback().Return(nil)
+
+	err = s.UntakeItem(ctx, list, iid, b, nil)
+	if !errors.Is(err, service.ErrConflict) {
+		t.Errorf("taken by another: want %+v, got %+v", nil, err)
+	}
+
+	// bad revision
+	r.EXPECT().Begin().Return(tx, nil)
+	tx.EXPECT().Rollback().Return(nil)
+
+	err = s.UntakeItem(ctx, &models.List{ID: list.ID, RevisionID: list.RevisionID - 1}, iid, b, nil)
+	if !errors.Is(err, service.ErrOutdated) {
+		t.Errorf("bad revision: want %+v, got %+v", service.ErrOutdated, err)
+	}
+
+	// untake by owner
+	r.EXPECT().Begin().Return(tx, nil)
+	tx.EXPECT().Rollback().Return(nil)
+
+	err = s.UntakeItem(ctx, list, iid, a, nil)
+	if !errors.Is(err, service.ErrAccessDenied) {
+		t.Errorf("untake by owner: want %+v, got %+v", service.ErrAccessDenied, err)
 	}
 }
