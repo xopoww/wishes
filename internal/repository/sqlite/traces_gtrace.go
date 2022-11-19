@@ -81,6 +81,54 @@ func (t Trace) Compose(x Trace) (ret Trace) {
 			}
 		}
 	}
+	switch {
+	case t.OnTxBegin == nil:
+		ret.OnTxBegin = x.OnTxBegin
+	case x.OnTxBegin == nil:
+		ret.OnTxBegin = t.OnTxBegin
+	default:
+		h1 := t.OnTxBegin
+		h2 := x.OnTxBegin
+		ret.OnTxBegin = func(o OnTxBeginStartInfo) func(OnTxBeginDoneInfo) {
+			r1 := h1(o)
+			r2 := h2(o)
+			switch {
+			case r1 == nil:
+				return r2
+			case r2 == nil:
+				return r1
+			default:
+				return func(o OnTxBeginDoneInfo) {
+					r1(o)
+					r2(o)
+				}
+			}
+		}
+	}
+	switch {
+	case t.OnTxEnd == nil:
+		ret.OnTxEnd = x.OnTxEnd
+	case x.OnTxEnd == nil:
+		ret.OnTxEnd = t.OnTxEnd
+	default:
+		h1 := t.OnTxEnd
+		h2 := x.OnTxEnd
+		ret.OnTxEnd = func(o OnTxEndStartInfo) func(OnTxEndDoneInfo) {
+			r1 := h1(o)
+			r2 := h2(o)
+			switch {
+			case r1 == nil:
+				return r2
+			case r2 == nil:
+				return r1
+			default:
+				return func(o OnTxEndDoneInfo) {
+					r1(o)
+					r2(o)
+				}
+			}
+		}
+	}
 	return ret
 }
 func (t Trace) onQuery(o OnQueryStartInfo) func(OnQueryDoneInfo) {
@@ -128,6 +176,36 @@ func (t Trace) onConnect(o OnConnectStartInfo) func(OnConnectDoneInfo) {
 	}
 	return res
 }
+func (t Trace) onTxBegin(o OnTxBeginStartInfo) func(OnTxBeginDoneInfo) {
+	fn := t.OnTxBegin
+	if fn == nil {
+		return func(OnTxBeginDoneInfo) {
+			return
+		}
+	}
+	res := fn(o)
+	if res == nil {
+		return func(OnTxBeginDoneInfo) {
+			return
+		}
+	}
+	return res
+}
+func (t Trace) onTxEnd(o OnTxEndStartInfo) func(OnTxEndDoneInfo) {
+	fn := t.OnTxEnd
+	if fn == nil {
+		return func(OnTxEndDoneInfo) {
+			return
+		}
+	}
+	res := fn(o)
+	if res == nil {
+		return func(OnTxEndDoneInfo) {
+			return
+		}
+	}
+	return res
+}
 func traceOnQuery(t Trace, method string, query string, args []interface{}) func(error) {
 	var p OnQueryStartInfo
 	p.Method = method
@@ -158,6 +236,25 @@ func traceOnConnect(t Trace, dBS string) func() {
 	res := t.onConnect(p)
 	return func() {
 		var p OnConnectDoneInfo
+		res(p)
+	}
+}
+func traceOnTxBegin(t Trace) func(error) {
+	var p OnTxBeginStartInfo
+	res := t.onTxBegin(p)
+	return func(e error) {
+		var p OnTxBeginDoneInfo
+		p.Error = e
+		res(p)
+	}
+}
+func traceOnTxEnd(t Trace, commit bool) func(error) {
+	var p OnTxEndStartInfo
+	p.Commit = commit
+	res := t.onTxEnd(p)
+	return func(e error) {
+		var p OnTxEndDoneInfo
+		p.Error = e
 		res(p)
 	}
 }

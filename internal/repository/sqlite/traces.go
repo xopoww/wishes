@@ -12,6 +12,9 @@ type (
 		OnExec  func(OnExecStartInfo) func(OnExecDoneInfo)
 
 		OnConnect func(OnConnectStartInfo) func(OnConnectDoneInfo)
+
+		OnTxBegin func(OnTxBeginStartInfo) func(OnTxBeginDoneInfo)
+		OnTxEnd   func(OnTxEndStartInfo) func(OnTxEndDoneInfo)
 	}
 	OnQueryStartInfo struct {
 		Method string
@@ -35,4 +38,16 @@ type (
 		DBS string
 	}
 	OnConnectDoneInfo struct{}
+
+	OnTxBeginStartInfo struct{}
+	OnTxBeginDoneInfo  struct {
+		Error error
+	}
+
+	OnTxEndStartInfo struct {
+		Commit bool
+	}
+	OnTxEndDoneInfo struct {
+		Error error
+	}
 )

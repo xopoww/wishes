@@ -32,12 +32,18 @@ type transaction struct {
 	handle
 }
 
-func (t *transaction) Commit() error {
-	return t.handle.tx().Commit()
+func (t *transaction) Commit() (err error) {
+	onDone := traceOnTxEnd(t.t, true)
+	defer func() { onDone(err) }()
+	err = t.handle.tx().Commit()
+	return err
 }
 
-func (t *transaction) Rollback() error {
-	return t.handle.tx().Rollback()
+func (t *transaction) Rollback() (err error) {
+	onDone := traceOnTxEnd(t.t, false)
+	defer func() { onDone(err) }()
+	err = t.handle.tx().Rollback()
+	return err
 }
 
 type repository struct {
@@ -58,7 +64,13 @@ func NewRepository(dbs string, t Trace) (repo.Repository, error) {
 }
 
 func (r *repository) Begin() (repo.Transaction, error) {
-	tx, err := r.handle.db().Beginx()
+	onDone := traceOnTxBegin(r.t)
+	var (
+		tx  *sqlx.Tx
+		err error
+	)
+	defer func() { onDone(err) }()
+	tx, err = r.handle.db().Beginx()
 	if err != nil {
 		return nil, err
 	}

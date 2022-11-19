@@ -76,5 +76,31 @@ func Sqlite(l zerolog.Logger) (t sqlite.Trace) {
 		}
 	}
 
+	t.OnTxBegin = func(si sqlite.OnTxBeginStartInfo) func(sqlite.OnTxBeginDoneInfo) {
+		return func(di sqlite.OnTxBeginDoneInfo) {
+			if di.Error != nil {
+				l.Error().Err(di.Error).Msg("tx begin error")
+			} else {
+				l.Debug().Msg("tx begin done")
+			}
+		}
+	}
+
+	t.OnTxEnd = func(si sqlite.OnTxEndStartInfo) func(sqlite.OnTxEndDoneInfo) {
+		return func(di sqlite.OnTxEndDoneInfo) {
+			var result string
+			if si.Commit {
+				result = "commit"
+			} else {
+				result = "rollback"
+			}
+			if di.Error != nil {
+				l.Error().Err(di.Error).Str("result", result).Msg("tx end error")
+			} else {
+				l.Debug().Str("result", result).Msg("tx end done")
+			}
+		}
+	}
+
 	return t
 }
