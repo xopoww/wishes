@@ -39,9 +39,13 @@ type Service interface {
 
 	AddList(ctx context.Context, list *models.List, client *models.User) (*models.List, error)
 
+	AddListItems(ctx context.Context, list *models.List, items []models.ListItem, client *models.User) (*models.List, error)
+
 	GetListToken(ctx context.Context, id int64, client *models.User) (string, error)
 
 	DeleteList(ctx context.Context, list *models.List, client *models.User) error
+
+	DeleteListItems(ctx context.Context, list *models.List, ids []int64, client *models.User) (*models.List, error)
 }
 
 type service struct {

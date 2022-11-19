@@ -86,7 +86,7 @@ func (ac *ApiController) GetListItems() operations.GetListItemsHandler {
 		}
 		payload = list.Items
 		return operations.NewGetListItemsOK().WithPayload(&operations.GetListItemsOKBody{
-			ListItems: apimodels.ListItems{Items: conv.SwagItems(payload)},
+			// ListItems: apimodels.ListItems{Items: conv.SwagItems(payload)},
 			Revision:  conv.SwagRevision(list.RevisionID),
 		})
 	})
@@ -136,7 +136,7 @@ func (ac *ApiController) PatchList() operations.PatchListHandler {
 	return operations.PatchListHandlerFunc(func(plp operations.PatchListParams, p *apimodels.Principal) middleware.Responder {
 		client := conv.Client(p)
 		list := conv.List(&plp.List.List)
-		list.Items = conv.Items(plp.List.Items)
+		// list.Items = conv.Items(plp.List.Items)
 		list.ID = plp.ID
 
 		onDone := traceOnPatchList(ac.t, list, client)

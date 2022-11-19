@@ -28,13 +28,17 @@ type Handle interface {
 	// GetList gets only List header (i.e. it does not get ListItems)
 	GetList(ctx context.Context, id int64) (*models.List, error)
 
-	GetListItems(ctx context.Context, list *models.List) (*models.List, error)
+	GetListItems(ctx context.Context, list *models.List) ([]models.ListItem, error)
 
 	AddList(ctx context.Context, list *models.List) (*models.List, error)
+
+	AddListItems(ctx context.Context, list *models.List, items []models.ListItem) ([]models.ListItem, error)
 
 	EditList(ctx context.Context, list *models.List) (*models.List, error)
 
 	DeleteList(ctx context.Context, list *models.List) error
+
+	DeleteListItems(ctx context.Context, list *models.List, ids []int64) error
 }
 
 type Transaction interface {

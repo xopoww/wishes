@@ -47,6 +47,9 @@ func NewWishesAPI(spec *loads.Document) *WishesAPI {
 		DeleteListHandler: DeleteListHandlerFunc(func(params DeleteListParams, principal *apimodels.Principal) middleware.Responder {
 			return middleware.NotImplemented("operation DeleteList has not yet been implemented")
 		}),
+		DeleteListItemsHandler: DeleteListItemsHandlerFunc(func(params DeleteListItemsParams, principal *apimodels.Principal) middleware.Responder {
+			return middleware.NotImplemented("operation DeleteListItems has not yet been implemented")
+		}),
 		GetListHandler: GetListHandlerFunc(func(params GetListParams, principal *apimodels.Principal) middleware.Responder {
 			return middleware.NotImplemented("operation GetList has not yet been implemented")
 		}),
@@ -73,6 +76,9 @@ func NewWishesAPI(spec *loads.Document) *WishesAPI {
 		}),
 		PostListHandler: PostListHandlerFunc(func(params PostListParams, principal *apimodels.Principal) middleware.Responder {
 			return middleware.NotImplemented("operation PostList has not yet been implemented")
+		}),
+		PostListItemsHandler: PostListItemsHandlerFunc(func(params PostListItemsParams, principal *apimodels.Principal) middleware.Responder {
+			return middleware.NotImplemented("operation PostListItems has not yet been implemented")
 		}),
 		RegisterHandler: RegisterHandlerFunc(func(params RegisterParams) middleware.Responder {
 			return middleware.NotImplemented("operation Register has not yet been implemented")
@@ -129,6 +135,8 @@ type WishesAPI struct {
 
 	// DeleteListHandler sets the operation handler for the delete list operation
 	DeleteListHandler DeleteListHandler
+	// DeleteListItemsHandler sets the operation handler for the delete list items operation
+	DeleteListItemsHandler DeleteListItemsHandler
 	// GetListHandler sets the operation handler for the get list operation
 	GetListHandler GetListHandler
 	// GetListItemsHandler sets the operation handler for the get list items operation
@@ -147,6 +155,8 @@ type WishesAPI struct {
 	PatchUserHandler PatchUserHandler
 	// PostListHandler sets the operation handler for the post list operation
 	PostListHandler PostListHandler
+	// PostListItemsHandler sets the operation handler for the post list items operation
+	PostListItemsHandler PostListItemsHandler
 	// RegisterHandler sets the operation handler for the register operation
 	RegisterHandler RegisterHandler
 
@@ -233,6 +243,9 @@ func (o *WishesAPI) Validate() error {
 	if o.DeleteListHandler == nil {
 		unregistered = append(unregistered, "DeleteListHandler")
 	}
+	if o.DeleteListItemsHandler == nil {
+		unregistered = append(unregistered, "DeleteListItemsHandler")
+	}
 	if o.GetListHandler == nil {
 		unregistered = append(unregistered, "GetListHandler")
 	}
@@ -259,6 +272,9 @@ func (o *WishesAPI) Validate() error {
 	}
 	if o.PostListHandler == nil {
 		unregistered = append(unregistered, "PostListHandler")
+	}
+	if o.PostListItemsHandler == nil {
+		unregistered = append(unregistered, "PostListItemsHandler")
 	}
 	if o.RegisterHandler == nil {
 		unregistered = append(unregistered, "RegisterHandler")
@@ -366,6 +382,10 @@ func (o *WishesAPI) initHandlerCache() {
 		o.handlers["DELETE"] = make(map[string]http.Handler)
 	}
 	o.handlers["DELETE"]["/lists/{id}"] = NewDeleteList(o.context, o.DeleteListHandler)
+	if o.handlers["DELETE"] == nil {
+		o.handlers["DELETE"] = make(map[string]http.Handler)
+	}
+	o.handlers["DELETE"]["/lists/{id}/items"] = NewDeleteListItems(o.context, o.DeleteListItemsHandler)
 	if o.handlers["GET"] == nil {
 		o.handlers["GET"] = make(map[string]http.Handler)
 	}
@@ -402,6 +422,10 @@ func (o *WishesAPI) initHandlerCache() {
 		o.handlers["POST"] = make(map[string]http.Handler)
 	}
 	o.handlers["POST"]["/lists"] = NewPostList(o.context, o.PostListHandler)
+	if o.handlers["POST"] == nil {
+		o.handlers["POST"] = make(map[string]http.Handler)
+	}
+	o.handlers["POST"]["/lists/{id}/items"] = NewPostListItems(o.context, o.PostListItemsHandler)
 	if o.handlers["POST"] == nil {
 		o.handlers["POST"] = make(map[string]http.Handler)
 	}

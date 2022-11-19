@@ -3,6 +3,7 @@ package models
 import "fmt"
 
 type ListItem struct {
+	ID 	  int64
 	Title string
 	Desc  string
 }

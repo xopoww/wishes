@@ -2,7 +2,7 @@ swagger: '2.0'
 
 info:
   title: Wishes API
-  version: 0.0.6
+  version: 0.0.7
 
 basePath: /api
 
@@ -13,12 +13,12 @@ securityDefinitions:
     name: x-token
 
 consumes:
-  - "application/json"
+- "application/json"
 produces:
-  - "application/json"
+- "application/json"
 
 security:
-  - KeySecurity: []
+- KeySecurity: []
 
 paths:
   /login:
@@ -27,11 +27,11 @@ paths:
       operationId: Login
       security: []
       parameters:
-        - name: credentials
-          in: body
-          required: true
-          schema:
-            $ref: '#/definitions/UserCredentials'
+      - name: credentials
+        in: body
+        required: true
+        schema:
+          $ref: '#/definitions/UserCredentials'
       responses:
         200:
           description: Login result
@@ -52,11 +52,11 @@ paths:
       operationId: Register
       security: []
       parameters:
-        - name: credentials
-          in: body
-          required: true
-          schema:
-            $ref: "#/definitions/UserCredentials"
+      - name: credentials
+        in: body
+        required: true
+        schema:
+          $ref: "#/definitions/UserCredentials"
       responses:
         200:
           description: Registration result
@@ -75,7 +75,7 @@ paths:
 
   /users/{id}:
     parameters:
-      - $ref: "#/parameters/PathId"
+    - $ref: "#/parameters/PathId"
     get:
       summary: Get user info
       operationId: GetUser
@@ -92,11 +92,11 @@ paths:
       summary: Edit user info
       operationId: PatchUser
       parameters:
-        - name: user
-          in: body
-          required: true
-          schema:
-            $ref: "#/definitions/User"
+      - name: user
+        in: body
+        required: true
+        schema:
+          $ref: "#/definitions/User"
       responses:
         204:
           description: Success
@@ -110,11 +110,11 @@ paths:
       operationId: GetUserLists
       summary: Get user list IDs (visible by client)
       parameters:
-       - name: UserID
-         in: query
-         type: integer
-         required: false
-         description: ID of user in question. If empty, client ID is used.
+      - name: UserID
+        in: query
+        type: integer
+        required: false
+        description: ID of user in question. If empty, client ID is used.
       responses:
         200:
           description: Success
@@ -131,13 +131,18 @@ paths:
         summary: Create new list
         operationId: PostList
         parameters:
-          - name: list
-            in: body
-            schema:
-              allOf:
-               - $ref: "#/definitions/List"
-               - $ref: "#/definitions/ListItems"
-            required: true
+        - name: list
+          in: body
+          required: true
+          schema:
+            allOf:
+            - $ref: "#/definitions/List"
+            - type: object
+              properties:
+                items:
+                  type: array
+                  items:
+                    $ref: "#/definitions/ListItem"
         responses:
           201:
             description: Success
@@ -148,7 +153,7 @@ paths:
 
   /lists/{id}:
     parameters:
-      - $ref: "#/parameters/PathId"
+    - $ref: "#/parameters/PathId"
     get:
       parameters:
       - $ref: "#/parameters/AccessToken"
@@ -166,16 +171,15 @@ paths:
         500:
           $ref: "#/responses/ServerError"
     patch:
-      summary: Edit existing list
+      summary: Edit existing list (not list items)
       operationId: PatchList
       parameters:
-        - name: list
-          in: body
-          schema:
-            allOf:
-             - $ref: "#/definitions/List"
-             - $ref: "#/definitions/ListItems"
-          required: true
+      - name: list
+        in: body
+        schema:
+          allOf:
+           - $ref: "#/definitions/List"
+        required: true
       responses:
         204:
           description: Success
@@ -200,7 +204,7 @@ paths:
 
   /lists/{id}/items:
     parameters:
-      - $ref: "#/parameters/PathId"
+    - $ref: "#/parameters/PathId"
     get:
       parameters:
       - $ref: "#/parameters/AccessToken"
@@ -211,8 +215,72 @@ paths:
           description: Success
           schema:
             allOf:
-             - $ref: "#/definitions/ListItems"
-             - $ref: "#/definitions/Revision"
+            - $ref: "#/definitions/Revision"
+            - type: object
+              properties:
+                items:
+                  type: array
+                  items:
+                    allOf:
+                    - $ref: "#/definitions/ID"
+                    - $ref: "#/definitions/ListItem"
+        403:
+          description: Access denied
+        404:
+          description: List not found
+        500:
+          $ref: "#/responses/ServerError"
+    post:
+      summary: Add items to existing list
+      operationId: PostListItems
+      parameters:
+      - name: items
+        in: body
+        schema:
+          allOf:
+          - $ref: "#/definitions/Revision"
+          - type: object
+            properties:
+              items:
+                type: array
+                items:
+                  $ref: "#/definitions/ListItem"
+            required: [items]
+      responses:
+        201:
+          description: Success
+          schema:
+            $ref: "#/definitions/Revision"
+        409:
+          description: Outdated revision
+        403:
+          description: Access denied
+        404:
+          description: List not found
+        500:
+          $ref: "#/responses/ServerError"
+    delete:
+      summary: Delete items from existing list
+      operationId: DeleteListItems
+      parameters:
+      - name: rev
+        in: query
+        type: integer
+        required: true
+      - name: ids
+        in: query
+        type: array
+        items:
+          type: integer
+        collectionFormat: csv
+        required: true
+      responses:
+        200:
+          description: Success
+          schema:
+            $ref: "#/definitions/Revision"
+        409:
+          description: Outdated revision
         403:
           description: Access denied
         404:
@@ -338,14 +406,6 @@ definitions:
         type: string
         enum: [private, link, public]
     required: [title, access]
-  
-  ListItems:
-    type: object
-    properties:
-      items:
-        type: array
-        items:
-          $ref: "#/definitions/ListItem"
   
   ListItem:
     type: object

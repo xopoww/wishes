@@ -39,7 +39,7 @@ func NewPatchList(ctx *middleware.Context, handler PatchListHandler) *PatchList 
 /*
 	PatchList swagger:route PATCH /lists/{id} patchList
 
-Edit existing list
+Edit existing list (not list items)
 */
 type PatchList struct {
 	Context *middleware.Context
@@ -80,8 +80,6 @@ func (o *PatchList) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 // swagger:model PatchListBody
 type PatchListBody struct {
 	apimodels.List
-
-	apimodels.ListItems
 }
 
 // UnmarshalJSON unmarshals this object from a JSON structure
@@ -93,31 +91,18 @@ func (o *PatchListBody) UnmarshalJSON(raw []byte) error {
 	}
 	o.List = patchListParamsBodyAO0
 
-	// PatchListParamsBodyAO1
-	var patchListParamsBodyAO1 apimodels.ListItems
-	if err := swag.ReadJSON(raw, &patchListParamsBodyAO1); err != nil {
-		return err
-	}
-	o.ListItems = patchListParamsBodyAO1
-
 	return nil
 }
 
 // MarshalJSON marshals this object to a JSON structure
 func (o PatchListBody) MarshalJSON() ([]byte, error) {
-	_parts := make([][]byte, 0, 2)
+	_parts := make([][]byte, 0, 1)
 
 	patchListParamsBodyAO0, err := swag.WriteJSON(o.List)
 	if err != nil {
 		return nil, err
 	}
 	_parts = append(_parts, patchListParamsBodyAO0)
-
-	patchListParamsBodyAO1, err := swag.WriteJSON(o.ListItems)
-	if err != nil {
-		return nil, err
-	}
-	_parts = append(_parts, patchListParamsBodyAO1)
 	return swag.ConcatJSON(_parts...), nil
 }
 
@@ -127,10 +112,6 @@ func (o *PatchListBody) Validate(formats strfmt.Registry) error {
 
 	// validation for a type composition with apimodels.List
 	if err := o.List.Validate(formats); err != nil {
-		res = append(res, err)
-	}
-	// validation for a type composition with apimodels.ListItems
-	if err := o.ListItems.Validate(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -146,10 +127,6 @@ func (o *PatchListBody) ContextValidate(ctx context.Context, formats strfmt.Regi
 
 	// validation for a type composition with apimodels.List
 	if err := o.List.ContextValidate(ctx, formats); err != nil {
-		res = append(res, err)
-	}
-	// validation for a type composition with apimodels.ListItems
-	if err := o.ListItems.ContextValidate(ctx, formats); err != nil {
 		res = append(res, err)
 	}
 

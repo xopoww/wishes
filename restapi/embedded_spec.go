@@ -27,7 +27,7 @@ func init() {
   "swagger": "2.0",
   "info": {
     "title": "Wishes API",
-    "version": "0.0.6"
+    "version": "0.0.7"
   },
   "basePath": "/api",
   "paths": {
@@ -76,7 +76,15 @@ func init() {
                   "$ref": "#/definitions/List"
                 },
                 {
-                  "$ref": "#/definitions/ListItems"
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/definitions/ListItem"
+                      }
+                    }
+                  }
                 }
               ]
             }
@@ -141,7 +149,7 @@ func init() {
         }
       },
       "patch": {
-        "summary": "Edit existing list",
+        "summary": "Edit existing list (not list items)",
         "operationId": "PatchList",
         "parameters": [
           {
@@ -152,9 +160,6 @@ func init() {
               "allOf": [
                 {
                   "$ref": "#/definitions/List"
-                },
-                {
-                  "$ref": "#/definitions/ListItems"
                 }
               ]
             }
@@ -196,10 +201,25 @@ func init() {
             "schema": {
               "allOf": [
                 {
-                  "$ref": "#/definitions/ListItems"
+                  "$ref": "#/definitions/Revision"
                 },
                 {
-                  "$ref": "#/definitions/Revision"
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "allOf": [
+                          {
+                            "$ref": "#/definitions/ID"
+                          },
+                          {
+                            "$ref": "#/definitions/ListItem"
+                          }
+                        ]
+                      }
+                    }
+                  }
                 }
               ]
             }
@@ -209,6 +229,99 @@ func init() {
           },
           "404": {
             "description": "List not found"
+          },
+          "500": {
+            "$ref": "#/responses/ServerError"
+          }
+        }
+      },
+      "post": {
+        "summary": "Add items to existing list",
+        "operationId": "PostListItems",
+        "parameters": [
+          {
+            "name": "items",
+            "in": "body",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/definitions/Revision"
+                },
+                {
+                  "type": "object",
+                  "required": [
+                    "items"
+                  ],
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/definitions/ListItem"
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Revision"
+            }
+          },
+          "403": {
+            "description": "Access denied"
+          },
+          "404": {
+            "description": "List not found"
+          },
+          "409": {
+            "description": "Outdated revision"
+          },
+          "500": {
+            "$ref": "#/responses/ServerError"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete items from existing list",
+        "operationId": "DeleteListItems",
+        "parameters": [
+          {
+            "type": "integer",
+            "name": "rev",
+            "in": "query",
+            "required": true
+          },
+          {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            },
+            "collectionFormat": "csv",
+            "name": "ids",
+            "in": "query",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Revision"
+            }
+          },
+          "403": {
+            "description": "Access denied"
+          },
+          "404": {
+            "description": "List not found"
+          },
+          "409": {
+            "description": "Outdated revision"
           },
           "500": {
             "$ref": "#/responses/ServerError"
@@ -437,17 +550,6 @@ func init() {
         "title": {
           "type": "string",
           "minLength": 1
-        }
-      }
-    },
-    "ListItems": {
-      "type": "object",
-      "properties": {
-        "items": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/ListItem"
-          }
         }
       }
     },
@@ -580,7 +682,7 @@ func init() {
   "swagger": "2.0",
   "info": {
     "title": "Wishes API",
-    "version": "0.0.6"
+    "version": "0.0.7"
   },
   "basePath": "/api",
   "paths": {
@@ -640,7 +742,15 @@ func init() {
                   "$ref": "#/definitions/List"
                 },
                 {
-                  "$ref": "#/definitions/ListItems"
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/definitions/ListItem"
+                      }
+                    }
+                  }
                 }
               ]
             }
@@ -741,7 +851,7 @@ func init() {
         }
       },
       "patch": {
-        "summary": "Edit existing list",
+        "summary": "Edit existing list (not list items)",
         "operationId": "PatchList",
         "parameters": [
           {
@@ -752,9 +862,6 @@ func init() {
               "allOf": [
                 {
                   "$ref": "#/definitions/List"
-                },
-                {
-                  "$ref": "#/definitions/ListItems"
                 }
               ]
             }
@@ -813,10 +920,18 @@ func init() {
             "schema": {
               "allOf": [
                 {
-                  "$ref": "#/definitions/ListItems"
+                  "$ref": "#/definitions/Revision"
                 },
                 {
-                  "$ref": "#/definitions/Revision"
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/definitions/ItemsItems0"
+                      }
+                    }
+                  }
                 }
               ]
             }
@@ -826,6 +941,121 @@ func init() {
           },
           "404": {
             "description": "List not found"
+          },
+          "500": {
+            "description": "Server error",
+            "schema": {
+              "type": "object",
+              "required": [
+                "error"
+              ],
+              "properties": {
+                "error": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Add items to existing list",
+        "operationId": "PostListItems",
+        "parameters": [
+          {
+            "name": "items",
+            "in": "body",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/definitions/Revision"
+                },
+                {
+                  "type": "object",
+                  "required": [
+                    "items"
+                  ],
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/definitions/ListItem"
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Revision"
+            }
+          },
+          "403": {
+            "description": "Access denied"
+          },
+          "404": {
+            "description": "List not found"
+          },
+          "409": {
+            "description": "Outdated revision"
+          },
+          "500": {
+            "description": "Server error",
+            "schema": {
+              "type": "object",
+              "required": [
+                "error"
+              ],
+              "properties": {
+                "error": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete items from existing list",
+        "operationId": "DeleteListItems",
+        "parameters": [
+          {
+            "type": "integer",
+            "name": "rev",
+            "in": "query",
+            "required": true
+          },
+          {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            },
+            "collectionFormat": "csv",
+            "name": "ids",
+            "in": "query",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Revision"
+            }
+          },
+          "403": {
+            "description": "Access denied"
+          },
+          "404": {
+            "description": "List not found"
+          },
+          "409": {
+            "description": "Outdated revision"
           },
           "500": {
             "description": "Server error",
@@ -1090,6 +1320,16 @@ func init() {
         }
       }
     },
+    "ItemsItems0": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/ID"
+        },
+        {
+          "$ref": "#/definitions/ListItem"
+        }
+      ]
+    },
     "List": {
       "type": "object",
       "required": [
@@ -1129,17 +1369,6 @@ func init() {
         "title": {
           "type": "string",
           "minLength": 1
-        }
-      }
-    },
-    "ListItems": {
-      "type": "object",
-      "properties": {
-        "items": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/ListItem"
-          }
         }
       }
     },

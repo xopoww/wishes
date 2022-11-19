@@ -8,6 +8,7 @@ package operations
 import (
 	"context"
 	"net/http"
+	"strconv"
 
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime/middleware"
@@ -135,26 +136,30 @@ func (o *GetListItemsInternalServerErrorBody) UnmarshalBinary(b []byte) error {
 //
 // swagger:model GetListItemsOKBody
 type GetListItemsOKBody struct {
-	apimodels.ListItems
-
 	apimodels.Revision
+
+	// items
+	Items []*GetListItemsOKBodyItemsItems0 `json:"items"`
 }
 
 // UnmarshalJSON unmarshals this object from a JSON structure
 func (o *GetListItemsOKBody) UnmarshalJSON(raw []byte) error {
 	// GetListItemsOKBodyAO0
-	var getListItemsOKBodyAO0 apimodels.ListItems
+	var getListItemsOKBodyAO0 apimodels.Revision
 	if err := swag.ReadJSON(raw, &getListItemsOKBodyAO0); err != nil {
 		return err
 	}
-	o.ListItems = getListItemsOKBodyAO0
+	o.Revision = getListItemsOKBodyAO0
 
 	// GetListItemsOKBodyAO1
-	var getListItemsOKBodyAO1 apimodels.Revision
-	if err := swag.ReadJSON(raw, &getListItemsOKBodyAO1); err != nil {
+	var dataGetListItemsOKBodyAO1 struct {
+		Items []*GetListItemsOKBodyItemsItems0 `json:"items"`
+	}
+	if err := swag.ReadJSON(raw, &dataGetListItemsOKBodyAO1); err != nil {
 		return err
 	}
-	o.Revision = getListItemsOKBodyAO1
+
+	o.Items = dataGetListItemsOKBodyAO1.Items
 
 	return nil
 }
@@ -163,17 +168,22 @@ func (o *GetListItemsOKBody) UnmarshalJSON(raw []byte) error {
 func (o GetListItemsOKBody) MarshalJSON() ([]byte, error) {
 	_parts := make([][]byte, 0, 2)
 
-	getListItemsOKBodyAO0, err := swag.WriteJSON(o.ListItems)
+	getListItemsOKBodyAO0, err := swag.WriteJSON(o.Revision)
 	if err != nil {
 		return nil, err
 	}
 	_parts = append(_parts, getListItemsOKBodyAO0)
-
-	getListItemsOKBodyAO1, err := swag.WriteJSON(o.Revision)
-	if err != nil {
-		return nil, err
+	var dataGetListItemsOKBodyAO1 struct {
+		Items []*GetListItemsOKBodyItemsItems0 `json:"items"`
 	}
-	_parts = append(_parts, getListItemsOKBodyAO1)
+
+	dataGetListItemsOKBodyAO1.Items = o.Items
+
+	jsonDataGetListItemsOKBodyAO1, errGetListItemsOKBodyAO1 := swag.WriteJSON(dataGetListItemsOKBodyAO1)
+	if errGetListItemsOKBodyAO1 != nil {
+		return nil, errGetListItemsOKBodyAO1
+	}
+	_parts = append(_parts, jsonDataGetListItemsOKBodyAO1)
 	return swag.ConcatJSON(_parts...), nil
 }
 
@@ -181,12 +191,12 @@ func (o GetListItemsOKBody) MarshalJSON() ([]byte, error) {
 func (o *GetListItemsOKBody) Validate(formats strfmt.Registry) error {
 	var res []error
 
-	// validation for a type composition with apimodels.ListItems
-	if err := o.ListItems.Validate(formats); err != nil {
-		res = append(res, err)
-	}
 	// validation for a type composition with apimodels.Revision
 	if err := o.Revision.Validate(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := o.validateItems(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -196,22 +206,69 @@ func (o *GetListItemsOKBody) Validate(formats strfmt.Registry) error {
 	return nil
 }
 
+func (o *GetListItemsOKBody) validateItems(formats strfmt.Registry) error {
+
+	if swag.IsZero(o.Items) { // not required
+		return nil
+	}
+
+	for i := 0; i < len(o.Items); i++ {
+		if swag.IsZero(o.Items[i]) { // not required
+			continue
+		}
+
+		if o.Items[i] != nil {
+			if err := o.Items[i].Validate(formats); err != nil {
+				if ve, ok := err.(*errors.Validation); ok {
+					return ve.ValidateName("getListItemsOK" + "." + "items" + "." + strconv.Itoa(i))
+				} else if ce, ok := err.(*errors.CompositeError); ok {
+					return ce.ValidateName("getListItemsOK" + "." + "items" + "." + strconv.Itoa(i))
+				}
+				return err
+			}
+		}
+
+	}
+
+	return nil
+}
+
 // ContextValidate validate this get list items o k body based on the context it is used
 func (o *GetListItemsOKBody) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	var res []error
 
-	// validation for a type composition with apimodels.ListItems
-	if err := o.ListItems.ContextValidate(ctx, formats); err != nil {
-		res = append(res, err)
-	}
 	// validation for a type composition with apimodels.Revision
 	if err := o.Revision.ContextValidate(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := o.contextValidateItems(ctx, formats); err != nil {
 		res = append(res, err)
 	}
 
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)
 	}
+	return nil
+}
+
+func (o *GetListItemsOKBody) contextValidateItems(ctx context.Context, formats strfmt.Registry) error {
+
+	for i := 0; i < len(o.Items); i++ {
+
+		if o.Items[i] != nil {
+			if err := o.Items[i].ContextValidate(ctx, formats); err != nil {
+				if ve, ok := err.(*errors.Validation); ok {
+					return ve.ValidateName("getListItemsOK" + "." + "items" + "." + strconv.Itoa(i))
+				} else if ce, ok := err.(*errors.CompositeError); ok {
+					return ce.ValidateName("getListItemsOK" + "." + "items" + "." + strconv.Itoa(i))
+				}
+				return err
+			}
+		}
+
+	}
+
 	return nil
 }
 
@@ -226,6 +283,108 @@ func (o *GetListItemsOKBody) MarshalBinary() ([]byte, error) {
 // UnmarshalBinary interface implementation
 func (o *GetListItemsOKBody) UnmarshalBinary(b []byte) error {
 	var res GetListItemsOKBody
+	if err := swag.ReadJSON(b, &res); err != nil {
+		return err
+	}
+	*o = res
+	return nil
+}
+
+// GetListItemsOKBodyItemsItems0 get list items o k body items items0
+//
+// swagger:model GetListItemsOKBodyItemsItems0
+type GetListItemsOKBodyItemsItems0 struct {
+	apimodels.ID
+
+	apimodels.ListItem
+}
+
+// UnmarshalJSON unmarshals this object from a JSON structure
+func (o *GetListItemsOKBodyItemsItems0) UnmarshalJSON(raw []byte) error {
+	// AO0
+	var aO0 apimodels.ID
+	if err := swag.ReadJSON(raw, &aO0); err != nil {
+		return err
+	}
+	o.ID = aO0
+
+	// AO1
+	var aO1 apimodels.ListItem
+	if err := swag.ReadJSON(raw, &aO1); err != nil {
+		return err
+	}
+	o.ListItem = aO1
+
+	return nil
+}
+
+// MarshalJSON marshals this object to a JSON structure
+func (o GetListItemsOKBodyItemsItems0) MarshalJSON() ([]byte, error) {
+	_parts := make([][]byte, 0, 2)
+
+	aO0, err := swag.WriteJSON(o.ID)
+	if err != nil {
+		return nil, err
+	}
+	_parts = append(_parts, aO0)
+
+	aO1, err := swag.WriteJSON(o.ListItem)
+	if err != nil {
+		return nil, err
+	}
+	_parts = append(_parts, aO1)
+	return swag.ConcatJSON(_parts...), nil
+}
+
+// Validate validates this get list items o k body items items0
+func (o *GetListItemsOKBodyItemsItems0) Validate(formats strfmt.Registry) error {
+	var res []error
+
+	// validation for a type composition with apimodels.ID
+	if err := o.ID.Validate(formats); err != nil {
+		res = append(res, err)
+	}
+	// validation for a type composition with apimodels.ListItem
+	if err := o.ListItem.Validate(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+// ContextValidate validate this get list items o k body items items0 based on the context it is used
+func (o *GetListItemsOKBodyItemsItems0) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	// validation for a type composition with apimodels.ID
+	if err := o.ID.ContextValidate(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+	// validation for a type composition with apimodels.ListItem
+	if err := o.ListItem.ContextValidate(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+// MarshalBinary interface implementation
+func (o *GetListItemsOKBodyItemsItems0) MarshalBinary() ([]byte, error) {
+	if o == nil {
+		return nil, nil
+	}
+	return swag.WriteJSON(o)
+}
+
+// UnmarshalBinary interface implementation
+func (o *GetListItemsOKBodyItemsItems0) UnmarshalBinary(b []byte) error {
+	var res GetListItemsOKBodyItemsItems0
 	if err := swag.ReadJSON(b, &res); err != nil {
 		return err
 	}

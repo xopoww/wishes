@@ -51,6 +51,21 @@ func (mr *MockRepositoryMockRecorder) AddList(arg0, arg1 interface{}) *gomock.Ca
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddList", reflect.TypeOf((*MockRepository)(nil).AddList), arg0, arg1)
 }
 
+// AddListItems mocks base method.
+func (m *MockRepository) AddListItems(arg0 context.Context, arg1 *models.List, arg2 []models.ListItem) ([]models.ListItem, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "AddListItems", arg0, arg1, arg2)
+	ret0, _ := ret[0].([]models.ListItem)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// AddListItems indicates an expected call of AddListItems.
+func (mr *MockRepositoryMockRecorder) AddListItems(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddListItems", reflect.TypeOf((*MockRepository)(nil).AddListItems), arg0, arg1, arg2)
+}
+
 // AddUser mocks base method.
 func (m *MockRepository) AddUser(arg0 context.Context, arg1 *models.User) (*models.User, error) {
 	m.ctrl.T.Helper()
@@ -124,6 +139,20 @@ func (mr *MockRepositoryMockRecorder) DeleteList(arg0, arg1 interface{}) *gomock
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteList", reflect.TypeOf((*MockRepository)(nil).DeleteList), arg0, arg1)
 }
 
+// DeleteListItems mocks base method.
+func (m *MockRepository) DeleteListItems(arg0 context.Context, arg1 *models.List, arg2 []int64) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteListItems", arg0, arg1, arg2)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteListItems indicates an expected call of DeleteListItems.
+func (mr *MockRepositoryMockRecorder) DeleteListItems(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteListItems", reflect.TypeOf((*MockRepository)(nil).DeleteListItems), arg0, arg1, arg2)
+}
+
 // EditList mocks base method.
 func (m *MockRepository) EditList(arg0 context.Context, arg1 *models.List) (*models.List, error) {
 	m.ctrl.T.Helper()
@@ -169,10 +198,10 @@ func (mr *MockRepositoryMockRecorder) GetList(arg0, arg1 interface{}) *gomock.Ca
 }
 
 // GetListItems mocks base method.
-func (m *MockRepository) GetListItems(arg0 context.Context, arg1 *models.List) (*models.List, error) {
+func (m *MockRepository) GetListItems(arg0 context.Context, arg1 *models.List) ([]models.ListItem, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetListItems", arg0, arg1)
-	ret0, _ := ret[0].(*models.List)
+	ret0, _ := ret[0].([]models.ListItem)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -251,6 +280,21 @@ func (mr *MockTransactionMockRecorder) AddList(arg0, arg1 interface{}) *gomock.C
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddList", reflect.TypeOf((*MockTransaction)(nil).AddList), arg0, arg1)
 }
 
+// AddListItems mocks base method.
+func (m *MockTransaction) AddListItems(arg0 context.Context, arg1 *models.List, arg2 []models.ListItem) ([]models.ListItem, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "AddListItems", arg0, arg1, arg2)
+	ret0, _ := ret[0].([]models.ListItem)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// AddListItems indicates an expected call of AddListItems.
+func (mr *MockTransactionMockRecorder) AddListItems(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddListItems", reflect.TypeOf((*MockTransaction)(nil).AddListItems), arg0, arg1, arg2)
+}
+
 // AddUser mocks base method.
 func (m *MockTransaction) AddUser(arg0 context.Context, arg1 *models.User) (*models.User, error) {
 	m.ctrl.T.Helper()
@@ -309,6 +353,20 @@ func (mr *MockTransactionMockRecorder) DeleteList(arg0, arg1 interface{}) *gomoc
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteList", reflect.TypeOf((*MockTransaction)(nil).DeleteList), arg0, arg1)
 }
 
+// DeleteListItems mocks base method.
+func (m *MockTransaction) DeleteListItems(arg0 context.Context, arg1 *models.List, arg2 []int64) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteListItems", arg0, arg1, arg2)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteListItems indicates an expected call of DeleteListItems.
+func (mr *MockTransactionMockRecorder) DeleteListItems(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteListItems", reflect.TypeOf((*MockTransaction)(nil).DeleteListItems), arg0, arg1, arg2)
+}
+
 // EditList mocks base method.
 func (m *MockTransaction) EditList(arg0 context.Context, arg1 *models.List) (*models.List, error) {
 	m.ctrl.T.Helper()
@@ -354,10 +412,10 @@ func (mr *MockTransactionMockRecorder) GetList(arg0, arg1 interface{}) *gomock.C
 }
 
 // GetListItems mocks base method.
-func (m *MockTransaction) GetListItems(arg0 context.Context, arg1 *models.List) (*models.List, error) {
+func (m *MockTransaction) GetListItems(arg0 context.Context, arg1 *models.List) ([]models.ListItem, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetListItems", arg0, arg1)
-	ret0, _ := ret[0].(*models.List)
+	ret0, _ := ret[0].([]models.ListItem)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

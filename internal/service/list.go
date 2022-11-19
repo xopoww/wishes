@@ -39,7 +39,7 @@ func (s *service) GetListItems(ctx context.Context, list *models.List, client *m
 		_ = tx.Rollback()
 		return nil, err
 	}
-	list, err = tx.GetListItems(ctx, list)
+	list.Items, err = tx.GetListItems(ctx, list)
 	if err != nil {
 		_ = tx.Rollback()
 		return nil, err
@@ -76,6 +76,39 @@ func (s *service) AddList(ctx context.Context, list *models.List, client *models
 	return s.r.AddList(ctx, list)
 }
 
+func (s *service) AddListItems(ctx context.Context, list *models.List, items []models.ListItem, client *models.User) (*models.List, error) {
+	tx, err := s.r.Begin()
+	if err != nil {
+		return nil, err
+	}
+	l, err := tx.GetList(ctx, list.ID)
+	if err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
+	err = s.checkWriteAccess(l, client)
+	if err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
+	if list.RevisionID < l.RevisionID {
+		_ = tx.Rollback()
+		return nil, ErrConflict
+	}
+	_, err = tx.AddListItems(ctx, list, items)
+	if err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
+	list.RevisionID++
+	_, err = tx.EditList(ctx, list)
+	if err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
+	return list, tx.Commit()
+}
+
 func (s *service) DeleteList(ctx context.Context, list *models.List, client *models.User) error {
 	tx, err := s.r.Begin()
 	if err != nil {
@@ -97,6 +130,39 @@ func (s *service) DeleteList(ctx context.Context, list *models.List, client *mod
 		return err
 	}
 	return tx.Commit()
+}
+
+func (s *service) DeleteListItems(ctx context.Context, list *models.List, ids []int64, client *models.User) (*models.List, error) {
+	tx, err := s.r.Begin()
+	if err != nil {
+		return nil, err
+	}
+	l, err := tx.GetList(ctx, list.ID)
+	if err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
+	err = s.checkWriteAccess(l, client)
+	if err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
+	if list.RevisionID < l.RevisionID {
+		_ = tx.Rollback()
+		return nil, ErrConflict
+	}
+	err = tx.DeleteListItems(ctx, list, ids)
+	if err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
+	list.RevisionID++
+	_, err = tx.EditList(ctx, list)
+	if err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
+	return list, tx.Commit()
 }
 
 func (s *service) GetListToken(ctx context.Context, id int64, client *models.User) (string, error) {

@@ -8,6 +8,7 @@ import (
 
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/xopoww/wishes/internal/models"
+	"github.com/xopoww/wishes/internal/models/fixtures"
 	"github.com/xopoww/wishes/internal/repository/sqlite"
 	"github.com/xopoww/wishes/internal/service"
 )
@@ -143,15 +144,13 @@ func TestGetList(t *testing.T) {
 		OwnerID: uid,
 		Title:   "list",
 		Access:  models.LinkAccess,
+		RevisionID: 42,
 	}
 	got, err := r.GetList(ctx, lid)
 	if err != nil {
 		t.Fatalf("get list: %s", err)
 	}
 	assertListsEq(t, want, got)
-	if got.RevisionID != 42 {
-		t.Fatalf("revision: want %d, got %d", 42, got.RevisionID)
-	}
 
 	_, err = r.GetList(ctx, lid+50)
 	if !errors.Is(err, service.ErrNotFound) {
@@ -167,14 +166,14 @@ func TestGetListItems(t *testing.T) {
 		),
 		upMigrationFromString(t,
 			`INSERT INTO Lists (title, owner_id, access, revision) SELECT title, Users.id AS owner_id, ListAccessEnum.N as access, revision FROM `+
-				`(SELECT "list1" AS title, 42 as revision) JOIN Users ON Users.user_name = "user" JOIN ListAccessEnum on ListAccessEnum.S = "link"`,
+				`(SELECT "list1" AS title, 0 as revision) JOIN Users ON Users.user_name = "user" JOIN ListAccessEnum on ListAccessEnum.S = "link"`,
 			testMigrationVersionStart+1,
 		),
 		upMigrationFromString(t,
 			`INSERT INTO Lists (title, owner_id, access, revision) SELECT title, Users.id AS owner_id, ListAccessEnum.N as access, revision FROM `+
-				`(SELECT "list2" AS title, 42 as revision) JOIN Users ON Users.user_name = "user" JOIN ListAccessEnum on ListAccessEnum.S = "link"; `+
-				`INSERT INTO Items (title, list_id) SELECT item_title as title, Lists.id AS list_id FROM `+
-				`(SELECT "item" AS item_title) JOIN Lists ON Lists.title = "list2";`,
+				`(SELECT "list2" AS title, 0 as revision) JOIN Users ON Users.user_name = "user" JOIN ListAccessEnum on ListAccessEnum.S = "link"; `+
+				`INSERT INTO Items (title, list_id, id) SELECT item_title as title, Lists.id AS list_id, item_id as id FROM `+
+				`(SELECT "item" AS item_title, 42 as item_id) JOIN Lists ON Lists.title = "list2";`,
 			testMigrationVersionStart+2,
 		),
 	)
@@ -208,28 +207,25 @@ func TestGetListItems(t *testing.T) {
 			if err != nil {
 				t.Fatalf("get list: %s", err)
 			}
-			list.RevisionID = 0
 
-			var wantItems int
-			switch list.Title {
+			want := *list
+			switch want.Title {
 			case "list1":
-				wantItems = 0
+				want.Items = nil
 			case "list2":
-				wantItems = 1
+				want.Items = append(want.Items, models.ListItem{
+					ID: 42,
+					Title: "item",
+				})
 			default:
 				t.Fatalf("unexpected list.Title: %q", list.Title)
 			}
 
-			list, err = r.GetListItems(cctx, list)
+			list.Items, err = r.GetListItems(cctx, list)
 			if err != nil {
 				t.Fatalf("err: %s", err)
 			}
-			if len(list.Items) != wantItems {
-				t.Fatalf("list items: want %d, got %d", wantItems, len(list.Items))
-			}
-			if list.RevisionID != 42 {
-				t.Fatalf("revision: want %d, got %d", 42, list.RevisionID)
-			}
+			assertListsEq(t, &want, list)
 		})
 	}
 }
@@ -256,58 +252,27 @@ func TestAddList(t *testing.T) {
 		name    string
 		owner   int64
 		access  models.ListAccess
-		items   []models.ListItem
+		rev     int64
 		wantErr error
 	}{
 		{
-			name:   "no items public",
+			name:   "public",
 			owner:  user.ID,
 			access: models.PublicAccess,
 		},
 		{
-			name:   "no items private",
+			name:   "private",
 			owner:  user.ID,
 			access: models.PrivateAccess,
 		},
 		{
-			name:   "no items link",
+			name:   "custom revision",
 			owner:  user.ID,
-			access: models.LinkAccess,
-		},
-		{
-			name:  "one item",
-			owner: user.ID,
-			items: []models.ListItem{
-				{Title: "foo"},
-			},
-		},
-		{
-			name:  "one item with desc",
-			owner: user.ID,
-			items: []models.ListItem{
-				{Title: "foo", Desc: "description of an item"},
-			},
-		},
-		{
-			name:  "many items",
-			owner: user.ID,
-			items: []models.ListItem{
-				{Title: "foo", Desc: "description of an item"},
-				{Title: "bar"},
-				{Title: "baz", Desc: "another description of an item"},
-			},
+			rev: 42,
 		},
 		{
 			name:    "wrong owner",
 			owner:   user.ID + 50,
-			wantErr: service.ErrNotFound,
-		},
-		{
-			name:  "wrong owner with items",
-			owner: user.ID + 50,
-			items: []models.ListItem{
-				{Title: "foo"},
-			},
 			wantErr: service.ErrNotFound,
 		},
 	}
@@ -316,13 +281,12 @@ func TestAddList(t *testing.T) {
 			want := &models.List{
 				Title:   "list",
 				OwnerID: tc.owner,
-				Items:   tc.items,
 				Access:  tc.access,
+				RevisionID: tc.rev,
 			}
 			cctx, cancel := context.WithCancel(ctx)
 			t.Cleanup(cancel)
 
-			want.RevisionID = 42
 			got, err := r.AddList(cctx, want)
 			if !errors.Is(err, tc.wantErr) {
 				t.Fatalf("err: want %#v, got %#v", tc.wantErr, err)
@@ -330,20 +294,13 @@ func TestAddList(t *testing.T) {
 			if err != nil {
 				return
 			}
-			if got.RevisionID != 0 {
-				t.Fatalf("revision: want %d, got %d", 0, got.RevisionID)
-			}
-			want.ID = got.ID
 			assertListsEq(t, want, got)
 
 			got, err = r.GetList(cctx, want.ID)
 			if err != nil {
 				t.Fatalf("get list: %s", err)
 			}
-			if got.RevisionID != 0 {
-				t.Fatalf("revision: want %d, got %d", 0, got.RevisionID)
-			}
-			got, err = r.GetListItems(cctx, got)
+			got.Items, err = r.GetListItems(cctx, got)
 			if err != nil {
 				t.Fatalf("get list items: %s", err)
 			}
@@ -396,122 +353,50 @@ func TestEditList(t *testing.T) {
 			},
 		},
 		{
-			name: "rename with items",
-			a: models.List{
-				Title: "old_list",
-				Items: []models.ListItem{{Title: "foo"}},
-			},
-			b: models.List{
-				Title: "new_list",
-				Items: []models.ListItem{{Title: "foo"}},
-			},
-		},
-
-		{
-			name: "add items",
+			name: "change revision",
 			a: models.List{
 				Title: "list",
+				RevisionID: 0,
 			},
 			b: models.List{
 				Title: "list",
-				Items: []models.ListItem{{Title: "foo"}},
-			},
-		},
-
-		{
-			name: "append items",
-			a: models.List{
-				Title: "list",
-				Items: []models.ListItem{{Title: "foo"}, {Title: "bar"}},
-			},
-			b: models.List{
-				Title: "list",
-				Items: []models.ListItem{{Title: "foo"}, {Title: "bar"}, {Title: "baz"}},
-			},
-		},
-		{
-			name: "prepend items",
-			a: models.List{
-				Title: "list",
-				Items: []models.ListItem{{Title: "bar"}, {Title: "baz"}},
-			},
-			b: models.List{
-				Title: "list",
-				Items: []models.ListItem{{Title: "foo"}, {Title: "bar"}, {Title: "baz"}},
-			},
-		},
-		{
-			name: "insert items",
-			a: models.List{
-				Title: "list",
-				Items: []models.ListItem{{Title: "foo"}, {Title: "baz"}},
-			},
-			b: models.List{
-				Title: "list",
-				Items: []models.ListItem{{Title: "foo"}, {Title: "bar"}, {Title: "baz"}},
-			},
-		},
-		{
-			name: "rearrange items",
-			a: models.List{
-				Title: "list",
-				Items: []models.ListItem{{Title: "foo"}, {Title: "bar"}},
-			},
-			b: models.List{
-				Title: "list",
-				Items: []models.ListItem{{Title: "bar"}, {Title: "foo"}},
+				RevisionID: 5,
 			},
 		},
 	}
 	var lastLid int64
 	for _, tc := range tcs {
 		t.Run(tc.name, func(t *testing.T) {
-			for _, direction := range []string{"a->b", "b->a"} {
-				var (
-					old models.List
-					new models.List
-				)
-				if direction == "a->b" {
-					old = tc.a
-					new = tc.b
-				} else {
-					old = tc.b
-					new = tc.a
-				}
-				old.OwnerID = user.ID
-				t.Run(direction, func(t *testing.T) {
-					cctx, cancel := context.WithCancel(ctx)
-					t.Cleanup(cancel)
+			old := tc.a
+			new := tc.b
+			old.OwnerID = user.ID
 
-					list, err := r.AddList(cctx, &old)
-					if err != nil {
-						t.Fatalf("add list: %s", err)
-					}
-					lastLid = list.ID
+			cctx, cancel := context.WithCancel(ctx)
+			t.Cleanup(cancel)
 
-					// only for comparison
-					new.OwnerID = user.ID
-					new.ID = list.ID
-
-					l, err := r.EditList(cctx, &new)
-					if err != nil {
-						t.Fatalf("edit list: %s", err)
-					}
-					if l.RevisionID != list.RevisionID+1 {
-						t.Fatalf("rev: want %d, got %d", list.RevisionID+1, l.RevisionID)
-					}
-
-					got, err := r.GetList(cctx, new.ID)
-					if err != nil {
-						t.Fatalf("get list: %s", err)
-					}
-					got, err = r.GetListItems(cctx, got)
-					if err != nil {
-						t.Fatalf("get list items: %s", err)
-					}
-					assertListsEq(t, &new, got)
-				})
+			list, err := r.AddList(cctx, &old)
+			if err != nil {
+				t.Fatalf("add list: %s", err)
 			}
+			lastLid = list.ID
+
+
+			new.ID = list.ID
+			_, err = r.EditList(cctx, &new)
+			if err != nil {
+				t.Fatalf("edit list: %s", err)
+			}
+
+			got, err := r.GetList(cctx, new.ID)
+			if err != nil {
+				t.Fatalf("get list: %s", err)
+			}
+			got.Items, err = r.GetListItems(cctx, got)
+			if err != nil {
+				t.Fatalf("get list items: %s", err)
+			}
+			new.OwnerID = old.OwnerID
+			assertListsEq(t, &new, got)
 		})
 	}
 
@@ -528,6 +413,91 @@ func TestEditList(t *testing.T) {
 			t.Fatalf("want %#v, got %#v", service.ErrNotFound, err)
 		}
 	})
+}
+
+func TestAddListItems(t *testing.T) {
+	dbs := newTestDatabase(t)
+	r, err := sqlite.NewRepository(dbs, trace(t))
+	if err != nil {
+		t.Fatalf("new repo: %s", err)
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	t.Cleanup(cancel)
+
+	user, err := r.AddUser(ctx, &models.User{
+		Name:     "user",
+		PassHash: []byte("password"),
+	})
+	if err != nil {
+		t.Fatalf("add user: %s", err)
+	}
+
+	list := fixtures.List()
+	list.OwnerID = user.ID
+	list, err = r.AddList(ctx, list)
+	if err != nil {
+		t.Fatalf("add list: %s", err)
+	}
+
+	items := fixtures.Items(3)
+	list.Items, err = r.AddListItems(ctx, list, items)
+	if err != nil {
+		t.Fatalf("err: %s", err)
+	}
+
+	new, err := r.GetList(ctx, list.ID)
+	if err != nil {
+		t.Fatalf("get list: %s", err)
+	}
+	new.Items, err = r.GetListItems(ctx, new)
+	if err != nil {
+		t.Fatalf("get list items: %s", err)
+	}
+	assertListsEq(t, list, new)
+}
+
+func TestDeleteListItems(t *testing.T) {
+	dbs := newTestDatabase(t)
+	r, err := sqlite.NewRepository(dbs, trace(t))
+	if err != nil {
+		t.Fatalf("new repo: %s", err)
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	t.Cleanup(cancel)
+
+	user, err := r.AddUser(ctx, &models.User{
+		Name:     "user",
+		PassHash: []byte("password"),
+	})
+	if err != nil {
+		t.Fatalf("add user: %s", err)
+	}
+
+	list := fixtures.List(fixtures.Items(3)...)
+	list.OwnerID = user.ID
+	list, err = r.AddList(ctx, list)
+	if err != nil {
+		t.Fatalf("add list: %s", err)
+	}
+
+	ids := []int64{list.Items[0].ID, list.Items[2].ID}
+	err = r.DeleteListItems(ctx, list, ids)
+	if err != nil {
+		t.Fatalf("err: %s", err)
+	}
+
+	new, err := r.GetList(ctx, list.ID)
+	if err != nil {
+		t.Fatalf("get list: %s", err)
+	}
+	new.Items, err = r.GetListItems(ctx, new)
+	if err != nil {
+		t.Fatalf("get list items: %s", err)
+	}
+	list.Items = list.Items[1:2]
+	assertListsEq(t, list, new)
 }
 
 func TestDeleteList(t *testing.T) {
@@ -589,6 +559,9 @@ func assertListsEq(t *testing.T, want, got *models.List) {
 		t.Fatalf("want %+v, got %+v", want, got)
 	}
 	if want.Access != got.Access {
+		t.Fatalf("want %+v, got %+v", want, got)
+	}
+	if want.RevisionID != got.RevisionID {
 		t.Fatalf("want %+v, got %+v", want, got)
 	}
 	if len(want.Items) != len(got.Items) {

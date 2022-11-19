@@ -183,7 +183,7 @@ func TestGetList(t *testing.T) {
 					}
 
 					if wantErr == nil {
-						tx.EXPECT().GetListItems(gomock.Any(), gomock.Eq(&list)).Return(&list, nil)
+						tx.EXPECT().GetListItems(gomock.Any(), gomock.Eq(&list)).Return(list.Items, nil)
 						tx.EXPECT().Commit().Return(nil)
 					} else {
 						tx.EXPECT().Rollback().Return(nil)
@@ -246,38 +246,10 @@ func TestEditList(t *testing.T) {
 	old.ID = 42
 	old.OwnerID = a.ID
 
-	badId := int64(404)
-
-	tcs := []struct {
-		client  *models.User
-		lid     int64
-		wantErr error
-	}{
-		{
-			client: a,
-			lid:    old.ID,
-		},
-		{
-			client:  b,
-			lid:     old.ID,
-			wantErr: service.ErrAccessDenied,
-		},
-		{
-			client:  a,
-			lid:     badId,
-			wantErr: service.ErrNotFound,
-		},
-		{
-			client:  b,
-			lid:     badId,
-			wantErr: service.ErrNotFound,
-		},
-	}
-
-	for _, tc := range tcs {
-		t.Run(fmt.Sprintf("client=%s,bad_id=%t", tc.client.Name, tc.lid == badId), func(t *testing.T) {
+	for _, client := range []*models.User{a, b} {
+		t.Run(client.Name, func(t *testing.T) {
 			new := fixtures.List()
-			new.ID = tc.lid
+			new.ID = old.ID
 			new.Title = "new title"
 
 			ctrl, ctx := gomock.WithContext(context.Background(), t)
@@ -285,32 +257,148 @@ func TestEditList(t *testing.T) {
 			tx := NewMockTransaction(ctrl)
 			r.EXPECT().Begin().Return(tx, nil)
 
-			var (
-				rerr  error
-				rlist *models.List
-			)
-			if tc.lid == badId {
-				rerr = service.ErrNotFound
-			} else {
-				rlist = old
-			}
 			tx.EXPECT().
 				GetList(gomock.Any(), gomock.Eq(new.ID)).
-				Return(rlist, rerr)
+				Return(old, nil)
 
-			if tc.wantErr == nil {
+			var wantErr error
+			if client.ID == a.ID {
 				tx.EXPECT().
 					EditList(gomock.Any(), gomock.Eq(new)).
 					Return(new, nil)
 				tx.EXPECT().Commit().Return(nil)
 			} else {
 				tx.EXPECT().Rollback().Return(nil)
+				wantErr = service.ErrAccessDenied
 			}
 
 			s := service.NewService(r, NewMockListTokenProvider(ctrl))
-			_, err := s.EditList(ctx, new, tc.client)
-			if !errors.Is(err, tc.wantErr) {
-				t.Fatalf("err: want %+v, got %+v", tc.wantErr, err)
+			new, err := s.EditList(ctx, new, client)
+			if !errors.Is(err, wantErr) {
+				t.Fatalf("err: want %+v, got %+v", wantErr, err)
+			}
+			if err == nil && new.RevisionID != old.RevisionID {
+				t.Fatalf("rev: want %d, got %d", old.RevisionID, new.RevisionID)
+			}
+		})
+	}
+}
+
+func TestAddListItems(t *testing.T) {
+	a, b := fixtures.TwoUsers()
+
+	old := fixtures.List()
+	old.ID = 42
+	old.OwnerID = a.ID
+	old.RevisionID = 5
+
+	for _, client := range []*models.User{a, b} {
+		t.Run(client.Name, func(t *testing.T) {
+			items := fixtures.Items(3)
+
+			ctrl, ctx := gomock.WithContext(context.Background(), t)
+			r := NewMockRepository(ctrl)
+			tx := NewMockTransaction(ctrl)
+			r.EXPECT().Begin().Return(tx, nil)
+
+			tx.EXPECT().
+				GetList(gomock.Any(), gomock.Eq(old.ID)).
+				Return(old, nil)
+
+			var wantErr error
+			if client.ID == a.ID {
+				tx.EXPECT().
+					AddListItems(gomock.Any(), gomock.Any(), gomock.Eq(items)).
+					Return(items, nil)
+				tx.EXPECT().EditList(gomock.Any(), gomock.Any())
+				tx.EXPECT().Commit().Return(nil)
+			} else {
+				tx.EXPECT().Rollback().Return(nil)
+				wantErr = service.ErrAccessDenied
+			}
+
+			s := service.NewService(r, NewMockListTokenProvider(ctrl))
+			new, err := s.AddListItems(ctx, &models.List{ID: old.ID, RevisionID: old.RevisionID}, items, client)
+			if !errors.Is(err, wantErr) {
+				t.Fatalf("err: want %+v, got %+v", wantErr, err)
+			}
+			if err == nil && new.RevisionID != old.RevisionID + 1 {
+				t.Fatalf("rev: want %d, got %d", old.RevisionID + 1, new.RevisionID)
+			}
+			old.RevisionID++
+
+			r.EXPECT().Begin().Return(tx, nil)
+			tx.EXPECT().
+				GetList(gomock.Any(), gomock.Eq(old.ID)).
+				Return(old, nil)
+			tx.EXPECT().Rollback().Return(nil)
+
+			_, err = s.AddListItems(ctx, &models.List{ID: old.ID, RevisionID: old.RevisionID-1}, items, client)
+			if wantErr == nil {
+				wantErr = service.ErrConflict
+			}
+			if !errors.Is(err, wantErr) {
+				t.Fatalf("err: want %+v, got %+v", wantErr, err)
+			}
+		})
+	}
+}
+
+func TestDeleteListItems(t *testing.T) {
+	a, b := fixtures.TwoUsers()
+
+	old := fixtures.List()
+	old.ID = 42
+	old.OwnerID = a.ID
+	old.RevisionID = 5
+
+	for _, client := range []*models.User{a, b} {
+		t.Run(client.Name, func(t *testing.T) {
+			ids := []int64{1, 3, 5}
+
+			ctrl, ctx := gomock.WithContext(context.Background(), t)
+			r := NewMockRepository(ctrl)
+			tx := NewMockTransaction(ctrl)
+			r.EXPECT().Begin().Return(tx, nil)
+
+			tx.EXPECT().
+				GetList(gomock.Any(), gomock.Eq(old.ID)).
+				Return(old, nil)
+
+			var wantErr error
+			if client.ID == a.ID {
+				tx.EXPECT().
+					DeleteListItems(gomock.Any(), gomock.Any(), gomock.Eq(ids)).
+					Return(nil)
+				tx.EXPECT().EditList(gomock.Any(), gomock.Any())
+				tx.EXPECT().Commit().Return(nil)
+			} else {
+				tx.EXPECT().Rollback().Return(nil)
+				wantErr = service.ErrAccessDenied
+			}
+
+			s := service.NewService(r, NewMockListTokenProvider(ctrl))
+			new, err := s.DeleteListItems(ctx, &models.List{ID: old.ID, RevisionID: old.RevisionID}, ids, client)
+			if !errors.Is(err, wantErr) {
+				t.Fatalf("err: want %+v, got %+v", wantErr, err)
+			}
+			if err == nil && new.RevisionID != old.RevisionID + 1 {
+				t.Fatalf("rev: want %d, got %d", old.RevisionID + 1, new.RevisionID)
+			}
+			old.RevisionID++
+
+			r.EXPECT().Begin().Return(tx, nil)
+			tx.EXPECT().
+				GetList(gomock.Any(), gomock.Eq(old.ID)).
+				Return(old, nil)
+			tx.EXPECT().Rollback().Return(nil)
+
+			_, err = s.DeleteListItems(ctx, &models.List{ID: old.ID, RevisionID: old.RevisionID-1}, ids, client)
+			if wantErr == nil {
+				wantErr = service.ErrConflict
+			}
+			if !errors.Is(err, wantErr) {
+				t.Fatalf("err: want %+v, got %+v", wantErr, err)
 			}
 		})
 	}

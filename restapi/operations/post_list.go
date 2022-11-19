@@ -8,6 +8,7 @@ package operations
 import (
 	"context"
 	"net/http"
+	"strconv"
 
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime/middleware"
@@ -81,7 +82,8 @@ func (o *PostList) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 type PostListBody struct {
 	apimodels.List
 
-	apimodels.ListItems
+	// items
+	Items []*apimodels.ListItem `json:"items"`
 }
 
 // UnmarshalJSON unmarshals this object from a JSON structure
@@ -94,11 +96,14 @@ func (o *PostListBody) UnmarshalJSON(raw []byte) error {
 	o.List = postListParamsBodyAO0
 
 	// PostListParamsBodyAO1
-	var postListParamsBodyAO1 apimodels.ListItems
-	if err := swag.ReadJSON(raw, &postListParamsBodyAO1); err != nil {
+	var dataPostListParamsBodyAO1 struct {
+		Items []*apimodels.ListItem `json:"items"`
+	}
+	if err := swag.ReadJSON(raw, &dataPostListParamsBodyAO1); err != nil {
 		return err
 	}
-	o.ListItems = postListParamsBodyAO1
+
+	o.Items = dataPostListParamsBodyAO1.Items
 
 	return nil
 }
@@ -112,12 +117,17 @@ func (o PostListBody) MarshalJSON() ([]byte, error) {
 		return nil, err
 	}
 	_parts = append(_parts, postListParamsBodyAO0)
-
-	postListParamsBodyAO1, err := swag.WriteJSON(o.ListItems)
-	if err != nil {
-		return nil, err
+	var dataPostListParamsBodyAO1 struct {
+		Items []*apimodels.ListItem `json:"items"`
 	}
-	_parts = append(_parts, postListParamsBodyAO1)
+
+	dataPostListParamsBodyAO1.Items = o.Items
+
+	jsonDataPostListParamsBodyAO1, errPostListParamsBodyAO1 := swag.WriteJSON(dataPostListParamsBodyAO1)
+	if errPostListParamsBodyAO1 != nil {
+		return nil, errPostListParamsBodyAO1
+	}
+	_parts = append(_parts, jsonDataPostListParamsBodyAO1)
 	return swag.ConcatJSON(_parts...), nil
 }
 
@@ -129,14 +139,41 @@ func (o *PostListBody) Validate(formats strfmt.Registry) error {
 	if err := o.List.Validate(formats); err != nil {
 		res = append(res, err)
 	}
-	// validation for a type composition with apimodels.ListItems
-	if err := o.ListItems.Validate(formats); err != nil {
+
+	if err := o.validateItems(formats); err != nil {
 		res = append(res, err)
 	}
 
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)
 	}
+	return nil
+}
+
+func (o *PostListBody) validateItems(formats strfmt.Registry) error {
+
+	if swag.IsZero(o.Items) { // not required
+		return nil
+	}
+
+	for i := 0; i < len(o.Items); i++ {
+		if swag.IsZero(o.Items[i]) { // not required
+			continue
+		}
+
+		if o.Items[i] != nil {
+			if err := o.Items[i].Validate(formats); err != nil {
+				if ve, ok := err.(*errors.Validation); ok {
+					return ve.ValidateName("list" + "." + "items" + "." + strconv.Itoa(i))
+				} else if ce, ok := err.(*errors.CompositeError); ok {
+					return ce.ValidateName("list" + "." + "items" + "." + strconv.Itoa(i))
+				}
+				return err
+			}
+		}
+
+	}
+
 	return nil
 }
 
@@ -148,14 +185,34 @@ func (o *PostListBody) ContextValidate(ctx context.Context, formats strfmt.Regis
 	if err := o.List.ContextValidate(ctx, formats); err != nil {
 		res = append(res, err)
 	}
-	// validation for a type composition with apimodels.ListItems
-	if err := o.ListItems.ContextValidate(ctx, formats); err != nil {
+
+	if err := o.contextValidateItems(ctx, formats); err != nil {
 		res = append(res, err)
 	}
 
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)
 	}
+	return nil
+}
+
+func (o *PostListBody) contextValidateItems(ctx context.Context, formats strfmt.Registry) error {
+
+	for i := 0; i < len(o.Items); i++ {
+
+		if o.Items[i] != nil {
+			if err := o.Items[i].ContextValidate(ctx, formats); err != nil {
+				if ve, ok := err.(*errors.Validation); ok {
+					return ve.ValidateName("list" + "." + "items" + "." + strconv.Itoa(i))
+				} else if ce, ok := err.(*errors.CompositeError); ok {
+					return ce.ValidateName("list" + "." + "items" + "." + strconv.Itoa(i))
+				}
+				return err
+			}
+		}
+
+	}
+
 	return nil
 }
 
