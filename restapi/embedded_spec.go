@@ -94,7 +94,14 @@ func init() {
           "201": {
             "description": "Success",
             "schema": {
-              "$ref": "#/definitions/ID"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/Revision"
+                },
+                {
+                  "$ref": "#/definitions/ID"
+                }
+              ]
             }
           },
           "500": {
@@ -760,7 +767,14 @@ func init() {
           "201": {
             "description": "Success",
             "schema": {
-              "$ref": "#/definitions/ID"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/Revision"
+                },
+                {
+                  "$ref": "#/definitions/ID"
+                }
+              ]
             }
           },
           "500": {

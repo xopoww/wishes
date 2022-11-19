@@ -140,10 +140,10 @@ func TestGetList(t *testing.T) {
 	lid := lids[0]
 
 	want := &models.List{
-		ID:      lid,
-		OwnerID: uid,
-		Title:   "list",
-		Access:  models.LinkAccess,
+		ID:         lid,
+		OwnerID:    uid,
+		Title:      "list",
+		Access:     models.LinkAccess,
 		RevisionID: 42,
 	}
 	got, err := r.GetList(ctx, lid)
@@ -214,7 +214,7 @@ func TestGetListItems(t *testing.T) {
 				want.Items = nil
 			case "list2":
 				want.Items = append(want.Items, models.ListItem{
-					ID: 42,
+					ID:    42,
 					Title: "item",
 				})
 			default:
@@ -266,9 +266,9 @@ func TestAddList(t *testing.T) {
 			access: models.PrivateAccess,
 		},
 		{
-			name:   "custom revision",
-			owner:  user.ID,
-			rev: 42,
+			name:  "custom revision",
+			owner: user.ID,
+			rev:   42,
 		},
 		{
 			name:    "wrong owner",
@@ -279,9 +279,9 @@ func TestAddList(t *testing.T) {
 	for _, tc := range tcs {
 		t.Run(tc.name, func(t *testing.T) {
 			want := &models.List{
-				Title:   "list",
-				OwnerID: tc.owner,
-				Access:  tc.access,
+				Title:      "list",
+				OwnerID:    tc.owner,
+				Access:     tc.access,
 				RevisionID: tc.rev,
 			}
 			cctx, cancel := context.WithCancel(ctx)
@@ -355,11 +355,11 @@ func TestEditList(t *testing.T) {
 		{
 			name: "change revision",
 			a: models.List{
-				Title: "list",
+				Title:      "list",
 				RevisionID: 0,
 			},
 			b: models.List{
-				Title: "list",
+				Title:      "list",
 				RevisionID: 5,
 			},
 		},
@@ -379,7 +379,6 @@ func TestEditList(t *testing.T) {
 				t.Fatalf("add list: %s", err)
 			}
 			lastLid = list.ID
-
 
 			new.ID = list.ID
 			_, err = r.EditList(cctx, &new)

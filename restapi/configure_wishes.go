@@ -99,6 +99,8 @@ func configureAPI(api *operations.WishesAPI) http.Handler {
 	api.PatchListHandler = controller.PatchList()
 	api.DeleteListHandler = controller.DeleteList()
 	api.GetListTokenHandler = controller.GetListToken()
+	api.PostListItemsHandler = controller.PostListItems()
+	api.DeleteListItemsHandler = controller.DeleteListItems()
 
 	api.PreServerShutdown = func() {}
 

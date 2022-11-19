@@ -322,8 +322,8 @@ func TestAddListItems(t *testing.T) {
 			if !errors.Is(err, wantErr) {
 				t.Fatalf("err: want %+v, got %+v", wantErr, err)
 			}
-			if err == nil && new.RevisionID != old.RevisionID + 1 {
-				t.Fatalf("rev: want %d, got %d", old.RevisionID + 1, new.RevisionID)
+			if err == nil && new.RevisionID != old.RevisionID+1 {
+				t.Fatalf("rev: want %d, got %d", old.RevisionID+1, new.RevisionID)
 			}
 			old.RevisionID++
 
@@ -333,7 +333,7 @@ func TestAddListItems(t *testing.T) {
 				Return(old, nil)
 			tx.EXPECT().Rollback().Return(nil)
 
-			_, err = s.AddListItems(ctx, &models.List{ID: old.ID, RevisionID: old.RevisionID-1}, items, client)
+			_, err = s.AddListItems(ctx, &models.List{ID: old.ID, RevisionID: old.RevisionID - 1}, items, client)
 			if wantErr == nil {
 				wantErr = service.ErrConflict
 			}
@@ -382,8 +382,8 @@ func TestDeleteListItems(t *testing.T) {
 			if !errors.Is(err, wantErr) {
 				t.Fatalf("err: want %+v, got %+v", wantErr, err)
 			}
-			if err == nil && new.RevisionID != old.RevisionID + 1 {
-				t.Fatalf("rev: want %d, got %d", old.RevisionID + 1, new.RevisionID)
+			if err == nil && new.RevisionID != old.RevisionID+1 {
+				t.Fatalf("rev: want %d, got %d", old.RevisionID+1, new.RevisionID)
 			}
 			old.RevisionID++
 
@@ -393,7 +393,7 @@ func TestDeleteListItems(t *testing.T) {
 				Return(old, nil)
 			tx.EXPECT().Rollback().Return(nil)
 
-			_, err = s.DeleteListItems(ctx, &models.List{ID: old.ID, RevisionID: old.RevisionID-1}, ids, client)
+			_, err = s.DeleteListItems(ctx, &models.List{ID: old.ID, RevisionID: old.RevisionID - 1}, ids, client)
 			if wantErr == nil {
 				wantErr = service.ErrConflict
 			}

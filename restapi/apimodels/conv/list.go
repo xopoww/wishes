@@ -77,10 +77,10 @@ func SwagItems(is []models.ListItem) []*apimodels.ListItem {
 	return iis
 }
 
-func Revision(r apimodels.Revision) int64 {
+func Revision(r *apimodels.Revision) int64 {
 	return *r.Rev
 }
 
-func SwagRevision(r int64) apimodels.Revision {
-	return apimodels.Revision{Rev: &r}
+func SwagRevision(r int64) *apimodels.Revision {
+	return &apimodels.Revision{Rev: &r}
 }

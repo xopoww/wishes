@@ -11,13 +11,15 @@ type Trace struct {
 	OnPatchUser func(OnPatchUserStartInfo) func(OnPatchUserDoneInfo)
 	OnRegister  func(OnRegisterStartInfo) func(OnRegisterDoneInfo)
 
-	OnGetList      func(OnGetListStartInfo) func(OnGetListDoneInfo)
-	OnGetListItems func(OnGetListItemsStartInfo) func(OnGetListItemsDoneInfo)
-	OnPostList     func(OnPostListStartInfo) func(OnPostListDoneInfo)
-	OnPatchList    func(OnPatchListStartInfo) func(OnPatchListDoneInfo)
-	OnDeleteList   func(OnDeleteListStartInfo) func(OnDeleteListDoneInfo)
-	OnGetUserLists func(OnGetUserListsStartInfo) func(OnGetUserListsDoneInfo)
-	OnGetListToken func(OnGetListTokenStartInfo) func(OnGetListTokenDoneInfo)
+	OnGetList         func(OnGetListStartInfo) func(OnGetListDoneInfo)
+	OnGetListItems    func(OnGetListItemsStartInfo) func(OnGetListItemsDoneInfo)
+	OnPostList        func(OnPostListStartInfo) func(OnPostListDoneInfo)
+	OnPostListItems   func(OnPostListItemsStartInfo) func(OnPostListItemsDoneInfo)
+	OnPatchList       func(OnPatchListStartInfo) func(OnPatchListDoneInfo)
+	OnDeleteList      func(OnDeleteListStartInfo) func(OnDeleteListDoneInfo)
+	OnDeleteListItems func(OnDeleteListItemsStartInfo) func(OnDeleteListItemsDoneInfo)
+	OnGetUserLists    func(OnGetUserListsStartInfo) func(OnGetUserListsDoneInfo)
+	OnGetListToken    func(OnGetListTokenStartInfo) func(OnGetListTokenDoneInfo)
 
 	OnKeySecurityAuth func(OnKeySecurityAuthStartInfo) func(OnKeySecurityAuthDoneInfo)
 }

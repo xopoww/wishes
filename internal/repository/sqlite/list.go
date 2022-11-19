@@ -113,7 +113,7 @@ func (r *handle) AddListItems(ctx context.Context, list *models.List, items []mo
 func (r *handle) DeleteListItems(ctx context.Context, list *models.List, ids []int64) error {
 	queryBuilder := &strings.Builder{}
 	queryBuilder.WriteString(`DELETE FROM Items WHERE list_id == $1 AND id IN (`)
-	args := make([]interface{}, 1, len(ids) + 1)
+	args := make([]interface{}, 1, len(ids)+1)
 	args[0] = list.ID
 	for i := range ids {
 		fmt.Fprintf(queryBuilder, "$%d", i+2)

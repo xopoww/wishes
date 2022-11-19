@@ -234,6 +234,108 @@ func (o *PostListBody) UnmarshalBinary(b []byte) error {
 	return nil
 }
 
+// PostListCreatedBody post list created body
+//
+// swagger:model PostListCreatedBody
+type PostListCreatedBody struct {
+	apimodels.Revision
+
+	apimodels.ID
+}
+
+// UnmarshalJSON unmarshals this object from a JSON structure
+func (o *PostListCreatedBody) UnmarshalJSON(raw []byte) error {
+	// PostListCreatedBodyAO0
+	var postListCreatedBodyAO0 apimodels.Revision
+	if err := swag.ReadJSON(raw, &postListCreatedBodyAO0); err != nil {
+		return err
+	}
+	o.Revision = postListCreatedBodyAO0
+
+	// PostListCreatedBodyAO1
+	var postListCreatedBodyAO1 apimodels.ID
+	if err := swag.ReadJSON(raw, &postListCreatedBodyAO1); err != nil {
+		return err
+	}
+	o.ID = postListCreatedBodyAO1
+
+	return nil
+}
+
+// MarshalJSON marshals this object to a JSON structure
+func (o PostListCreatedBody) MarshalJSON() ([]byte, error) {
+	_parts := make([][]byte, 0, 2)
+
+	postListCreatedBodyAO0, err := swag.WriteJSON(o.Revision)
+	if err != nil {
+		return nil, err
+	}
+	_parts = append(_parts, postListCreatedBodyAO0)
+
+	postListCreatedBodyAO1, err := swag.WriteJSON(o.ID)
+	if err != nil {
+		return nil, err
+	}
+	_parts = append(_parts, postListCreatedBodyAO1)
+	return swag.ConcatJSON(_parts...), nil
+}
+
+// Validate validates this post list created body
+func (o *PostListCreatedBody) Validate(formats strfmt.Registry) error {
+	var res []error
+
+	// validation for a type composition with apimodels.Revision
+	if err := o.Revision.Validate(formats); err != nil {
+		res = append(res, err)
+	}
+	// validation for a type composition with apimodels.ID
+	if err := o.ID.Validate(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+// ContextValidate validate this post list created body based on the context it is used
+func (o *PostListCreatedBody) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	// validation for a type composition with apimodels.Revision
+	if err := o.Revision.ContextValidate(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+	// validation for a type composition with apimodels.ID
+	if err := o.ID.ContextValidate(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+// MarshalBinary interface implementation
+func (o *PostListCreatedBody) MarshalBinary() ([]byte, error) {
+	if o == nil {
+		return nil, nil
+	}
+	return swag.WriteJSON(o)
+}
+
+// UnmarshalBinary interface implementation
+func (o *PostListCreatedBody) UnmarshalBinary(b []byte) error {
+	var res PostListCreatedBody
+	if err := swag.ReadJSON(b, &res); err != nil {
+		return err
+	}
+	*o = res
+	return nil
+}
+
 // PostListInternalServerErrorBody post list internal server error body
 //
 // swagger:model PostListInternalServerErrorBody

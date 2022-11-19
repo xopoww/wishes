@@ -44,7 +44,9 @@ class TestList:
 
         resp = client.post("/lists", json=list_data)
         assert resp.status_code == 201
-        lid = resp.json()["id"]
+        body = resp.json()
+        assert body.get("rev") is not None
+        lid = body["id"]
 
         resp = client.get(f"/lists")
         assert resp.status_code == 200
@@ -70,7 +72,10 @@ class TestList:
         resp = client.get(f"/lists/{lid}/items")
         assert resp.status_code == 200
         body = resp.json()
-        assert body["items"] == list_data["items"]
+        assert len(list_data["items"]) == len(body["items"])
+        for want, got in zip(list_data["items"], body["items"]):
+            assert want["title"] == got["title"]
+            assert want.get("desc") == got.get("desc")
         assert body.get("rev") is not None
 
         resp = client.get(f"/lists/{lid + 50}")
@@ -98,47 +103,111 @@ class TestList:
         }
         resp = client.post("/lists", json=data)
         assert resp.status_code == 201
-        lid = resp.json()["id"]
+        body = resp.json()
+        lid = body["id"]
+        rev = body["rev"]
 
-        resp = client.get(f"/lists/{lid}/items")
-        assert resp.status_code == 200
-        rev = resp.json()["rev"]
+        # edit list - happy path
 
         data["title"] = "edited list"
         data["access"] = "public"
-        data["items"][0]["desc"] = "now with description"
-        data["items"][1]["title"] = "edited bar"
-        del data["items"][2]["desc"]
-        data["items"].append({"title": "quux", "desc": "new item"})
         resp = client.patch(f"/lists/{lid}", json=data)
         assert resp.status_code == 204
 
         resp = client.get(f"/lists/{lid}")
         assert resp.status_code == 200
         got = resp.json()
+        self.assert_list_eq(data, got)
+
+        # add list items - happy path
+
         resp = client.get(f"/lists/{lid}/items")
         assert resp.status_code == 200
-        got |= resp.json()
-        self.assert_list_eq(data, got, check_items=True)
-        assert got["rev"] == rev + 1
+        items: list[dict] = resp.json()["items"]
 
-        resp = client.patch(f"/lists/{lid + 50}", json=data)
-        assert resp.status_code == 404
+        added_items = [
+            {"title": "added"},
+            {"title": "added with desc", "desc": "some description"}
+        ]
+        resp = client.post(f"/lists/{lid}/items", json={
+            "rev": rev,
+            "items": added_items
+        })
+        assert resp.status_code == 201
+        assert resp.json()["rev"] == rev + 1
+        rev += 1
+        items.extend(added_items)
 
-        resp = client.patch("/lists", json=data)
-        assert resp.status_code == 405
+        resp = client.get(f"/lists/{lid}/items")
+        assert resp.status_code == 200
+        body = resp.json()
+        assert body["rev"] == rev
+        assert len(items) == len(body["items"])
+        for want, got in zip(items, body["items"]):
+            assert want["title"] == got["title"]
+            assert want.get("desc") == got.get("desc")
+        items = body["items"]
+        
+        # delete list items - happy path
 
-        resp = client.patch("/lists/john", json=data)
+        delete_indices = [1, 3]
+        delete_ids = [items[index]["id"] for index in delete_indices]
+        resp = client.delete(f"/lists/{lid}/items", params={
+            "rev": rev,
+            "ids": ",".join(map(str, delete_ids))
+        })
+        assert resp.status_code == 200
+        assert resp.json()["rev"] == rev + 1
+        rev += 1
+        items = [item for index, item in enumerate(items) if index not in delete_indices]
+
+        resp = client.get(f"/lists/{lid}/items")
+        assert resp.status_code == 200
+        body = resp.json()
+        assert body["rev"] == rev
+        assert body["items"] == items
+
+        # error handling
+
+        resp = client.post(f"/lists/{lid}/items", json={
+            "items": added_items
+        })
         assert resp.status_code == 422
 
-        resp = client.patch(f"/lists/{lid}", json={"wrong": "fields", "in": "body"})
+        resp = client.post(f"/lists/{lid}/items", json={
+            "rev": rev-1,
+            "items": added_items
+        })
+        assert resp.status_code == 409
+
+        resp = client.delete(f"/lists/{lid}/items", params={
+            "ids": delete_ids,
+        })
         assert resp.status_code == 422
+
+        resp = client.delete(f"/lists/{lid}/items", params={
+            "rev": rev-1,
+            "ids": delete_ids,
+        })
+        assert resp.status_code == 409
 
         u2 = make_user()
         u2.must_register(client)
         u2.must_login(client)
 
         resp = client.patch(f"/lists/{lid}", json=data)
+        assert resp.status_code == 403
+
+        resp = client.post(f"/lists/{lid}/items", json={
+            "rev": rev,
+            "items": added_items
+        })
+        assert resp.status_code == 403
+
+        resp = client.delete(f"/lists/{lid}/items", params={
+            "rev": rev,
+            "ids": delete_ids,
+        })
         assert resp.status_code == 403
     
     def test_delete(self, client: Client, make_user: ty.Callable[[],User], list_data):

@@ -147,7 +147,9 @@ paths:
           201:
             description: Success
             schema:
-              $ref: "#/definitions/ID"
+              allOf:
+              - $ref: "#/definitions/Revision"
+              - $ref: "#/definitions/ID"
           500:
             $ref: "#/responses/ServerError"
 

@@ -261,6 +261,58 @@ func Handlers(l zerolog.Logger) (t handlers.Trace) {
 			}
 		}
 	}
+	t.OnPostListItems = func(si handlers.OnPostListItemsStartInfo) func(handlers.OnPostListItemsDoneInfo) {
+		return func(di handlers.OnPostListItemsDoneInfo) {
+			if di.Error != nil {
+				l.Error().
+					Int64("list_id", si.List.ID).
+					Int64("revision", si.List.RevisionID).
+					Int("num_items", len(si.Items)).
+					Dict("client", zerolog.Dict().
+						Str("name", si.Client.Name).
+						Int64("id", si.Client.ID),
+					).
+					Err(di.Error).
+					Msg("post list items error")
+			} else {
+				l.Debug().
+					Int64("list_id", si.List.ID).
+					Int64("revision", si.List.RevisionID).
+					Int("num_items", len(si.Items)).
+					Dict("client", zerolog.Dict().
+						Str("name", si.Client.Name).
+						Int64("id", si.Client.ID),
+					).
+					Msg("post list items done")
+			}
+		}
+	}
+	t.OnDeleteListItems = func(si handlers.OnDeleteListItemsStartInfo) func(handlers.OnDeleteListItemsDoneInfo) {
+		return func(di handlers.OnDeleteListItemsDoneInfo) {
+			if di.Error != nil {
+				l.Error().
+					Int64("list_id", si.List.ID).
+					Int64("revision", si.List.RevisionID).
+					Int("num_items", len(si.ItemIDs)).
+					Dict("client", zerolog.Dict().
+						Str("name", si.Client.Name).
+						Int64("id", si.Client.ID),
+					).
+					Err(di.Error).
+					Msg("delete list items error")
+			} else {
+				l.Debug().
+					Int64("list_id", si.List.ID).
+					Int64("revision", si.List.RevisionID).
+					Int("num_items", len(si.ItemIDs)).
+					Dict("client", zerolog.Dict().
+						Str("name", si.Client.Name).
+						Int64("id", si.Client.ID),
+					).
+					Msg("delete list items done")
+			}
+		}
+	}
 
 	return t
 }

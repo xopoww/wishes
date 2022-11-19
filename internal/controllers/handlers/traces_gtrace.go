@@ -178,6 +178,30 @@ func (t Trace) Compose(x Trace) (ret Trace) {
 		}
 	}
 	switch {
+	case t.OnPostListItems == nil:
+		ret.OnPostListItems = x.OnPostListItems
+	case x.OnPostListItems == nil:
+		ret.OnPostListItems = t.OnPostListItems
+	default:
+		h1 := t.OnPostListItems
+		h2 := x.OnPostListItems
+		ret.OnPostListItems = func(o OnPostListItemsStartInfo) func(OnPostListItemsDoneInfo) {
+			r1 := h1(o)
+			r2 := h2(o)
+			switch {
+			case r1 == nil:
+				return r2
+			case r2 == nil:
+				return r1
+			default:
+				return func(o OnPostListItemsDoneInfo) {
+					r1(o)
+					r2(o)
+				}
+			}
+		}
+	}
+	switch {
 	case t.OnPatchList == nil:
 		ret.OnPatchList = x.OnPatchList
 	case x.OnPatchList == nil:
@@ -219,6 +243,30 @@ func (t Trace) Compose(x Trace) (ret Trace) {
 				return r1
 			default:
 				return func(o OnDeleteListDoneInfo) {
+					r1(o)
+					r2(o)
+				}
+			}
+		}
+	}
+	switch {
+	case t.OnDeleteListItems == nil:
+		ret.OnDeleteListItems = x.OnDeleteListItems
+	case x.OnDeleteListItems == nil:
+		ret.OnDeleteListItems = t.OnDeleteListItems
+	default:
+		h1 := t.OnDeleteListItems
+		h2 := x.OnDeleteListItems
+		ret.OnDeleteListItems = func(o OnDeleteListItemsStartInfo) func(OnDeleteListItemsDoneInfo) {
+			r1 := h1(o)
+			r2 := h2(o)
+			switch {
+			case r1 == nil:
+				return r2
+			case r2 == nil:
+				return r1
+			default:
+				return func(o OnDeleteListItemsDoneInfo) {
 					r1(o)
 					r2(o)
 				}
@@ -404,6 +452,21 @@ func (t Trace) onPostList(o OnPostListStartInfo) func(OnPostListDoneInfo) {
 	}
 	return res
 }
+func (t Trace) onPostListItems(o OnPostListItemsStartInfo) func(OnPostListItemsDoneInfo) {
+	fn := t.OnPostListItems
+	if fn == nil {
+		return func(OnPostListItemsDoneInfo) {
+			return
+		}
+	}
+	res := fn(o)
+	if res == nil {
+		return func(OnPostListItemsDoneInfo) {
+			return
+		}
+	}
+	return res
+}
 func (t Trace) onPatchList(o OnPatchListStartInfo) func(OnPatchListDoneInfo) {
 	fn := t.OnPatchList
 	if fn == nil {
@@ -429,6 +492,21 @@ func (t Trace) onDeleteList(o OnDeleteListStartInfo) func(OnDeleteListDoneInfo) 
 	res := fn(o)
 	if res == nil {
 		return func(OnDeleteListDoneInfo) {
+			return
+		}
+	}
+	return res
+}
+func (t Trace) onDeleteListItems(o OnDeleteListItemsStartInfo) func(OnDeleteListItemsDoneInfo) {
+	fn := t.OnDeleteListItems
+	if fn == nil {
+		return func(OnDeleteListItemsDoneInfo) {
+			return
+		}
+	}
+	res := fn(o)
+	if res == nil {
+		return func(OnDeleteListItemsDoneInfo) {
 			return
 		}
 	}
@@ -562,6 +640,18 @@ func traceOnPostList(t Trace, l *models.List, client *models.User) func(listID i
 		res(p)
 	}
 }
+func traceOnPostListItems(t Trace, l *models.List, items []models.ListItem, client *models.User) func(error) {
+	var p OnPostListItemsStartInfo
+	p.List = l
+	p.Items = items
+	p.Client = client
+	res := t.onPostListItems(p)
+	return func(e error) {
+		var p OnPostListItemsDoneInfo
+		p.Error = e
+		res(p)
+	}
+}
 func traceOnPatchList(t Trace, l *models.List, client *models.User) func(error) {
 	var p OnPatchListStartInfo
 	p.List = l
@@ -580,6 +670,18 @@ func traceOnDeleteList(t Trace, l *models.List, client *models.User) func(error)
 	res := t.onDeleteList(p)
 	return func(e error) {
 		var p OnDeleteListDoneInfo
+		p.Error = e
+		res(p)
+	}
+}
+func traceOnDeleteListItems(t Trace, l *models.List, itemIDs []int64, client *models.User) func(error) {
+	var p OnDeleteListItemsStartInfo
+	p.List = l
+	p.ItemIDs = itemIDs
+	p.Client = client
+	res := t.onDeleteListItems(p)
+	return func(e error) {
+		var p OnDeleteListItemsDoneInfo
 		p.Error = e
 		res(p)
 	}

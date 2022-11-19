@@ -69,10 +69,10 @@ func (ac *ApiController) GetListItems() operations.GetListItemsHandler {
 
 		onDone := traceOnGetListItems(ac.t, glip.ID, client, token)
 		var (
-			payload []models.ListItem
-			err     error
+			items []models.ListItem
+			err   error
 		)
-		defer func() { onDone(payload, err) }()
+		defer func() { onDone(items, err) }()
 
 		list, err := ac.s.GetListItems(context.TODO(), &models.List{ID: glip.ID}, client, token)
 		if errors.Is(err, service.ErrAccessDenied) {
@@ -84,10 +84,17 @@ func (ac *ApiController) GetListItems() operations.GetListItemsHandler {
 		if err != nil {
 			return operations.NewGetListItemsInternalServerError()
 		}
-		payload = list.Items
+		items = list.Items
+		payload := make([]*operations.GetListItemsOKBodyItemsItems0, len(items))
+		for i := range items {
+			payload[i] = &operations.GetListItemsOKBodyItemsItems0{
+				ID:       *conv.SwagID(items[i].ID),
+				ListItem: *conv.SwagItem(items[i]),
+			}
+		}
 		return operations.NewGetListItemsOK().WithPayload(&operations.GetListItemsOKBody{
-			// ListItems: apimodels.ListItems{Items: conv.SwagItems(payload)},
-			Revision:  conv.SwagRevision(list.RevisionID),
+			Items:    payload,
+			Revision: *conv.SwagRevision(list.RevisionID),
 		})
 	})
 }
@@ -118,7 +125,49 @@ func (ac *ApiController) PostList() operations.PostListHandler {
 			return operations.NewPostListInternalServerError()
 		}
 
-		return operations.NewPostListCreated().WithPayload(conv.SwagID(list.ID))
+		return operations.NewPostListCreated().WithPayload(&operations.PostListCreatedBody{
+			ID:       *conv.SwagID(list.ID),
+			Revision: *conv.SwagRevision(list.RevisionID),
+		})
+	})
+}
+
+type (
+	OnPostListItemsStartInfo struct {
+		List   *models.List
+		Items  []models.ListItem
+		Client *models.User
+	}
+	OnPostListItemsDoneInfo struct {
+		Error error
+	}
+)
+
+func (ac *ApiController) PostListItems() operations.PostListItemsHandler {
+	return operations.PostListItemsHandlerFunc(func(params operations.PostListItemsParams, p *apimodels.Principal) middleware.Responder {
+		client := conv.Client(p)
+		list := &models.List{ID: params.ID, RevisionID: conv.Revision(&params.Items.Revision)}
+		items := conv.Items(params.Items.Items)
+
+		onDone := traceOnPostListItems(ac.t, list, items, client)
+		var err error
+		defer func() { onDone(err) }()
+
+		list, err = ac.s.AddListItems(context.TODO(), list, items, client)
+		if errors.Is(err, service.ErrNotFound) {
+			return operations.NewPostListItemsNotFound()
+		}
+		if errors.Is(err, service.ErrAccessDenied) {
+			return operations.NewPostListItemsForbidden()
+		}
+		if errors.Is(err, service.ErrConflict) {
+			return operations.NewPostListItemsConflict()
+		}
+		if err != nil {
+			return operations.NewPostListItemsInternalServerError()
+		}
+
+		return operations.NewPostListItemsCreated().WithPayload(conv.SwagRevision(list.RevisionID))
 	})
 }
 
@@ -187,6 +236,45 @@ func (ac *ApiController) DeleteList() operations.DeleteListHandler {
 			return operations.NewDeleteListInternalServerError()
 		}
 		return operations.NewDeleteListNoContent()
+	})
+}
+
+type (
+	OnDeleteListItemsStartInfo struct {
+		List    *models.List
+		ItemIDs []int64
+		Client  *models.User
+	}
+	OnDeleteListItemsDoneInfo struct {
+		Error error
+	}
+)
+
+func (ac *ApiController) DeleteListItems() operations.DeleteListItemsHandler {
+	return operations.DeleteListItemsHandlerFunc(func(params operations.DeleteListItemsParams, p *apimodels.Principal) middleware.Responder {
+		client := conv.Client(p)
+		list := &models.List{ID: params.ID, RevisionID: params.Rev}
+		ids := params.Ids
+
+		onDone := traceOnDeleteListItems(ac.t, list, ids, client)
+		var err error
+		defer func() { onDone(err) }()
+
+		list, err = ac.s.DeleteListItems(context.TODO(), list, ids, client)
+		if errors.Is(err, service.ErrNotFound) {
+			return operations.NewDeleteListItemsNotFound()
+		}
+		if errors.Is(err, service.ErrAccessDenied) {
+			return operations.NewDeleteListItemsForbidden()
+		}
+		if errors.Is(err, service.ErrConflict) {
+			return operations.NewDeleteListItemsConflict()
+		}
+		if err != nil {
+			return operations.NewDeleteListItemsInternalServerError()
+		}
+
+		return operations.NewDeleteListItemsOK().WithPayload(conv.SwagRevision(list.RevisionID))
 	})
 }
 
@@ -260,3 +348,16 @@ func (ac *ApiController) GetListToken() operations.GetListTokenHandler {
 		return operations.NewGetListTokenOK().WithPayload(&operations.GetListTokenOKBody{Token: token})
 	})
 }
+
+// type (
+// 	_PLACEHOLDER_StartInfo struct {}
+// 	_PLACEHOLDER_DoneInfo  struct {
+// 		Error error
+// 	}
+// )
+
+// func (ac *ApiController) _PLACEHOLDER_() operations._PLACEHOLDER_Handler {
+// 	return operations._PLACEHOLDER_HandlerFunc(func (params operations._PLACEHOLDER_Params, p *apimodels.Principal) middleware.Responder {
+
+// 	})
+// }
