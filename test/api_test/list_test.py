@@ -321,6 +321,91 @@ class TestList:
             resp = client.get(f"/lists/{lid}/token")
             assert resp.status_code == 403
     
+    def test_take(self, make_user: ty.Callable[[],User], list_data):
+        users = [make_user() for _ in range(3)]
+        clients = [Client() for _ in users]
+        for u, c in zip(users, clients):
+            u.must_register(c)
+            u.must_login(c)
+        u1, u2, u3 = users
+        c1, c2, c3 = clients
+
+        list_data["access"] = "public"
+        resp = c1.post("/lists", json=list_data)
+        assert resp.status_code == 201
+        body = resp.json()
+        lid = body["id"]
+
+        resp = c2.get(f"/lists/{lid}/items")
+        assert resp.status_code == 200
+        body = resp.json()
+        rev = body["rev"]
+        iid = body["items"][0]["id"]
+        assert body["items"][0].get("taken_by") is None
+
+        resp = c2.post(f"/lists/{lid}/items/{iid}/taken_by", json={"rev": rev})
+        assert resp.status_code == 204
+
+        for c in [c2, c3]:
+            resp = c.get(f"/lists/{lid}/items")
+            assert resp.status_code == 200
+            body = resp.json()
+            assert body["rev"] == rev
+            assert body["items"][0].get("taken_by") == u2.id
+        
+        resp = c1.get(f"/lists/{lid}/items")
+        assert resp.status_code == 200
+        body = resp.json()
+        assert body["rev"] == rev
+        assert body["items"][0].get("taken_by") is None
+
+        for c in [c2, c3]:
+            resp = c.post(f"/lists/{lid}/items/{iid}/taken_by", json={"rev": rev})
+            assert resp.status_code == 409
+            assert resp.json() == {"reason": "already taken", "taken_by": u2.id}
+        
+        resp = c1.post(f"/lists/{lid}/items/{iid}/taken_by", json={"rev": rev})
+        assert resp.status_code == 403
+
+        resp = c1.delete(f"/lists/{lid}/items/{iid}/taken_by", params={"rev": rev})
+        assert resp.status_code == 403
+
+        resp = c3.delete(f"/lists/{lid}/items/{iid}/taken_by", params={"rev": rev})
+        assert resp.status_code == 409
+        assert resp.json() == {"reason": "not taken"}
+
+        resp = c2.delete(f"/lists/{lid}/items/{iid}/taken_by", params={"rev": rev})
+        assert resp.status_code == 204
+
+        for c in [c2, c3]:
+            resp = c.get(f"/lists/{lid}/items")
+            assert resp.status_code == 200
+            assert resp.json()["items"][0].get("taken_by") is None
+        
+        resp = c2.delete(f"/lists/{lid}/items/{iid}/taken_by", params={"rev": rev})
+        assert resp.status_code == 409
+        assert resp.json() == {"reason": "not taken"}
+
+        resp = c1.post(f"/lists/{lid}/items", json={"rev": rev, "items": [{"title": "new item"}]})
+        assert resp.status_code == 201
+        old_rev, rev = rev, resp.json()["rev"]
+
+        for c in [c2, c3]:
+            resp = c.post(f"/lists/{lid}/items/{iid}/taken_by", json={"rev": old_rev})
+            assert resp.status_code == 409
+            assert resp.json() == {"reason": "outdated revision"}
+        
+        resp = c2.post(f"/lists/{lid}/items/{iid}/taken_by", json={"rev": rev})
+        assert resp.status_code == 204
+
+        resp = c2.delete(f"/lists/{lid}/items/{iid}/taken_by", params={"rev": old_rev})
+        assert resp.status_code == 409
+        assert resp.json() == {"reason": "outdated revision"}
+
+
+
+
+
 
         
 

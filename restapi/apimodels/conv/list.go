@@ -64,8 +64,9 @@ func SwagList(l *models.List) *apimodels.List {
 
 func SwagItem(i models.ListItem) *apimodels.ListItem {
 	return &apimodels.ListItem{
-		Title: &i.Title,
-		Desc:  i.Desc,
+		Title:   &i.Title,
+		Desc:    i.Desc,
+		TakenBy: i.TakenBy,
 	}
 }
 

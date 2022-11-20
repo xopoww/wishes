@@ -27,7 +27,7 @@ func init() {
   "swagger": "2.0",
   "info": {
     "title": "Wishes API",
-    "version": "0.0.7"
+    "version": "0.0.8"
   },
   "basePath": "/api",
   "paths": {
@@ -195,7 +195,7 @@ func init() {
     },
     "/lists/{id}/items": {
       "get": {
-        "summary": "Get list items",
+        "summary": "Get list items. It client is owner, item.taken_by is omitted.",
         "operationId": "GetListItems",
         "parameters": [
           {
@@ -338,6 +338,115 @@ func init() {
       "parameters": [
         {
           "$ref": "#/parameters/PathId"
+        }
+      ]
+    },
+    "/lists/{id}/items/{item_id}/taken_by": {
+      "post": {
+        "summary": "Mark list item as taken",
+        "operationId": "PostItemTaken",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Revision"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Success"
+          },
+          "403": {
+            "description": "Access denied (this includes taking items from the list owned by the client)"
+          },
+          "404": {
+            "description": "List not found"
+          },
+          "409": {
+            "description": "Either an outdated revision, or item is already taken. See response.reason.",
+            "schema": {
+              "type": "object",
+              "required": [
+                "reason"
+              ],
+              "properties": {
+                "reason": {
+                  "type": "string",
+                  "enum": [
+                    "outdated revision",
+                    "already taken"
+                  ]
+                },
+                "taken_by": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/responses/ServerError"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Unmark previously taken item",
+        "operationId": "DeleteItemTaken",
+        "parameters": [
+          {
+            "type": "integer",
+            "name": "rev",
+            "in": "query",
+            "required": true
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Success"
+          },
+          "403": {
+            "description": "Access denied (this includes untaking items from the list owned by the client)"
+          },
+          "404": {
+            "description": "List not found"
+          },
+          "409": {
+            "description": "Either an outdated revision, or item is not taken by the client.",
+            "schema": {
+              "type": "object",
+              "required": [
+                "reason"
+              ],
+              "properties": {
+                "reason": {
+                  "type": "string",
+                  "enum": [
+                    "outdated revision",
+                    "not taken"
+                  ]
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/responses/ServerError"
+          }
+        }
+      },
+      "parameters": [
+        {
+          "$ref": "#/parameters/PathId"
+        },
+        {
+          "type": "integer",
+          "name": "item_id",
+          "in": "path",
+          "required": true
+        },
+        {
+          "$ref": "#/parameters/AccessToken"
         }
       ]
     },
@@ -552,7 +661,8 @@ func init() {
           "type": "string"
         },
         "taken_by": {
-          "type": "integer"
+          "type": "integer",
+          "x-nullable": true
         },
         "title": {
           "type": "string",
@@ -689,7 +799,7 @@ func init() {
   "swagger": "2.0",
   "info": {
     "title": "Wishes API",
-    "version": "0.0.7"
+    "version": "0.0.8"
   },
   "basePath": "/api",
   "paths": {
@@ -918,7 +1028,7 @@ func init() {
     },
     "/lists/{id}/items": {
       "get": {
-        "summary": "Get list items",
+        "summary": "Get list items. It client is owner, item.taken_by is omitted.",
         "operationId": "GetListItems",
         "parameters": [
           {
@@ -1093,6 +1203,143 @@ func init() {
           "name": "id",
           "in": "path",
           "required": true
+        }
+      ]
+    },
+    "/lists/{id}/items/{item_id}/taken_by": {
+      "post": {
+        "summary": "Mark list item as taken",
+        "operationId": "PostItemTaken",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Revision"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Success"
+          },
+          "403": {
+            "description": "Access denied (this includes taking items from the list owned by the client)"
+          },
+          "404": {
+            "description": "List not found"
+          },
+          "409": {
+            "description": "Either an outdated revision, or item is already taken. See response.reason.",
+            "schema": {
+              "type": "object",
+              "required": [
+                "reason"
+              ],
+              "properties": {
+                "reason": {
+                  "type": "string",
+                  "enum": [
+                    "outdated revision",
+                    "already taken"
+                  ]
+                },
+                "taken_by": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "schema": {
+              "type": "object",
+              "required": [
+                "error"
+              ],
+              "properties": {
+                "error": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Unmark previously taken item",
+        "operationId": "DeleteItemTaken",
+        "parameters": [
+          {
+            "type": "integer",
+            "name": "rev",
+            "in": "query",
+            "required": true
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Success"
+          },
+          "403": {
+            "description": "Access denied (this includes untaking items from the list owned by the client)"
+          },
+          "404": {
+            "description": "List not found"
+          },
+          "409": {
+            "description": "Either an outdated revision, or item is not taken by the client.",
+            "schema": {
+              "type": "object",
+              "required": [
+                "reason"
+              ],
+              "properties": {
+                "reason": {
+                  "type": "string",
+                  "enum": [
+                    "outdated revision",
+                    "not taken"
+                  ]
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "schema": {
+              "type": "object",
+              "required": [
+                "error"
+              ],
+              "properties": {
+                "error": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "parameters": [
+        {
+          "type": "integer",
+          "name": "id",
+          "in": "path",
+          "required": true
+        },
+        {
+          "type": "integer",
+          "name": "item_id",
+          "in": "path",
+          "required": true
+        },
+        {
+          "type": "string",
+          "description": "Optional access token for a list provided by list owner",
+          "name": "accessToken",
+          "in": "query"
         }
       ]
     },
@@ -1378,7 +1625,8 @@ func init() {
           "type": "string"
         },
         "taken_by": {
-          "type": "integer"
+          "type": "integer",
+          "x-nullable": true
         },
         "title": {
           "type": "string",

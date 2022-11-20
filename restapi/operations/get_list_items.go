@@ -40,7 +40,7 @@ func NewGetListItems(ctx *middleware.Context, handler GetListItemsHandler) *GetL
 /*
 	GetListItems swagger:route GET /lists/{id}/items getListItems
 
-Get list items
+Get list items. It client is owner, item.taken_by is omitted.
 */
 type GetListItems struct {
 	Context *middleware.Context

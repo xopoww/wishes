@@ -349,15 +349,98 @@ func (ac *ApiController) GetListToken() operations.GetListTokenHandler {
 	})
 }
 
-// type (
-// 	_PLACEHOLDER_StartInfo struct {}
-// 	_PLACEHOLDER_DoneInfo  struct {
-// 		Error error
-// 	}
-// )
+type (
+	OnPostItemTakenStartInfo struct {
+		List   *models.List
+		ItemID int64
+		Client *models.User
+		Token  *string
+	}
+	OnPostItemTakenDoneInfo struct {
+		Error error
+	}
+)
 
-// func (ac *ApiController) _PLACEHOLDER_() operations._PLACEHOLDER_Handler {
-// 	return operations._PLACEHOLDER_HandlerFunc(func (params operations._PLACEHOLDER_Params, p *apimodels.Principal) middleware.Responder {
+func (ac *ApiController) PostItemTaken() operations.PostItemTakenHandler {
+	return operations.PostItemTakenHandlerFunc(func(params operations.PostItemTakenParams, p *apimodels.Principal) middleware.Responder {
+		client := conv.Client(p)
+		list := &models.List{ID: params.ID, RevisionID: conv.Revision(params.Body)}
+		itemId := params.ItemID
+		token := params.AccessToken
 
-// 	})
-// }
+		onDone := traceOnPostItemTaken(ac.t, list, itemId, client, token)
+		var err error
+		defer func() { onDone(err) }()
+
+		err = ac.s.TakeItem(context.TODO(), list, itemId, client, token)
+		if errors.Is(err, service.ErrNotFound) {
+			return operations.NewPostItemTakenNotFound()
+		}
+		if errors.Is(err, service.ErrAccessDenied) {
+			return operations.NewPostItemTakenForbidden()
+		}
+		if errors.Is(err, service.ErrConflict) {
+			payload := &operations.PostItemTakenConflictBody{}
+			var errat service.ErrAlreadyTaken
+			if errors.As(err, &errat) {
+				reason := "already taken"
+				payload.Reason = &reason
+				payload.TakenBy = errat.TakenBy
+			} else {
+				reason := "outdated revision"
+				payload.Reason = &reason
+			}
+			return operations.NewPostItemTakenConflict().WithPayload(payload)
+		}
+		if err != nil {
+			return operations.NewPostItemTakenInternalServerError()
+		}
+		return operations.NewPostItemTakenNoContent()
+	})
+}
+
+type (
+	OnDeleteItemTakenStartInfo struct {
+		List   *models.List
+		ItemID int64
+		Client *models.User
+		Token  *string
+	}
+	OnDeleteItemTakenDoneInfo struct {
+		Error error
+	}
+)
+
+func (ac *ApiController) DeleteItemTaken() operations.DeleteItemTakenHandler {
+	return operations.DeleteItemTakenHandlerFunc(func(params operations.DeleteItemTakenParams, p *apimodels.Principal) middleware.Responder {
+		client := conv.Client(p)
+		list := &models.List{ID: params.ID, RevisionID: params.Rev}
+		itemId := params.ItemID
+		token := params.AccessToken
+
+		onDone := traceOnDeleteItemTaken(ac.t, list, itemId, client, token)
+		var err error
+		defer func() { onDone(err) }()
+
+		err = ac.s.UntakeItem(context.TODO(), list, itemId, client, token)
+		if errors.Is(err, service.ErrNotFound) {
+			return operations.NewDeleteItemTakenNotFound()
+		}
+		if errors.Is(err, service.ErrAccessDenied) {
+			return operations.NewDeleteItemTakenForbidden()
+		}
+		if errors.Is(err, service.ErrConflict) {
+			var reason string
+			if errors.Is(err, service.ErrOutdated) {
+				reason = "outdated revision"
+			} else {
+				reason = "not taken"
+			}
+			return operations.NewDeleteItemTakenConflict().WithPayload(&operations.DeleteItemTakenConflictBody{Reason: &reason})
+		}
+		if err != nil {
+			return operations.NewDeleteItemTakenInternalServerError()
+		}
+		return operations.NewDeleteItemTakenNoContent()
+	})
+}

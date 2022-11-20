@@ -17,6 +17,18 @@ var (
 	ErrOutdated = fmt.Errorf("%w: outdated revision", ErrConflict)
 )
 
+type ErrAlreadyTaken struct {
+	TakenBy int64
+}
+
+func (err ErrAlreadyTaken) Error() string {
+	return fmt.Sprintf("%s: already taken by %d", ErrConflict, err.TakenBy)
+}
+
+func (err ErrAlreadyTaken) Unwrap() error {
+	return ErrConflict
+}
+
 type Service interface {
 	Auth(ctx context.Context, token string) (*models.User, error)
 

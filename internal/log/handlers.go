@@ -313,6 +313,62 @@ func Handlers(l zerolog.Logger) (t handlers.Trace) {
 			}
 		}
 	}
+	t.OnPostItemTaken = func(si handlers.OnPostItemTakenStartInfo) func(handlers.OnPostItemTakenDoneInfo) {
+		return func(di handlers.OnPostItemTakenDoneInfo) {
+			if di.Error != nil {
+				l.Error().
+					Int64("list_id", si.List.ID).
+					Int64("revision", si.List.RevisionID).
+					Int64("item_id", si.ItemID).
+					Dict("client", zerolog.Dict().
+						Str("name", si.Client.Name).
+						Int64("id", si.Client.ID),
+					).
+					Bool("token", si.Token != nil).
+					Err(di.Error).
+					Msg("post item taken error")
+			} else {
+				l.Debug().
+					Int64("list_id", si.List.ID).
+					Int64("revision", si.List.RevisionID).
+					Int64("item_id", si.ItemID).
+					Dict("client", zerolog.Dict().
+						Str("name", si.Client.Name).
+						Int64("id", si.Client.ID),
+					).
+					Bool("token", si.Token != nil).
+					Msg("post item taken done")
+			}
+		}
+	}
+	t.OnDeleteItemTaken = func(si handlers.OnDeleteItemTakenStartInfo) func(handlers.OnDeleteItemTakenDoneInfo) {
+		return func(di handlers.OnDeleteItemTakenDoneInfo) {
+			if di.Error != nil {
+				l.Error().
+					Int64("list_id", si.List.ID).
+					Int64("revision", si.List.RevisionID).
+					Int64("item_id", si.ItemID).
+					Dict("client", zerolog.Dict().
+						Str("name", si.Client.Name).
+						Int64("id", si.Client.ID),
+					).
+					Bool("token", si.Token != nil).
+					Err(di.Error).
+					Msg("delete item taken error")
+			} else {
+				l.Debug().
+					Int64("list_id", si.List.ID).
+					Int64("revision", si.List.RevisionID).
+					Int64("item_id", si.ItemID).
+					Dict("client", zerolog.Dict().
+						Str("name", si.Client.Name).
+						Int64("id", si.Client.ID),
+					).
+					Bool("token", si.Token != nil).
+					Msg("delete item taken done")
+			}
+		}
+	}
 
 	return t
 }

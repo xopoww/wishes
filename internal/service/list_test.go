@@ -542,8 +542,9 @@ func TestTakeItem(t *testing.T) {
 	tx.EXPECT().Rollback().Return(nil)
 
 	err = s.TakeItem(ctx, list, iid, b, nil)
-	if !errors.Is(err, service.ErrConflict) {
-		t.Errorf("already taken: want %+v, got %+v", service.ErrConflict, err)
+	var serr service.ErrAlreadyTaken
+	if !errors.As(err, &serr) || serr.TakenBy != taken {
+		t.Errorf("already taken: want %+v, got %+v", service.ErrAlreadyTaken{taken}, err)
 	}
 
 	// bad revision

@@ -322,6 +322,54 @@ func (t Trace) Compose(x Trace) (ret Trace) {
 		}
 	}
 	switch {
+	case t.OnPostItemTaken == nil:
+		ret.OnPostItemTaken = x.OnPostItemTaken
+	case x.OnPostItemTaken == nil:
+		ret.OnPostItemTaken = t.OnPostItemTaken
+	default:
+		h1 := t.OnPostItemTaken
+		h2 := x.OnPostItemTaken
+		ret.OnPostItemTaken = func(o OnPostItemTakenStartInfo) func(OnPostItemTakenDoneInfo) {
+			r1 := h1(o)
+			r2 := h2(o)
+			switch {
+			case r1 == nil:
+				return r2
+			case r2 == nil:
+				return r1
+			default:
+				return func(o OnPostItemTakenDoneInfo) {
+					r1(o)
+					r2(o)
+				}
+			}
+		}
+	}
+	switch {
+	case t.OnDeleteItemTaken == nil:
+		ret.OnDeleteItemTaken = x.OnDeleteItemTaken
+	case x.OnDeleteItemTaken == nil:
+		ret.OnDeleteItemTaken = t.OnDeleteItemTaken
+	default:
+		h1 := t.OnDeleteItemTaken
+		h2 := x.OnDeleteItemTaken
+		ret.OnDeleteItemTaken = func(o OnDeleteItemTakenStartInfo) func(OnDeleteItemTakenDoneInfo) {
+			r1 := h1(o)
+			r2 := h2(o)
+			switch {
+			case r1 == nil:
+				return r2
+			case r2 == nil:
+				return r1
+			default:
+				return func(o OnDeleteItemTakenDoneInfo) {
+					r1(o)
+					r2(o)
+				}
+			}
+		}
+	}
+	switch {
 	case t.OnKeySecurityAuth == nil:
 		ret.OnKeySecurityAuth = x.OnKeySecurityAuth
 	case x.OnKeySecurityAuth == nil:
@@ -542,6 +590,36 @@ func (t Trace) onGetListToken(o OnGetListTokenStartInfo) func(OnGetListTokenDone
 	}
 	return res
 }
+func (t Trace) onPostItemTaken(o OnPostItemTakenStartInfo) func(OnPostItemTakenDoneInfo) {
+	fn := t.OnPostItemTaken
+	if fn == nil {
+		return func(OnPostItemTakenDoneInfo) {
+			return
+		}
+	}
+	res := fn(o)
+	if res == nil {
+		return func(OnPostItemTakenDoneInfo) {
+			return
+		}
+	}
+	return res
+}
+func (t Trace) onDeleteItemTaken(o OnDeleteItemTakenStartInfo) func(OnDeleteItemTakenDoneInfo) {
+	fn := t.OnDeleteItemTaken
+	if fn == nil {
+		return func(OnDeleteItemTakenDoneInfo) {
+			return
+		}
+	}
+	res := fn(o)
+	if res == nil {
+		return func(OnDeleteItemTakenDoneInfo) {
+			return
+		}
+	}
+	return res
+}
 func (t Trace) onKeySecurityAuth(o OnKeySecurityAuthStartInfo) func(OnKeySecurityAuthDoneInfo) {
 	fn := t.OnKeySecurityAuth
 	if fn == nil {
@@ -705,6 +783,32 @@ func traceOnGetListToken(t Trace, listID int64, client *models.User) func(error)
 	res := t.onGetListToken(p)
 	return func(e error) {
 		var p OnGetListTokenDoneInfo
+		p.Error = e
+		res(p)
+	}
+}
+func traceOnPostItemTaken(t Trace, l *models.List, itemID int64, client *models.User, token *string) func(error) {
+	var p OnPostItemTakenStartInfo
+	p.List = l
+	p.ItemID = itemID
+	p.Client = client
+	p.Token = token
+	res := t.onPostItemTaken(p)
+	return func(e error) {
+		var p OnPostItemTakenDoneInfo
+		p.Error = e
+		res(p)
+	}
+}
+func traceOnDeleteItemTaken(t Trace, l *models.List, itemID int64, client *models.User, token *string) func(error) {
+	var p OnDeleteItemTakenStartInfo
+	p.List = l
+	p.ItemID = itemID
+	p.Client = client
+	p.Token = token
+	res := t.onDeleteItemTaken(p)
+	return func(e error) {
+		var p OnDeleteItemTakenDoneInfo
 		p.Error = e
 		res(p)
 	}

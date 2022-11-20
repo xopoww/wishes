@@ -44,6 +44,9 @@ func NewWishesAPI(spec *loads.Document) *WishesAPI {
 
 		JSONProducer: runtime.JSONProducer(),
 
+		DeleteItemTakenHandler: DeleteItemTakenHandlerFunc(func(params DeleteItemTakenParams, principal *apimodels.Principal) middleware.Responder {
+			return middleware.NotImplemented("operation DeleteItemTaken has not yet been implemented")
+		}),
 		DeleteListHandler: DeleteListHandlerFunc(func(params DeleteListParams, principal *apimodels.Principal) middleware.Responder {
 			return middleware.NotImplemented("operation DeleteList has not yet been implemented")
 		}),
@@ -73,6 +76,9 @@ func NewWishesAPI(spec *loads.Document) *WishesAPI {
 		}),
 		PatchUserHandler: PatchUserHandlerFunc(func(params PatchUserParams, principal *apimodels.Principal) middleware.Responder {
 			return middleware.NotImplemented("operation PatchUser has not yet been implemented")
+		}),
+		PostItemTakenHandler: PostItemTakenHandlerFunc(func(params PostItemTakenParams, principal *apimodels.Principal) middleware.Responder {
+			return middleware.NotImplemented("operation PostItemTaken has not yet been implemented")
 		}),
 		PostListHandler: PostListHandlerFunc(func(params PostListParams, principal *apimodels.Principal) middleware.Responder {
 			return middleware.NotImplemented("operation PostList has not yet been implemented")
@@ -133,6 +139,8 @@ type WishesAPI struct {
 	// APIAuthorizer provides access control (ACL/RBAC/ABAC) by providing access to the request and authenticated principal
 	APIAuthorizer runtime.Authorizer
 
+	// DeleteItemTakenHandler sets the operation handler for the delete item taken operation
+	DeleteItemTakenHandler DeleteItemTakenHandler
 	// DeleteListHandler sets the operation handler for the delete list operation
 	DeleteListHandler DeleteListHandler
 	// DeleteListItemsHandler sets the operation handler for the delete list items operation
@@ -153,6 +161,8 @@ type WishesAPI struct {
 	PatchListHandler PatchListHandler
 	// PatchUserHandler sets the operation handler for the patch user operation
 	PatchUserHandler PatchUserHandler
+	// PostItemTakenHandler sets the operation handler for the post item taken operation
+	PostItemTakenHandler PostItemTakenHandler
 	// PostListHandler sets the operation handler for the post list operation
 	PostListHandler PostListHandler
 	// PostListItemsHandler sets the operation handler for the post list items operation
@@ -240,6 +250,9 @@ func (o *WishesAPI) Validate() error {
 		unregistered = append(unregistered, "XTokenAuth")
 	}
 
+	if o.DeleteItemTakenHandler == nil {
+		unregistered = append(unregistered, "DeleteItemTakenHandler")
+	}
 	if o.DeleteListHandler == nil {
 		unregistered = append(unregistered, "DeleteListHandler")
 	}
@@ -269,6 +282,9 @@ func (o *WishesAPI) Validate() error {
 	}
 	if o.PatchUserHandler == nil {
 		unregistered = append(unregistered, "PatchUserHandler")
+	}
+	if o.PostItemTakenHandler == nil {
+		unregistered = append(unregistered, "PostItemTakenHandler")
 	}
 	if o.PostListHandler == nil {
 		unregistered = append(unregistered, "PostListHandler")
@@ -381,6 +397,10 @@ func (o *WishesAPI) initHandlerCache() {
 	if o.handlers["DELETE"] == nil {
 		o.handlers["DELETE"] = make(map[string]http.Handler)
 	}
+	o.handlers["DELETE"]["/lists/{id}/items/{item_id}/taken_by"] = NewDeleteItemTaken(o.context, o.DeleteItemTakenHandler)
+	if o.handlers["DELETE"] == nil {
+		o.handlers["DELETE"] = make(map[string]http.Handler)
+	}
 	o.handlers["DELETE"]["/lists/{id}"] = NewDeleteList(o.context, o.DeleteListHandler)
 	if o.handlers["DELETE"] == nil {
 		o.handlers["DELETE"] = make(map[string]http.Handler)
@@ -418,6 +438,10 @@ func (o *WishesAPI) initHandlerCache() {
 		o.handlers["PATCH"] = make(map[string]http.Handler)
 	}
 	o.handlers["PATCH"]["/users/{id}"] = NewPatchUser(o.context, o.PatchUserHandler)
+	if o.handlers["POST"] == nil {
+		o.handlers["POST"] = make(map[string]http.Handler)
+	}
+	o.handlers["POST"]["/lists/{id}/items/{item_id}/taken_by"] = NewPostItemTaken(o.context, o.PostItemTakenHandler)
 	if o.handlers["POST"] == nil {
 		o.handlers["POST"] = make(map[string]http.Handler)
 	}

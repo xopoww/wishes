@@ -212,7 +212,7 @@ func (s *service) TakeItem(ctx context.Context, list *models.List, itemId int64,
 	}
 	if taken != nil {
 		_ = tx.Rollback()
-		return ErrConflict
+		return ErrAlreadyTaken{*taken}
 	}
 	err = tx.SetItemTaken(ctx, list.ID, itemId, &client.ID)
 	if err != nil {

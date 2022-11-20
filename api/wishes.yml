@@ -2,7 +2,7 @@ swagger: '2.0'
 
 info:
   title: Wishes API
-  version: 0.0.7
+  version: 0.0.8
 
 basePath: /api
 
@@ -210,7 +210,7 @@ paths:
     get:
       parameters:
       - $ref: "#/parameters/AccessToken"
-      summary: Get list items
+      summary: Get list items. It client is owner, item.taken_by is omitted.
       operationId: GetListItems
       responses:
         200:
@@ -285,6 +285,70 @@ paths:
           description: Outdated revision
         403:
           description: Access denied
+        404:
+          description: List not found
+        500:
+          $ref: "#/responses/ServerError"
+  
+  /lists/{id}/items/{item_id}/taken_by:
+    parameters:
+    - $ref: "#/parameters/PathId"
+    - name: item_id
+      in: path
+      type: integer
+      required: true
+    - $ref: "#/parameters/AccessToken"
+    post:
+      summary: Mark list item as taken
+      operationId: PostItemTaken
+      parameters:
+      - name: body
+        in: body
+        schema:
+          $ref: "#/definitions/Revision"
+        required: true
+      responses:
+        204:
+          description: Success
+        409:
+          description: Either an outdated revision, or item is already taken. See response.reason.
+          schema:
+            type: object
+            properties:
+              reason:
+                type: string
+                enum: ["outdated revision", "already taken"]
+              taken_by:
+                type: integer
+            required: ["reason"]
+        403:
+          description: Access denied (this includes taking items from the list owned by the client)
+        404:
+          description: List not found
+        500:
+          $ref: "#/responses/ServerError"
+    delete:
+      summary: Unmark previously taken item
+      operationId: DeleteItemTaken
+      parameters:
+      - name: rev
+        in: query
+        type: integer
+        required: true
+      responses:
+        204:
+          description: Success
+        409:
+          description: Either an outdated revision, or item is not taken by the client.
+          schema:
+            type: object
+            properties:
+              reason:
+                type: string
+                enum: ["outdated revision", "not taken"]
+            required: ["reason"]
+        403:
+          description: Access denied (this includes untaking items from the list owned by the client)
         404:
           description: List not found
         500:
@@ -419,4 +483,5 @@ definitions:
         type: string
       taken_by:
         type: integer
+        x-nullable: true
     required: [title]

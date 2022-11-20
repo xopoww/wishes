@@ -20,6 +20,8 @@ type Trace struct {
 	OnDeleteListItems func(OnDeleteListItemsStartInfo) func(OnDeleteListItemsDoneInfo)
 	OnGetUserLists    func(OnGetUserListsStartInfo) func(OnGetUserListsDoneInfo)
 	OnGetListToken    func(OnGetListTokenStartInfo) func(OnGetListTokenDoneInfo)
+	OnPostItemTaken   func(OnPostItemTakenStartInfo) func(OnPostItemTakenDoneInfo)
+	OnDeleteItemTaken func(OnDeleteItemTakenStartInfo) func(OnDeleteItemTakenDoneInfo)
 
 	OnKeySecurityAuth func(OnKeySecurityAuthStartInfo) func(OnKeySecurityAuthDoneInfo)
 }
