@@ -95,11 +95,6 @@ PatchListInternalServerError Server error
 swagger:response patchListInternalServerError
 */
 type PatchListInternalServerError struct {
-
-	/*
-	  In: Body
-	*/
-	Payload *PatchListInternalServerErrorBody `json:"body,omitempty"`
 }
 
 // NewPatchListInternalServerError creates PatchListInternalServerError with default headers values
@@ -108,25 +103,10 @@ func NewPatchListInternalServerError() *PatchListInternalServerError {
 	return &PatchListInternalServerError{}
 }
 
-// WithPayload adds the payload to the patch list internal server error response
-func (o *PatchListInternalServerError) WithPayload(payload *PatchListInternalServerErrorBody) *PatchListInternalServerError {
-	o.Payload = payload
-	return o
-}
-
-// SetPayload sets the payload to the patch list internal server error response
-func (o *PatchListInternalServerError) SetPayload(payload *PatchListInternalServerErrorBody) {
-	o.Payload = payload
-}
-
 // WriteResponse to the client
 func (o *PatchListInternalServerError) WriteResponse(rw http.ResponseWriter, producer runtime.Producer) {
 
+	rw.Header().Del(runtime.HeaderContentType) //Remove Content-Type on empty responses
+
 	rw.WriteHeader(500)
-	if o.Payload != nil {
-		payload := o.Payload
-		if err := producer.Produce(rw, payload); err != nil {
-			panic(err) // let the recovery middleware deal with this
-		}
-	}
 }

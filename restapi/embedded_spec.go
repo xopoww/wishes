@@ -33,6 +33,9 @@ func init() {
   "paths": {
     "/lists": {
       "get": {
+        "tags": [
+          "Lists"
+        ],
         "summary": "Get user list IDs (visible by client)",
         "operationId": "GetUserLists",
         "parameters": [
@@ -63,6 +66,9 @@ func init() {
         }
       },
       "post": {
+        "tags": [
+          "Lists"
+        ],
         "summary": "Create new list",
         "operationId": "PostList",
         "parameters": [
@@ -112,6 +118,9 @@ func init() {
     },
     "/lists/{id}": {
       "get": {
+        "tags": [
+          "Lists"
+        ],
         "summary": "Get list info (title, etc)",
         "operationId": "GetList",
         "parameters": [
@@ -138,6 +147,9 @@ func init() {
         }
       },
       "delete": {
+        "tags": [
+          "Lists"
+        ],
         "summary": "Delete existing list",
         "operationId": "DeleteList",
         "responses": {
@@ -156,6 +168,9 @@ func init() {
         }
       },
       "patch": {
+        "tags": [
+          "Lists"
+        ],
         "summary": "Edit existing list (not list items)",
         "operationId": "PatchList",
         "parameters": [
@@ -195,6 +210,9 @@ func init() {
     },
     "/lists/{id}/items": {
       "get": {
+        "tags": [
+          "Items"
+        ],
         "summary": "Get list items. It client is owner, item.taken_by is omitted.",
         "operationId": "GetListItems",
         "parameters": [
@@ -243,6 +261,9 @@ func init() {
         }
       },
       "post": {
+        "tags": [
+          "Items"
+        ],
         "summary": "Add items to existing list",
         "operationId": "PostListItems",
         "parameters": [
@@ -294,6 +315,9 @@ func init() {
         }
       },
       "delete": {
+        "tags": [
+          "Items"
+        ],
         "summary": "Delete items from existing list",
         "operationId": "DeleteListItems",
         "parameters": [
@@ -343,6 +367,9 @@ func init() {
     },
     "/lists/{id}/items/{item_id}/taken_by": {
       "post": {
+        "tags": [
+          "Items"
+        ],
         "summary": "Mark list item as taken",
         "operationId": "PostItemTaken",
         "parameters": [
@@ -392,6 +419,9 @@ func init() {
         }
       },
       "delete": {
+        "tags": [
+          "Items"
+        ],
         "summary": "Unmark previously taken item",
         "operationId": "DeleteItemTaken",
         "parameters": [
@@ -452,6 +482,9 @@ func init() {
     },
     "/lists/{id}/token": {
       "get": {
+        "tags": [
+          "Lists"
+        ],
         "summary": "Get access token for a list",
         "operationId": "GetListToken",
         "responses": {
@@ -486,7 +519,10 @@ func init() {
     "/login": {
       "post": {
         "security": [],
-        "description": "Return api token for authorized User",
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Return api token for authorized User",
         "operationId": "Login",
         "parameters": [
           {
@@ -525,6 +561,9 @@ func init() {
     "/users": {
       "post": {
         "security": [],
+        "tags": [
+          "Users"
+        ],
         "summary": "Register new user",
         "operationId": "Register",
         "parameters": [
@@ -566,6 +605,9 @@ func init() {
     },
     "/users/{id}": {
       "get": {
+        "tags": [
+          "Users"
+        ],
         "summary": "Get user info",
         "operationId": "GetUser",
         "responses": {
@@ -584,6 +626,9 @@ func init() {
         }
       },
       "patch": {
+        "tags": [
+          "Users"
+        ],
         "summary": "Edit user info",
         "operationId": "PatchUser",
         "parameters": [
@@ -762,18 +807,7 @@ func init() {
   },
   "responses": {
     "ServerError": {
-      "description": "Server error",
-      "schema": {
-        "type": "object",
-        "required": [
-          "error"
-        ],
-        "properties": {
-          "error": {
-            "type": "string"
-          }
-        }
-      }
+      "description": "Server error"
     }
   },
   "securityDefinitions": {
@@ -786,6 +820,24 @@ func init() {
   "security": [
     {
       "KeySecurity": []
+    }
+  ],
+  "tags": [
+    {
+      "description": "Operations related to user authentication/authorization",
+      "name": "Auth"
+    },
+    {
+      "description": "Opertations related to users",
+      "name": "Users"
+    },
+    {
+      "description": "Operations related to wishlists",
+      "name": "Lists"
+    },
+    {
+      "description": "Operations related to wishlist items",
+      "name": "Items"
     }
   ]
 }`))
@@ -805,6 +857,9 @@ func init() {
   "paths": {
     "/lists": {
       "get": {
+        "tags": [
+          "Lists"
+        ],
         "summary": "Get user list IDs (visible by client)",
         "operationId": "GetUserLists",
         "parameters": [
@@ -830,22 +885,14 @@ func init() {
             "description": "User not found"
           },
           "500": {
-            "description": "Server error",
-            "schema": {
-              "type": "object",
-              "required": [
-                "error"
-              ],
-              "properties": {
-                "error": {
-                  "type": "string"
-                }
-              }
-            }
+            "description": "Server error"
           }
         }
       },
       "post": {
+        "tags": [
+          "Lists"
+        ],
         "summary": "Create new list",
         "operationId": "PostList",
         "parameters": [
@@ -888,24 +935,16 @@ func init() {
             }
           },
           "500": {
-            "description": "Server error",
-            "schema": {
-              "type": "object",
-              "required": [
-                "error"
-              ],
-              "properties": {
-                "error": {
-                  "type": "string"
-                }
-              }
-            }
+            "description": "Server error"
           }
         }
       }
     },
     "/lists/{id}": {
       "get": {
+        "tags": [
+          "Lists"
+        ],
         "summary": "Get list info (title, etc)",
         "operationId": "GetList",
         "parameters": [
@@ -930,22 +969,14 @@ func init() {
             "description": "List not found"
           },
           "500": {
-            "description": "Server error",
-            "schema": {
-              "type": "object",
-              "required": [
-                "error"
-              ],
-              "properties": {
-                "error": {
-                  "type": "string"
-                }
-              }
-            }
+            "description": "Server error"
           }
         }
       },
       "delete": {
+        "tags": [
+          "Lists"
+        ],
         "summary": "Delete existing list",
         "operationId": "DeleteList",
         "responses": {
@@ -959,22 +990,14 @@ func init() {
             "description": "List not found"
           },
           "500": {
-            "description": "Server error",
-            "schema": {
-              "type": "object",
-              "required": [
-                "error"
-              ],
-              "properties": {
-                "error": {
-                  "type": "string"
-                }
-              }
-            }
+            "description": "Server error"
           }
         }
       },
       "patch": {
+        "tags": [
+          "Lists"
+        ],
         "summary": "Edit existing list (not list items)",
         "operationId": "PatchList",
         "parameters": [
@@ -1002,18 +1025,7 @@ func init() {
             "description": "List not found"
           },
           "500": {
-            "description": "Server error",
-            "schema": {
-              "type": "object",
-              "required": [
-                "error"
-              ],
-              "properties": {
-                "error": {
-                  "type": "string"
-                }
-              }
-            }
+            "description": "Server error"
           }
         }
       },
@@ -1028,6 +1040,9 @@ func init() {
     },
     "/lists/{id}/items": {
       "get": {
+        "tags": [
+          "Items"
+        ],
         "summary": "Get list items. It client is owner, item.taken_by is omitted.",
         "operationId": "GetListItems",
         "parameters": [
@@ -1067,22 +1082,14 @@ func init() {
             "description": "List not found"
           },
           "500": {
-            "description": "Server error",
-            "schema": {
-              "type": "object",
-              "required": [
-                "error"
-              ],
-              "properties": {
-                "error": {
-                  "type": "string"
-                }
-              }
-            }
+            "description": "Server error"
           }
         }
       },
       "post": {
+        "tags": [
+          "Items"
+        ],
         "summary": "Add items to existing list",
         "operationId": "PostListItems",
         "parameters": [
@@ -1129,22 +1136,14 @@ func init() {
             "description": "Outdated revision"
           },
           "500": {
-            "description": "Server error",
-            "schema": {
-              "type": "object",
-              "required": [
-                "error"
-              ],
-              "properties": {
-                "error": {
-                  "type": "string"
-                }
-              }
-            }
+            "description": "Server error"
           }
         }
       },
       "delete": {
+        "tags": [
+          "Items"
+        ],
         "summary": "Delete items from existing list",
         "operationId": "DeleteListItems",
         "parameters": [
@@ -1182,18 +1181,7 @@ func init() {
             "description": "Outdated revision"
           },
           "500": {
-            "description": "Server error",
-            "schema": {
-              "type": "object",
-              "required": [
-                "error"
-              ],
-              "properties": {
-                "error": {
-                  "type": "string"
-                }
-              }
-            }
+            "description": "Server error"
           }
         }
       },
@@ -1208,6 +1196,9 @@ func init() {
     },
     "/lists/{id}/items/{item_id}/taken_by": {
       "post": {
+        "tags": [
+          "Items"
+        ],
         "summary": "Mark list item as taken",
         "operationId": "PostItemTaken",
         "parameters": [
@@ -1252,22 +1243,14 @@ func init() {
             }
           },
           "500": {
-            "description": "Server error",
-            "schema": {
-              "type": "object",
-              "required": [
-                "error"
-              ],
-              "properties": {
-                "error": {
-                  "type": "string"
-                }
-              }
-            }
+            "description": "Server error"
           }
         }
       },
       "delete": {
+        "tags": [
+          "Items"
+        ],
         "summary": "Unmark previously taken item",
         "operationId": "DeleteItemTaken",
         "parameters": [
@@ -1307,18 +1290,7 @@ func init() {
             }
           },
           "500": {
-            "description": "Server error",
-            "schema": {
-              "type": "object",
-              "required": [
-                "error"
-              ],
-              "properties": {
-                "error": {
-                  "type": "string"
-                }
-              }
-            }
+            "description": "Server error"
           }
         }
       },
@@ -1345,6 +1317,9 @@ func init() {
     },
     "/lists/{id}/token": {
       "get": {
+        "tags": [
+          "Lists"
+        ],
         "summary": "Get access token for a list",
         "operationId": "GetListToken",
         "responses": {
@@ -1366,18 +1341,7 @@ func init() {
             "description": "List not found"
           },
           "500": {
-            "description": "Server error",
-            "schema": {
-              "type": "object",
-              "required": [
-                "error"
-              ],
-              "properties": {
-                "error": {
-                  "type": "string"
-                }
-              }
-            }
+            "description": "Server error"
           }
         }
       },
@@ -1393,7 +1357,10 @@ func init() {
     "/login": {
       "post": {
         "security": [],
-        "description": "Return api token for authorized User",
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Return api token for authorized User",
         "operationId": "Login",
         "parameters": [
           {
@@ -1424,18 +1391,7 @@ func init() {
             }
           },
           "500": {
-            "description": "Server error",
-            "schema": {
-              "type": "object",
-              "required": [
-                "error"
-              ],
-              "properties": {
-                "error": {
-                  "type": "string"
-                }
-              }
-            }
+            "description": "Server error"
           }
         }
       }
@@ -1443,6 +1399,9 @@ func init() {
     "/users": {
       "post": {
         "security": [],
+        "tags": [
+          "Users"
+        ],
         "summary": "Register new user",
         "operationId": "Register",
         "parameters": [
@@ -1477,24 +1436,16 @@ func init() {
             }
           },
           "500": {
-            "description": "Server error",
-            "schema": {
-              "type": "object",
-              "required": [
-                "error"
-              ],
-              "properties": {
-                "error": {
-                  "type": "string"
-                }
-              }
-            }
+            "description": "Server error"
           }
         }
       }
     },
     "/users/{id}": {
       "get": {
+        "tags": [
+          "Users"
+        ],
         "summary": "Get user info",
         "operationId": "GetUser",
         "responses": {
@@ -1508,22 +1459,14 @@ func init() {
             "description": "User not found"
           },
           "500": {
-            "description": "Server error",
-            "schema": {
-              "type": "object",
-              "required": [
-                "error"
-              ],
-              "properties": {
-                "error": {
-                  "type": "string"
-                }
-              }
-            }
+            "description": "Server error"
           }
         }
       },
       "patch": {
+        "tags": [
+          "Users"
+        ],
         "summary": "Edit user info",
         "operationId": "PatchUser",
         "parameters": [
@@ -1544,18 +1487,7 @@ func init() {
             "description": "Access denied"
           },
           "500": {
-            "description": "Server error",
-            "schema": {
-              "type": "object",
-              "required": [
-                "error"
-              ],
-              "properties": {
-                "error": {
-                  "type": "string"
-                }
-              }
-            }
+            "description": "Server error"
           }
         }
       },
@@ -1726,18 +1658,7 @@ func init() {
   },
   "responses": {
     "ServerError": {
-      "description": "Server error",
-      "schema": {
-        "type": "object",
-        "required": [
-          "error"
-        ],
-        "properties": {
-          "error": {
-            "type": "string"
-          }
-        }
-      }
+      "description": "Server error"
     }
   },
   "securityDefinitions": {
@@ -1750,6 +1671,24 @@ func init() {
   "security": [
     {
       "KeySecurity": []
+    }
+  ],
+  "tags": [
+    {
+      "description": "Operations related to user authentication/authorization",
+      "name": "Auth"
+    },
+    {
+      "description": "Opertations related to users",
+      "name": "Users"
+    },
+    {
+      "description": "Operations related to wishlists",
+      "name": "Lists"
+    },
+    {
+      "description": "Operations related to wishlist items",
+      "name": "Items"
     }
   ]
 }`))

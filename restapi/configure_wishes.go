@@ -24,7 +24,7 @@ import (
 )
 
 //go:generate go run ./clean.go --quiet
-//go:generate swagger generate server --quiet --target ../../wishes --name Wishes --spec ../api/wishes.yml --principal apimodels.Principal -m restapi/apimodels
+//go:generate swagger generate server --quiet --target ../../wishes --name Wishes --spec ../api/wishes.yml --principal apimodels.Principal -m restapi/apimodels --skip-tag-packages
 
 func configureFlags(api *operations.WishesAPI) {
 	// api.CommandLineOptionsGroups = []swag.CommandLineOptionsGroup{ ... }
@@ -59,7 +59,7 @@ func configureAPI(api *operations.WishesAPI) http.Handler {
 
 	api.UseSwaggerUI()
 	// To continue using redoc as your UI, uncomment the following line
-	// api.UseRedoc()
+	api.UseRedoc()
 
 	api.JSONConsumer = runtime.JSONConsumer()
 

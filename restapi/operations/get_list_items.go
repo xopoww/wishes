@@ -14,7 +14,6 @@ import (
 	"github.com/go-openapi/runtime/middleware"
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
-	"github.com/go-openapi/validate"
 
 	"github.com/xopoww/wishes/restapi/apimodels"
 )
@@ -38,7 +37,7 @@ func NewGetListItems(ctx *middleware.Context, handler GetListItemsHandler) *GetL
 }
 
 /*
-	GetListItems swagger:route GET /lists/{id}/items getListItems
+	GetListItems swagger:route GET /lists/{id}/items Items getListItems
 
 Get list items. It client is owner, item.taken_by is omitted.
 */
@@ -74,62 +73,6 @@ func (o *GetListItems) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	res := o.Handler.Handle(Params, principal) // actually handle the request
 	o.Context.Respond(rw, r, route.Produces, route, res)
 
-}
-
-// GetListItemsInternalServerErrorBody get list items internal server error body
-//
-// swagger:model GetListItemsInternalServerErrorBody
-type GetListItemsInternalServerErrorBody struct {
-
-	// error
-	// Required: true
-	Error *string `json:"error"`
-}
-
-// Validate validates this get list items internal server error body
-func (o *GetListItemsInternalServerErrorBody) Validate(formats strfmt.Registry) error {
-	var res []error
-
-	if err := o.validateError(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if len(res) > 0 {
-		return errors.CompositeValidationError(res...)
-	}
-	return nil
-}
-
-func (o *GetListItemsInternalServerErrorBody) validateError(formats strfmt.Registry) error {
-
-	if err := validate.Required("getListItemsInternalServerError"+"."+"error", "body", o.Error); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// ContextValidate validates this get list items internal server error body based on context it is used
-func (o *GetListItemsInternalServerErrorBody) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
-	return nil
-}
-
-// MarshalBinary interface implementation
-func (o *GetListItemsInternalServerErrorBody) MarshalBinary() ([]byte, error) {
-	if o == nil {
-		return nil, nil
-	}
-	return swag.WriteJSON(o)
-}
-
-// UnmarshalBinary interface implementation
-func (o *GetListItemsInternalServerErrorBody) UnmarshalBinary(b []byte) error {
-	var res GetListItemsInternalServerErrorBody
-	if err := swag.ReadJSON(b, &res); err != nil {
-		return err
-	}
-	*o = res
-	return nil
 }
 
 // GetListItemsOKBody get list items o k body

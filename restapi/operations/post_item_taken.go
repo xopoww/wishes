@@ -38,7 +38,7 @@ func NewPostItemTaken(ctx *middleware.Context, handler PostItemTakenHandler) *Po
 }
 
 /*
-	PostItemTaken swagger:route POST /lists/{id}/items/{item_id}/taken_by postItemTaken
+	PostItemTaken swagger:route POST /lists/{id}/items/{item_id}/taken_by Items postItemTaken
 
 Mark list item as taken
 */
@@ -163,62 +163,6 @@ func (o *PostItemTakenConflictBody) MarshalBinary() ([]byte, error) {
 // UnmarshalBinary interface implementation
 func (o *PostItemTakenConflictBody) UnmarshalBinary(b []byte) error {
 	var res PostItemTakenConflictBody
-	if err := swag.ReadJSON(b, &res); err != nil {
-		return err
-	}
-	*o = res
-	return nil
-}
-
-// PostItemTakenInternalServerErrorBody post item taken internal server error body
-//
-// swagger:model PostItemTakenInternalServerErrorBody
-type PostItemTakenInternalServerErrorBody struct {
-
-	// error
-	// Required: true
-	Error *string `json:"error"`
-}
-
-// Validate validates this post item taken internal server error body
-func (o *PostItemTakenInternalServerErrorBody) Validate(formats strfmt.Registry) error {
-	var res []error
-
-	if err := o.validateError(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if len(res) > 0 {
-		return errors.CompositeValidationError(res...)
-	}
-	return nil
-}
-
-func (o *PostItemTakenInternalServerErrorBody) validateError(formats strfmt.Registry) error {
-
-	if err := validate.Required("postItemTakenInternalServerError"+"."+"error", "body", o.Error); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// ContextValidate validates this post item taken internal server error body based on context it is used
-func (o *PostItemTakenInternalServerErrorBody) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
-	return nil
-}
-
-// MarshalBinary interface implementation
-func (o *PostItemTakenInternalServerErrorBody) MarshalBinary() ([]byte, error) {
-	if o == nil {
-		return nil, nil
-	}
-	return swag.WriteJSON(o)
-}
-
-// UnmarshalBinary interface implementation
-func (o *PostItemTakenInternalServerErrorBody) UnmarshalBinary(b []byte) error {
-	var res PostItemTakenInternalServerErrorBody
 	if err := swag.ReadJSON(b, &res); err != nil {
 		return err
 	}

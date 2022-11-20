@@ -140,11 +140,6 @@ DeleteItemTakenInternalServerError Server error
 swagger:response deleteItemTakenInternalServerError
 */
 type DeleteItemTakenInternalServerError struct {
-
-	/*
-	  In: Body
-	*/
-	Payload *DeleteItemTakenInternalServerErrorBody `json:"body,omitempty"`
 }
 
 // NewDeleteItemTakenInternalServerError creates DeleteItemTakenInternalServerError with default headers values
@@ -153,25 +148,10 @@ func NewDeleteItemTakenInternalServerError() *DeleteItemTakenInternalServerError
 	return &DeleteItemTakenInternalServerError{}
 }
 
-// WithPayload adds the payload to the delete item taken internal server error response
-func (o *DeleteItemTakenInternalServerError) WithPayload(payload *DeleteItemTakenInternalServerErrorBody) *DeleteItemTakenInternalServerError {
-	o.Payload = payload
-	return o
-}
-
-// SetPayload sets the payload to the delete item taken internal server error response
-func (o *DeleteItemTakenInternalServerError) SetPayload(payload *DeleteItemTakenInternalServerErrorBody) {
-	o.Payload = payload
-}
-
 // WriteResponse to the client
 func (o *DeleteItemTakenInternalServerError) WriteResponse(rw http.ResponseWriter, producer runtime.Producer) {
 
+	rw.Header().Del(runtime.HeaderContentType) //Remove Content-Type on empty responses
+
 	rw.WriteHeader(500)
-	if o.Payload != nil {
-		payload := o.Payload
-		if err := producer.Produce(rw, payload); err != nil {
-			panic(err) // let the recovery middleware deal with this
-		}
-	}
 }

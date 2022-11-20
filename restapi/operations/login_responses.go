@@ -65,11 +65,6 @@ LoginInternalServerError Server error
 swagger:response loginInternalServerError
 */
 type LoginInternalServerError struct {
-
-	/*
-	  In: Body
-	*/
-	Payload *LoginInternalServerErrorBody `json:"body,omitempty"`
 }
 
 // NewLoginInternalServerError creates LoginInternalServerError with default headers values
@@ -78,25 +73,10 @@ func NewLoginInternalServerError() *LoginInternalServerError {
 	return &LoginInternalServerError{}
 }
 
-// WithPayload adds the payload to the login internal server error response
-func (o *LoginInternalServerError) WithPayload(payload *LoginInternalServerErrorBody) *LoginInternalServerError {
-	o.Payload = payload
-	return o
-}
-
-// SetPayload sets the payload to the login internal server error response
-func (o *LoginInternalServerError) SetPayload(payload *LoginInternalServerErrorBody) {
-	o.Payload = payload
-}
-
 // WriteResponse to the client
 func (o *LoginInternalServerError) WriteResponse(rw http.ResponseWriter, producer runtime.Producer) {
 
+	rw.Header().Del(runtime.HeaderContentType) //Remove Content-Type on empty responses
+
 	rw.WriteHeader(500)
-	if o.Payload != nil {
-		payload := o.Payload
-		if err := producer.Produce(rw, payload); err != nil {
-			panic(err) // let the recovery middleware deal with this
-		}
-	}
 }

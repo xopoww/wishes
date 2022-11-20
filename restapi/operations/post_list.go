@@ -14,7 +14,6 @@ import (
 	"github.com/go-openapi/runtime/middleware"
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
-	"github.com/go-openapi/validate"
 
 	"github.com/xopoww/wishes/restapi/apimodels"
 )
@@ -38,7 +37,7 @@ func NewPostList(ctx *middleware.Context, handler PostListHandler) *PostList {
 }
 
 /*
-	PostList swagger:route POST /lists postList
+	PostList swagger:route POST /lists Lists postList
 
 Create new list
 */
@@ -329,62 +328,6 @@ func (o *PostListCreatedBody) MarshalBinary() ([]byte, error) {
 // UnmarshalBinary interface implementation
 func (o *PostListCreatedBody) UnmarshalBinary(b []byte) error {
 	var res PostListCreatedBody
-	if err := swag.ReadJSON(b, &res); err != nil {
-		return err
-	}
-	*o = res
-	return nil
-}
-
-// PostListInternalServerErrorBody post list internal server error body
-//
-// swagger:model PostListInternalServerErrorBody
-type PostListInternalServerErrorBody struct {
-
-	// error
-	// Required: true
-	Error *string `json:"error"`
-}
-
-// Validate validates this post list internal server error body
-func (o *PostListInternalServerErrorBody) Validate(formats strfmt.Registry) error {
-	var res []error
-
-	if err := o.validateError(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if len(res) > 0 {
-		return errors.CompositeValidationError(res...)
-	}
-	return nil
-}
-
-func (o *PostListInternalServerErrorBody) validateError(formats strfmt.Registry) error {
-
-	if err := validate.Required("postListInternalServerError"+"."+"error", "body", o.Error); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// ContextValidate validates this post list internal server error body based on context it is used
-func (o *PostListInternalServerErrorBody) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
-	return nil
-}
-
-// MarshalBinary interface implementation
-func (o *PostListInternalServerErrorBody) MarshalBinary() ([]byte, error) {
-	if o == nil {
-		return nil, nil
-	}
-	return swag.WriteJSON(o)
-}
-
-// UnmarshalBinary interface implementation
-func (o *PostListInternalServerErrorBody) UnmarshalBinary(b []byte) error {
-	var res PostListInternalServerErrorBody
 	if err := swag.ReadJSON(b, &res); err != nil {
 		return err
 	}

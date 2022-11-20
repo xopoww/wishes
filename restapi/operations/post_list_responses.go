@@ -65,11 +65,6 @@ PostListInternalServerError Server error
 swagger:response postListInternalServerError
 */
 type PostListInternalServerError struct {
-
-	/*
-	  In: Body
-	*/
-	Payload *PostListInternalServerErrorBody `json:"body,omitempty"`
 }
 
 // NewPostListInternalServerError creates PostListInternalServerError with default headers values
@@ -78,25 +73,10 @@ func NewPostListInternalServerError() *PostListInternalServerError {
 	return &PostListInternalServerError{}
 }
 
-// WithPayload adds the payload to the post list internal server error response
-func (o *PostListInternalServerError) WithPayload(payload *PostListInternalServerErrorBody) *PostListInternalServerError {
-	o.Payload = payload
-	return o
-}
-
-// SetPayload sets the payload to the post list internal server error response
-func (o *PostListInternalServerError) SetPayload(payload *PostListInternalServerErrorBody) {
-	o.Payload = payload
-}
-
 // WriteResponse to the client
 func (o *PostListInternalServerError) WriteResponse(rw http.ResponseWriter, producer runtime.Producer) {
 
+	rw.Header().Del(runtime.HeaderContentType) //Remove Content-Type on empty responses
+
 	rw.WriteHeader(500)
-	if o.Payload != nil {
-		payload := o.Payload
-		if err := producer.Produce(rw, payload); err != nil {
-			panic(err) // let the recovery middleware deal with this
-		}
-	}
 }

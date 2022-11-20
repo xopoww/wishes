@@ -140,11 +140,6 @@ PostItemTakenInternalServerError Server error
 swagger:response postItemTakenInternalServerError
 */
 type PostItemTakenInternalServerError struct {
-
-	/*
-	  In: Body
-	*/
-	Payload *PostItemTakenInternalServerErrorBody `json:"body,omitempty"`
 }
 
 // NewPostItemTakenInternalServerError creates PostItemTakenInternalServerError with default headers values
@@ -153,25 +148,10 @@ func NewPostItemTakenInternalServerError() *PostItemTakenInternalServerError {
 	return &PostItemTakenInternalServerError{}
 }
 
-// WithPayload adds the payload to the post item taken internal server error response
-func (o *PostItemTakenInternalServerError) WithPayload(payload *PostItemTakenInternalServerErrorBody) *PostItemTakenInternalServerError {
-	o.Payload = payload
-	return o
-}
-
-// SetPayload sets the payload to the post item taken internal server error response
-func (o *PostItemTakenInternalServerError) SetPayload(payload *PostItemTakenInternalServerErrorBody) {
-	o.Payload = payload
-}
-
 // WriteResponse to the client
 func (o *PostItemTakenInternalServerError) WriteResponse(rw http.ResponseWriter, producer runtime.Producer) {
 
+	rw.Header().Del(runtime.HeaderContentType) //Remove Content-Type on empty responses
+
 	rw.WriteHeader(500)
-	if o.Payload != nil {
-		payload := o.Payload
-		if err := producer.Produce(rw, payload); err != nil {
-			panic(err) // let the recovery middleware deal with this
-		}
-	}
 }

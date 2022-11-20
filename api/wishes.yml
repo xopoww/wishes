@@ -20,10 +20,22 @@ produces:
 security:
 - KeySecurity: []
 
+tags:
+- name: Auth
+  description: Operations related to user authentication/authorization
+- name: Users
+  description: Opertations related to users
+- name: Lists
+  description: Operations related to wishlists
+- name: Items
+  description: Operations related to wishlist items
+
+
 paths:
   /login:
     post:
-      description: Return api token for authorized User
+      tags: [Auth]
+      summary: Return api token for authorized User
       operationId: Login
       security: []
       parameters:
@@ -48,6 +60,7 @@ paths:
 
   /users:
     post:
+      tags: [Users]
       summary: Register new user
       operationId: Register
       security: []
@@ -77,6 +90,7 @@ paths:
     parameters:
     - $ref: "#/parameters/PathId"
     get:
+      tags: [Users]
       summary: Get user info
       operationId: GetUser
       responses:
@@ -89,6 +103,7 @@ paths:
         500:
           $ref: "#/responses/ServerError"
     patch:
+      tags: [Users]
       summary: Edit user info
       operationId: PatchUser
       parameters:
@@ -107,8 +122,9 @@ paths:
 
   /lists:
     get:
-      operationId: GetUserLists
+      tags: [Lists]
       summary: Get user list IDs (visible by client)
+      operationId: GetUserLists
       parameters:
       - name: UserID
         in: query
@@ -128,39 +144,41 @@ paths:
         500:
           $ref: "#/responses/ServerError"
     post:
-        summary: Create new list
-        operationId: PostList
-        parameters:
-        - name: list
-          in: body
-          required: true
+      tags: [Lists]
+      summary: Create new list
+      operationId: PostList
+      parameters:
+      - name: list
+        in: body
+        required: true
+        schema:
+          allOf:
+          - $ref: "#/definitions/List"
+          - type: object
+            properties:
+              items:
+                type: array
+                items:
+                  $ref: "#/definitions/ListItem"
+      responses:
+        201:
+          description: Success
           schema:
             allOf:
-            - $ref: "#/definitions/List"
-            - type: object
-              properties:
-                items:
-                  type: array
-                  items:
-                    $ref: "#/definitions/ListItem"
-        responses:
-          201:
-            description: Success
-            schema:
-              allOf:
-              - $ref: "#/definitions/Revision"
-              - $ref: "#/definitions/ID"
-          500:
-            $ref: "#/responses/ServerError"
+            - $ref: "#/definitions/Revision"
+            - $ref: "#/definitions/ID"
+        500:
+          $ref: "#/responses/ServerError"
 
   /lists/{id}:
     parameters:
     - $ref: "#/parameters/PathId"
     get:
-      parameters:
-      - $ref: "#/parameters/AccessToken"
+      tags: [Lists]
       summary: Get list info (title, etc)
       operationId: GetList
+      parameters:
+      - $ref: "#/parameters/AccessToken"
       responses:
         200:
           description: Success
@@ -173,6 +191,7 @@ paths:
         500:
           $ref: "#/responses/ServerError"
     patch:
+      tags: [Lists]
       summary: Edit existing list (not list items)
       operationId: PatchList
       parameters:
@@ -192,6 +211,7 @@ paths:
         500:
           $ref: "#/responses/ServerError"
     delete:
+      tags: [Lists]
       summary: Delete existing list
       operationId: DeleteList
       responses:
@@ -208,10 +228,11 @@ paths:
     parameters:
     - $ref: "#/parameters/PathId"
     get:
-      parameters:
-      - $ref: "#/parameters/AccessToken"
+      tags: [Items]
       summary: Get list items. It client is owner, item.taken_by is omitted.
       operationId: GetListItems
+      parameters:
+      - $ref: "#/parameters/AccessToken"
       responses:
         200:
           description: Success
@@ -233,6 +254,7 @@ paths:
         500:
           $ref: "#/responses/ServerError"
     post:
+      tags: [Items]
       summary: Add items to existing list
       operationId: PostListItems
       parameters:
@@ -262,6 +284,7 @@ paths:
         500:
           $ref: "#/responses/ServerError"
     delete:
+      tags: [Items]
       summary: Delete items from existing list
       operationId: DeleteListItems
       parameters:
@@ -299,6 +322,7 @@ paths:
       required: true
     - $ref: "#/parameters/AccessToken"
     post:
+      tags: [Items]
       summary: Mark list item as taken
       operationId: PostItemTaken
       parameters:
@@ -328,6 +352,7 @@ paths:
         500:
           $ref: "#/responses/ServerError"
     delete:
+      tags: [Items]
       summary: Unmark previously taken item
       operationId: DeleteItemTaken
       parameters:
@@ -358,6 +383,7 @@ paths:
     parameters:
       - $ref: "#/parameters/PathId"
     get:
+      tags: [Lists]
       operationId: GetListToken
       summary: Get access token for a list
       responses:
@@ -392,12 +418,6 @@ parameters:
 responses:
   ServerError:
     description: Server error
-    schema:
-      type: object
-      properties:
-        error:
-          type: string
-      required: [error]
 
 definitions:
 

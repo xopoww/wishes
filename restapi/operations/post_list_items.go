@@ -38,7 +38,7 @@ func NewPostListItems(ctx *middleware.Context, handler PostListItemsHandler) *Po
 }
 
 /*
-	PostListItems swagger:route POST /lists/{id}/items postListItems
+	PostListItems swagger:route POST /lists/{id}/items Items postListItems
 
 Add items to existing list
 */
@@ -228,62 +228,6 @@ func (o *PostListItemsBody) MarshalBinary() ([]byte, error) {
 // UnmarshalBinary interface implementation
 func (o *PostListItemsBody) UnmarshalBinary(b []byte) error {
 	var res PostListItemsBody
-	if err := swag.ReadJSON(b, &res); err != nil {
-		return err
-	}
-	*o = res
-	return nil
-}
-
-// PostListItemsInternalServerErrorBody post list items internal server error body
-//
-// swagger:model PostListItemsInternalServerErrorBody
-type PostListItemsInternalServerErrorBody struct {
-
-	// error
-	// Required: true
-	Error *string `json:"error"`
-}
-
-// Validate validates this post list items internal server error body
-func (o *PostListItemsInternalServerErrorBody) Validate(formats strfmt.Registry) error {
-	var res []error
-
-	if err := o.validateError(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if len(res) > 0 {
-		return errors.CompositeValidationError(res...)
-	}
-	return nil
-}
-
-func (o *PostListItemsInternalServerErrorBody) validateError(formats strfmt.Registry) error {
-
-	if err := validate.Required("postListItemsInternalServerError"+"."+"error", "body", o.Error); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// ContextValidate validates this post list items internal server error body based on context it is used
-func (o *PostListItemsInternalServerErrorBody) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
-	return nil
-}
-
-// MarshalBinary interface implementation
-func (o *PostListItemsInternalServerErrorBody) MarshalBinary() ([]byte, error) {
-	if o == nil {
-		return nil, nil
-	}
-	return swag.WriteJSON(o)
-}
-
-// UnmarshalBinary interface implementation
-func (o *PostListItemsInternalServerErrorBody) UnmarshalBinary(b []byte) error {
-	var res PostListItemsInternalServerErrorBody
 	if err := swag.ReadJSON(b, &res); err != nil {
 		return err
 	}

@@ -38,7 +38,7 @@ func NewDeleteItemTaken(ctx *middleware.Context, handler DeleteItemTakenHandler)
 }
 
 /*
-	DeleteItemTaken swagger:route DELETE /lists/{id}/items/{item_id}/taken_by deleteItemTaken
+	DeleteItemTaken swagger:route DELETE /lists/{id}/items/{item_id}/taken_by Items deleteItemTaken
 
 Unmark previously taken item
 */
@@ -160,62 +160,6 @@ func (o *DeleteItemTakenConflictBody) MarshalBinary() ([]byte, error) {
 // UnmarshalBinary interface implementation
 func (o *DeleteItemTakenConflictBody) UnmarshalBinary(b []byte) error {
 	var res DeleteItemTakenConflictBody
-	if err := swag.ReadJSON(b, &res); err != nil {
-		return err
-	}
-	*o = res
-	return nil
-}
-
-// DeleteItemTakenInternalServerErrorBody delete item taken internal server error body
-//
-// swagger:model DeleteItemTakenInternalServerErrorBody
-type DeleteItemTakenInternalServerErrorBody struct {
-
-	// error
-	// Required: true
-	Error *string `json:"error"`
-}
-
-// Validate validates this delete item taken internal server error body
-func (o *DeleteItemTakenInternalServerErrorBody) Validate(formats strfmt.Registry) error {
-	var res []error
-
-	if err := o.validateError(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if len(res) > 0 {
-		return errors.CompositeValidationError(res...)
-	}
-	return nil
-}
-
-func (o *DeleteItemTakenInternalServerErrorBody) validateError(formats strfmt.Registry) error {
-
-	if err := validate.Required("deleteItemTakenInternalServerError"+"."+"error", "body", o.Error); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// ContextValidate validates this delete item taken internal server error body based on context it is used
-func (o *DeleteItemTakenInternalServerErrorBody) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
-	return nil
-}
-
-// MarshalBinary interface implementation
-func (o *DeleteItemTakenInternalServerErrorBody) MarshalBinary() ([]byte, error) {
-	if o == nil {
-		return nil, nil
-	}
-	return swag.WriteJSON(o)
-}
-
-// UnmarshalBinary interface implementation
-func (o *DeleteItemTakenInternalServerErrorBody) UnmarshalBinary(b []byte) error {
-	var res DeleteItemTakenInternalServerErrorBody
 	if err := swag.ReadJSON(b, &res); err != nil {
 		return err
 	}

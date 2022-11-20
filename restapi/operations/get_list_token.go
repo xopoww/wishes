@@ -9,11 +9,9 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime/middleware"
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
-	"github.com/go-openapi/validate"
 
 	"github.com/xopoww/wishes/restapi/apimodels"
 )
@@ -37,7 +35,7 @@ func NewGetListToken(ctx *middleware.Context, handler GetListTokenHandler) *GetL
 }
 
 /*
-	GetListToken swagger:route GET /lists/{id}/token getListToken
+	GetListToken swagger:route GET /lists/{id}/token Lists getListToken
 
 Get access token for a list
 */
@@ -73,62 +71,6 @@ func (o *GetListToken) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	res := o.Handler.Handle(Params, principal) // actually handle the request
 	o.Context.Respond(rw, r, route.Produces, route, res)
 
-}
-
-// GetListTokenInternalServerErrorBody get list token internal server error body
-//
-// swagger:model GetListTokenInternalServerErrorBody
-type GetListTokenInternalServerErrorBody struct {
-
-	// error
-	// Required: true
-	Error *string `json:"error"`
-}
-
-// Validate validates this get list token internal server error body
-func (o *GetListTokenInternalServerErrorBody) Validate(formats strfmt.Registry) error {
-	var res []error
-
-	if err := o.validateError(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if len(res) > 0 {
-		return errors.CompositeValidationError(res...)
-	}
-	return nil
-}
-
-func (o *GetListTokenInternalServerErrorBody) validateError(formats strfmt.Registry) error {
-
-	if err := validate.Required("getListTokenInternalServerError"+"."+"error", "body", o.Error); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// ContextValidate validates this get list token internal server error body based on context it is used
-func (o *GetListTokenInternalServerErrorBody) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
-	return nil
-}
-
-// MarshalBinary interface implementation
-func (o *GetListTokenInternalServerErrorBody) MarshalBinary() ([]byte, error) {
-	if o == nil {
-		return nil, nil
-	}
-	return swag.WriteJSON(o)
-}
-
-// UnmarshalBinary interface implementation
-func (o *GetListTokenInternalServerErrorBody) UnmarshalBinary(b []byte) error {
-	var res GetListTokenInternalServerErrorBody
-	if err := swag.ReadJSON(b, &res); err != nil {
-		return err
-	}
-	*o = res
-	return nil
 }
 
 // GetListTokenOKBody get list token o k body

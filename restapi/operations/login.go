@@ -35,7 +35,7 @@ func NewLogin(ctx *middleware.Context, handler LoginHandler) *Login {
 }
 
 /*
-	Login swagger:route POST /login login
+	Login swagger:route POST /login Auth login
 
 Return api token for authorized User
 */
@@ -58,62 +58,6 @@ func (o *Login) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	res := o.Handler.Handle(Params) // actually handle the request
 	o.Context.Respond(rw, r, route.Produces, route, res)
 
-}
-
-// LoginInternalServerErrorBody login internal server error body
-//
-// swagger:model LoginInternalServerErrorBody
-type LoginInternalServerErrorBody struct {
-
-	// error
-	// Required: true
-	Error *string `json:"error"`
-}
-
-// Validate validates this login internal server error body
-func (o *LoginInternalServerErrorBody) Validate(formats strfmt.Registry) error {
-	var res []error
-
-	if err := o.validateError(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if len(res) > 0 {
-		return errors.CompositeValidationError(res...)
-	}
-	return nil
-}
-
-func (o *LoginInternalServerErrorBody) validateError(formats strfmt.Registry) error {
-
-	if err := validate.Required("loginInternalServerError"+"."+"error", "body", o.Error); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// ContextValidate validates this login internal server error body based on context it is used
-func (o *LoginInternalServerErrorBody) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
-	return nil
-}
-
-// MarshalBinary interface implementation
-func (o *LoginInternalServerErrorBody) MarshalBinary() ([]byte, error) {
-	if o == nil {
-		return nil, nil
-	}
-	return swag.WriteJSON(o)
-}
-
-// UnmarshalBinary interface implementation
-func (o *LoginInternalServerErrorBody) UnmarshalBinary(b []byte) error {
-	var res LoginInternalServerErrorBody
-	if err := swag.ReadJSON(b, &res); err != nil {
-		return err
-	}
-	*o = res
-	return nil
 }
 
 // LoginOKBody login o k body

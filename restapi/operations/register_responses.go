@@ -65,11 +65,6 @@ RegisterInternalServerError Server error
 swagger:response registerInternalServerError
 */
 type RegisterInternalServerError struct {
-
-	/*
-	  In: Body
-	*/
-	Payload *RegisterInternalServerErrorBody `json:"body,omitempty"`
 }
 
 // NewRegisterInternalServerError creates RegisterInternalServerError with default headers values
@@ -78,25 +73,10 @@ func NewRegisterInternalServerError() *RegisterInternalServerError {
 	return &RegisterInternalServerError{}
 }
 
-// WithPayload adds the payload to the register internal server error response
-func (o *RegisterInternalServerError) WithPayload(payload *RegisterInternalServerErrorBody) *RegisterInternalServerError {
-	o.Payload = payload
-	return o
-}
-
-// SetPayload sets the payload to the register internal server error response
-func (o *RegisterInternalServerError) SetPayload(payload *RegisterInternalServerErrorBody) {
-	o.Payload = payload
-}
-
 // WriteResponse to the client
 func (o *RegisterInternalServerError) WriteResponse(rw http.ResponseWriter, producer runtime.Producer) {
 
+	rw.Header().Del(runtime.HeaderContentType) //Remove Content-Type on empty responses
+
 	rw.WriteHeader(500)
-	if o.Payload != nil {
-		payload := o.Payload
-		if err := producer.Produce(rw, payload); err != nil {
-			panic(err) // let the recovery middleware deal with this
-		}
-	}
 }

@@ -6,14 +6,9 @@ package operations
 // Editing this file might prove futile when you re-run the generate command
 
 import (
-	"context"
 	"net/http"
 
-	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime/middleware"
-	"github.com/go-openapi/strfmt"
-	"github.com/go-openapi/swag"
-	"github.com/go-openapi/validate"
 
 	"github.com/xopoww/wishes/restapi/apimodels"
 )
@@ -37,7 +32,7 @@ func NewGetUser(ctx *middleware.Context, handler GetUserHandler) *GetUser {
 }
 
 /*
-	GetUser swagger:route GET /users/{id} getUser
+	GetUser swagger:route GET /users/{id} Users getUser
 
 Get user info
 */
@@ -73,60 +68,4 @@ func (o *GetUser) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	res := o.Handler.Handle(Params, principal) // actually handle the request
 	o.Context.Respond(rw, r, route.Produces, route, res)
 
-}
-
-// GetUserInternalServerErrorBody get user internal server error body
-//
-// swagger:model GetUserInternalServerErrorBody
-type GetUserInternalServerErrorBody struct {
-
-	// error
-	// Required: true
-	Error *string `json:"error"`
-}
-
-// Validate validates this get user internal server error body
-func (o *GetUserInternalServerErrorBody) Validate(formats strfmt.Registry) error {
-	var res []error
-
-	if err := o.validateError(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if len(res) > 0 {
-		return errors.CompositeValidationError(res...)
-	}
-	return nil
-}
-
-func (o *GetUserInternalServerErrorBody) validateError(formats strfmt.Registry) error {
-
-	if err := validate.Required("getUserInternalServerError"+"."+"error", "body", o.Error); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// ContextValidate validates this get user internal server error body based on context it is used
-func (o *GetUserInternalServerErrorBody) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
-	return nil
-}
-
-// MarshalBinary interface implementation
-func (o *GetUserInternalServerErrorBody) MarshalBinary() ([]byte, error) {
-	if o == nil {
-		return nil, nil
-	}
-	return swag.WriteJSON(o)
-}
-
-// UnmarshalBinary interface implementation
-func (o *GetUserInternalServerErrorBody) UnmarshalBinary(b []byte) error {
-	var res GetUserInternalServerErrorBody
-	if err := swag.ReadJSON(b, &res); err != nil {
-		return err
-	}
-	*o = res
-	return nil
 }

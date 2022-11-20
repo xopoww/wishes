@@ -13,7 +13,6 @@ import (
 	"github.com/go-openapi/runtime/middleware"
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
-	"github.com/go-openapi/validate"
 
 	"github.com/xopoww/wishes/restapi/apimodels"
 )
@@ -37,7 +36,7 @@ func NewPatchList(ctx *middleware.Context, handler PatchListHandler) *PatchList 
 }
 
 /*
-	PatchList swagger:route PATCH /lists/{id} patchList
+	PatchList swagger:route PATCH /lists/{id} Lists patchList
 
 Edit existing list (not list items)
 */
@@ -147,62 +146,6 @@ func (o *PatchListBody) MarshalBinary() ([]byte, error) {
 // UnmarshalBinary interface implementation
 func (o *PatchListBody) UnmarshalBinary(b []byte) error {
 	var res PatchListBody
-	if err := swag.ReadJSON(b, &res); err != nil {
-		return err
-	}
-	*o = res
-	return nil
-}
-
-// PatchListInternalServerErrorBody patch list internal server error body
-//
-// swagger:model PatchListInternalServerErrorBody
-type PatchListInternalServerErrorBody struct {
-
-	// error
-	// Required: true
-	Error *string `json:"error"`
-}
-
-// Validate validates this patch list internal server error body
-func (o *PatchListInternalServerErrorBody) Validate(formats strfmt.Registry) error {
-	var res []error
-
-	if err := o.validateError(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if len(res) > 0 {
-		return errors.CompositeValidationError(res...)
-	}
-	return nil
-}
-
-func (o *PatchListInternalServerErrorBody) validateError(formats strfmt.Registry) error {
-
-	if err := validate.Required("patchListInternalServerError"+"."+"error", "body", o.Error); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// ContextValidate validates this patch list internal server error body based on context it is used
-func (o *PatchListInternalServerErrorBody) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
-	return nil
-}
-
-// MarshalBinary interface implementation
-func (o *PatchListInternalServerErrorBody) MarshalBinary() ([]byte, error) {
-	if o == nil {
-		return nil, nil
-	}
-	return swag.WriteJSON(o)
-}
-
-// UnmarshalBinary interface implementation
-func (o *PatchListInternalServerErrorBody) UnmarshalBinary(b []byte) error {
-	var res PatchListInternalServerErrorBody
 	if err := swag.ReadJSON(b, &res); err != nil {
 		return err
 	}

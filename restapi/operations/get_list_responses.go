@@ -117,11 +117,6 @@ GetListInternalServerError Server error
 swagger:response getListInternalServerError
 */
 type GetListInternalServerError struct {
-
-	/*
-	  In: Body
-	*/
-	Payload *GetListInternalServerErrorBody `json:"body,omitempty"`
 }
 
 // NewGetListInternalServerError creates GetListInternalServerError with default headers values
@@ -130,25 +125,10 @@ func NewGetListInternalServerError() *GetListInternalServerError {
 	return &GetListInternalServerError{}
 }
 
-// WithPayload adds the payload to the get list internal server error response
-func (o *GetListInternalServerError) WithPayload(payload *GetListInternalServerErrorBody) *GetListInternalServerError {
-	o.Payload = payload
-	return o
-}
-
-// SetPayload sets the payload to the get list internal server error response
-func (o *GetListInternalServerError) SetPayload(payload *GetListInternalServerErrorBody) {
-	o.Payload = payload
-}
-
 // WriteResponse to the client
 func (o *GetListInternalServerError) WriteResponse(rw http.ResponseWriter, producer runtime.Producer) {
 
+	rw.Header().Del(runtime.HeaderContentType) //Remove Content-Type on empty responses
+
 	rw.WriteHeader(500)
-	if o.Payload != nil {
-		payload := o.Payload
-		if err := producer.Produce(rw, payload); err != nil {
-			panic(err) // let the recovery middleware deal with this
-		}
-	}
 }
