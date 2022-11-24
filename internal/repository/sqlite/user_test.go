@@ -84,6 +84,11 @@ func TestAddUser(t *testing.T) {
 	if !errors.Is(err, service.ErrConflict) {
 		t.Fatalf("register dupe: want %#v, got %#v", service.ErrConflict, err)
 	}
+
+	_, err = r.AddUser(ctx, &models.User{Name: "other"})
+	if err != nil {
+		t.Fatalf("add without passhash: %s", err)
+	}
 }
 
 func TestGetUser(t *testing.T) {
@@ -117,6 +122,16 @@ func TestGetUser(t *testing.T) {
 	if !errors.Is(err, service.ErrNotFound) {
 		t.Fatalf("get wrong id: want %#v, got %#v", service.ErrNotFound, err)
 	}
+
+	want, err = r.AddUser(ctx, &models.User{Name: "other"})
+	if err != nil {
+		t.Fatalf("add no pwd: %s", err)
+	}
+	got, err = r.GetUser(ctx, want.ID)
+	if err != nil {
+		t.Fatalf("get no pwd: %s", err)
+	}
+	assertUserEq(t, want, got)
 }
 
 func TestEditUser(t *testing.T) {
