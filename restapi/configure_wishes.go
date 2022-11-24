@@ -16,6 +16,7 @@ import (
 	"github.com/xopoww/wishes/internal/controllers/handlers"
 	"github.com/xopoww/wishes/internal/log"
 	"github.com/xopoww/wishes/internal/meta"
+	"github.com/xopoww/wishes/internal/oauth/yandex"
 	"github.com/xopoww/wishes/internal/repository/sqlite"
 	"github.com/xopoww/wishes/internal/service"
 	"github.com/xopoww/wishes/restapi/operations"
@@ -80,6 +81,12 @@ func configureAPI(api *operations.WishesAPI) http.Handler {
 		l.Fatal().Err(err).Msg("decode WISHES_LIST_SECRET failed")
 	}
 	serv := service.NewService(repo, service.NewListTokenProvider(listSecret))
+	
+	if cid, exists := os.LookupEnv("WISHES_OAUTH_YANDEX_CLIENT_ID"); exists {
+		serv.AddOAuthProvider("yandex", yandex.NewOAuthProvider(log.YandexOAuth(l), cid))
+		l.Debug().Str("provider", "yandex").Msg("added oauth provider")
+	}
+
 	controller := handlers.NewApiController(log.Handlers(l), serv)
 
 	// Applies when the "x-token" header is set
@@ -103,6 +110,9 @@ func configureAPI(api *operations.WishesAPI) http.Handler {
 	api.DeleteListItemsHandler = controller.DeleteListItems()
 	api.PostItemTakenHandler = controller.PostItemTaken()
 	api.DeleteItemTakenHandler = controller.DeleteItemTaken()
+
+	api.OAuthRegisterHandler = controller.OAuthRegister()
+	api.OAuthLoginHandler = controller.OAuthLogin()
 
 	api.PreServerShutdown = func() {}
 

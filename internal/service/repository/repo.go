@@ -45,10 +45,10 @@ type Handle interface {
 	GetItemTaken(ctx context.Context, listId, itemId int64) (*int64, error)
 
 	// CheckOAuth checks for OAuth record and returns corresponding user ID on success
-	CheckOAuth(ctx context.Context, provider, uid string) (int64, error)
+	CheckOAuth(ctx context.Context, provider, eid string) (int64, error)
 
 	// AddOAuth adds OAuth record for a user
-	AddOAuth(ctx context.Context, provider, uid string, user *models.User) error
+	AddOAuth(ctx context.Context, provider, eid string, user *models.User) error
 }
 
 type Transaction interface {

@@ -15,6 +15,9 @@ var (
 	ErrNotFound = repository.ErrNotFound
 	ErrConflict = repository.ErrConflict
 	ErrOutdated = fmt.Errorf("%w: outdated revision", ErrConflict)
+
+	ErrOAuth    	= errors.New("invalid oauth credentials")
+	ErrNoProvider	= fmt.Errorf("%w: unknown provider", ErrOAuth)
 )
 
 type ErrAlreadyTaken struct {
@@ -64,13 +67,27 @@ type Service interface {
 	TakeItem(ctx context.Context, list *models.List, itemId int64, client *models.User, token *string) error
 
 	UntakeItem(ctx context.Context, list *models.List, itemId int64, client *models.User, token *string) error
+
+	// AddOAuthProvider registers new provider. It is not safe for concurrent use with other methods
+	// and should be called only during configuration.
+	AddOAuthProvider(providerId string, op OAuthProvider)
+
+	OAuthRegister(ctx context.Context, username, provider, oauthToken string) (int64, error)
+
+	OAuthLogin(ctx context.Context, provider, oauthToken string) (token string, err error)
 }
 
 type service struct {
 	r   repository.Repository
 	ltp ListTokenProvider
+	ops map[string]OAuthProvider
 }
 
 func NewService(r repository.Repository, ltp ListTokenProvider) Service {
-	return &service{r: r, ltp: ltp}
+	return &service{r: r, ltp: ltp, ops: make(map[string]OAuthProvider)}
+}
+
+//go:generate mockgen -destination mock_oauth_test.go -package service_test . OAuthProvider
+type OAuthProvider interface {
+	Validate(ctx context.Context, token string) (extId string, err error)
 }

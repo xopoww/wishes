@@ -393,6 +393,54 @@ func (t Trace) Compose(x Trace) (ret Trace) {
 			}
 		}
 	}
+	switch {
+	case t.OnOAuthRegister == nil:
+		ret.OnOAuthRegister = x.OnOAuthRegister
+	case x.OnOAuthRegister == nil:
+		ret.OnOAuthRegister = t.OnOAuthRegister
+	default:
+		h1 := t.OnOAuthRegister
+		h2 := x.OnOAuthRegister
+		ret.OnOAuthRegister = func(o OnOAuthRegisterStartInfo) func(OnOAuthRegisterDoneInfo) {
+			r1 := h1(o)
+			r2 := h2(o)
+			switch {
+			case r1 == nil:
+				return r2
+			case r2 == nil:
+				return r1
+			default:
+				return func(o OnOAuthRegisterDoneInfo) {
+					r1(o)
+					r2(o)
+				}
+			}
+		}
+	}
+	switch {
+	case t.OnOAuthLogin == nil:
+		ret.OnOAuthLogin = x.OnOAuthLogin
+	case x.OnOAuthLogin == nil:
+		ret.OnOAuthLogin = t.OnOAuthLogin
+	default:
+		h1 := t.OnOAuthLogin
+		h2 := x.OnOAuthLogin
+		ret.OnOAuthLogin = func(o OnOAuthLoginStartInfo) func(OnOAuthLoginDoneInfo) {
+			r1 := h1(o)
+			r2 := h2(o)
+			switch {
+			case r1 == nil:
+				return r2
+			case r2 == nil:
+				return r1
+			default:
+				return func(o OnOAuthLoginDoneInfo) {
+					r1(o)
+					r2(o)
+				}
+			}
+		}
+	}
 	return ret
 }
 func (t Trace) onLogin(o OnLoginStartInfo) func(OnLoginDoneInfo) {
@@ -635,6 +683,36 @@ func (t Trace) onKeySecurityAuth(o OnKeySecurityAuthStartInfo) func(OnKeySecurit
 	}
 	return res
 }
+func (t Trace) onOAuthRegister(o OnOAuthRegisterStartInfo) func(OnOAuthRegisterDoneInfo) {
+	fn := t.OnOAuthRegister
+	if fn == nil {
+		return func(OnOAuthRegisterDoneInfo) {
+			return
+		}
+	}
+	res := fn(o)
+	if res == nil {
+		return func(OnOAuthRegisterDoneInfo) {
+			return
+		}
+	}
+	return res
+}
+func (t Trace) onOAuthLogin(o OnOAuthLoginStartInfo) func(OnOAuthLoginDoneInfo) {
+	fn := t.OnOAuthLogin
+	if fn == nil {
+		return func(OnOAuthLoginDoneInfo) {
+			return
+		}
+	}
+	res := fn(o)
+	if res == nil {
+		return func(OnOAuthLoginDoneInfo) {
+			return
+		}
+	}
+	return res
+}
 func traceOnLogin(t Trace, username string) func(ok bool, _ error) {
 	var p OnLoginStartInfo
 	p.Username = username
@@ -820,6 +898,27 @@ func traceOnKeySecurityAuth(t Trace) func(client *models.User, err error) {
 		var p OnKeySecurityAuthDoneInfo
 		p.Client = client
 		p.Err = err
+		res(p)
+	}
+}
+func traceOnOAuthRegister(t Trace, username string, provider string) func(error) {
+	var p OnOAuthRegisterStartInfo
+	p.Username = username
+	p.Provider = provider
+	res := t.onOAuthRegister(p)
+	return func(e error) {
+		var p OnOAuthRegisterDoneInfo
+		p.Error = e
+		res(p)
+	}
+}
+func traceOnOAuthLogin(t Trace, provider string) func(error) {
+	var p OnOAuthLoginStartInfo
+	p.Provider = provider
+	res := t.onOAuthLogin(p)
+	return func(e error) {
+		var p OnOAuthLoginDoneInfo
+		p.Error = e
 		res(p)
 	}
 }
