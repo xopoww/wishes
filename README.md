@@ -42,7 +42,7 @@ The server can be built via `make build`. The resulting application needs some e
  ```
  `WISHES_HOST` environment variable is a full base path to the API server. E.g. if the server is run locally on port 65000, `WISHES_HOST` must be set to `http://localhost:65000/api` (notice the `/api` part).
 
- All of this can also be achieved via Docker compose create `./dev/dev.envrc` file with `WISHES_JWT_SECRET` and `WISHES_LIST_SECRET` variables and run
+ All of this can also be achieved via Docker compose: create `./dev/dev.envrc` file with `WISHES_JWT_SECRET` and `WISHES_LIST_SECRET` variables and run
  ```
  docker compose --profile test build
  docker compose up -d
