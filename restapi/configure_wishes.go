@@ -81,7 +81,7 @@ func configureAPI(api *operations.WishesAPI) http.Handler {
 		l.Fatal().Err(err).Msg("decode WISHES_LIST_SECRET failed")
 	}
 	serv := service.NewService(repo, service.NewListTokenProvider(listSecret))
-	
+
 	if cid, exists := os.LookupEnv("WISHES_OAUTH_YANDEX_CLIENT_ID"); exists {
 		serv.AddOAuthProvider("yandex", yandex.NewOAuthProvider(log.YandexOAuth(l), cid))
 		l.Debug().Str("provider", "yandex").Msg("added oauth provider")

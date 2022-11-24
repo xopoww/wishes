@@ -19,7 +19,7 @@ func TestCheckOAuth(t *testing.T) {
 		),
 		upMigrationFromString(t,
 			`INSERT INTO OAuth (provider, external_id, user_id) SELECT provider, external_id, Users.id as user_id FROM `+
-			`(SELECT "test_provider" as provider, "test_ext_id" as external_id) JOIN Users ON Users.user_name == "user"`,
+				`(SELECT "test_provider" as provider, "test_ext_id" as external_id) JOIN Users ON Users.user_name == "user"`,
 			testMigrationVersionStart+1,
 		),
 	)
@@ -95,7 +95,7 @@ func TestAddOAuth(t *testing.T) {
 		t.Fatalf("want %+v, got %+v", service.ErrConflict, err)
 	}
 
-	err = r.AddOAuth(ctx, "test_provider", "other_ext_id", &models.User{ID: b.ID+50})
+	err = r.AddOAuth(ctx, "test_provider", "other_ext_id", &models.User{ID: b.ID + 50})
 	if !errors.Is(err, service.ErrNotFound) {
 		t.Fatalf("want %+v, got %+v", service.ErrNotFound, err)
 	}

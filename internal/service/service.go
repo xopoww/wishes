@@ -16,8 +16,8 @@ var (
 	ErrConflict = repository.ErrConflict
 	ErrOutdated = fmt.Errorf("%w: outdated revision", ErrConflict)
 
-	ErrOAuth    	= errors.New("invalid oauth credentials")
-	ErrNoProvider	= fmt.Errorf("%w: unknown provider", ErrOAuth)
+	ErrOAuth      = errors.New("invalid oauth credentials")
+	ErrNoProvider = fmt.Errorf("%w: unknown provider", ErrOAuth)
 )
 
 type ErrAlreadyTaken struct {

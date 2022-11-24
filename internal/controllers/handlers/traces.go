@@ -25,6 +25,6 @@ type Trace struct {
 
 	OnKeySecurityAuth func(OnKeySecurityAuthStartInfo) func(OnKeySecurityAuthDoneInfo)
 
-	OnOAuthRegister	  func(OnOAuthRegisterStartInfo) func(OnOAuthRegisterDoneInfo)
-	OnOAuthLogin	  func(OnOAuthLoginStartInfo) func(OnOAuthLoginDoneInfo)
+	OnOAuthRegister func(OnOAuthRegisterStartInfo) func(OnOAuthRegisterDoneInfo)
+	OnOAuthLogin    func(OnOAuthLoginStartInfo) func(OnOAuthLoginDoneInfo)
 }

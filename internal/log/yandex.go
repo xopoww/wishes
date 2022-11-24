@@ -10,7 +10,7 @@ func YandexOAuth(l zerolog.Logger) (t yandex.Trace) {
 		Str(zerolog.CallerFieldName, "oauth").
 		Str("provider", "yandex").
 		Logger()
-	
+
 	t.OnValidate = func(si yandex.OnValidateStartInfo) func(yandex.OnValidateDoneInfo) {
 		l.Trace().
 			Stringer("url", si.Req.URL).

@@ -11,11 +11,11 @@ import (
 )
 
 type (
-	OnOAuthRegisterStartInfo struct{
+	OnOAuthRegisterStartInfo struct {
 		Username string
 		Provider string
 	}
-	OnOAuthRegisterDoneInfo  struct{
+	OnOAuthRegisterDoneInfo struct {
 		Error error
 	}
 )
@@ -47,11 +47,11 @@ func (ac *ApiController) OAuthRegister() operations.OAuthRegisterHandler {
 }
 
 type (
-	OnOAuthLoginStartInfo struct{
+	OnOAuthLoginStartInfo struct {
 		Provider string
 	}
-	OnOAuthLoginDoneInfo  struct{
-		Error  error
+	OnOAuthLoginDoneInfo struct {
+		Error error
 	}
 )
 

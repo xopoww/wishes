@@ -69,4 +69,3 @@ func (s *service) OAuthLogin(ctx context.Context, provider, oauthToken string) (
 	_ = tx.Commit()
 	return s.generateToken(user)
 }
-

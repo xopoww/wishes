@@ -11,14 +11,14 @@ import (
 )
 
 type provider struct {
-	c http.Client
-	t Trace
+	c        http.Client
+	t        Trace
 	clientID string
 }
 
 func NewOAuthProvider(t Trace, clientID string) service.OAuthProvider {
 	return &provider{
-		t: t,
+		t:        t,
 		clientID: clientID,
 	}
 }
@@ -55,7 +55,7 @@ func (p *provider) Validate(ctx context.Context, token string) (eid string, err 
 		err = fmt.Errorf("read body: %w", err)
 		return
 	}
-	
+
 	if resp.StatusCode != http.StatusOK {
 		err = fmt.Errorf("status=%d, body=%q", resp.StatusCode, data)
 		return
@@ -71,7 +71,7 @@ func (p *provider) Validate(ctx context.Context, token string) (eid string, err 
 		err = fmt.Errorf("client_id: got %q", ir.ClientID)
 		return
 	}
-	
+
 	return ir.ID, nil
 }
 
