@@ -37,9 +37,9 @@ func NewRegister(ctx *middleware.Context, handler RegisterHandler) *Register {
 }
 
 /*
-	Register swagger:route POST /users Users register
+	Register swagger:route POST /auth/register Auth register
 
-Register new user
+Register new user via password auth
 */
 type Register struct {
 	Context *middleware.Context
@@ -73,6 +73,9 @@ type RegisterOKBody struct {
 	// ok
 	// Required: true
 	Ok *bool `json:"ok"`
+
+	// token
+	Token string `json:"token,omitempty"`
 
 	// user
 	User *apimodels.ID `json:"user,omitempty"`

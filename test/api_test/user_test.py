@@ -84,7 +84,7 @@ class TestUser:
         assert resp.status_code == 404
 
         resp = client.get("/users")
-        assert resp.status_code == 405
+        assert resp.status_code == 404
 
         resp = client.get("/users/john")
         assert resp.status_code == 422
@@ -117,7 +117,7 @@ class TestUser:
         assert resp.status_code == 403
 
         resp = client.patch("/users", json=info)
-        assert resp.status_code == 405
+        assert resp.status_code == 404
 
         resp = client.patch("/users/john", json=info)
         assert resp.status_code == 422

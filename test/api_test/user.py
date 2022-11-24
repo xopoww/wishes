@@ -8,7 +8,7 @@ class User:
         self.id: int|None = None
     
     def register(self, c: Client) -> requests.Response:
-        return c.post("/users", json={"username": self.username, "password": self.password})
+        return c.post("/auth/register", json={"username": self.username, "password": self.password})
     
     def must_register(self, c: Client):
         resp = self.register(c)
@@ -18,7 +18,7 @@ class User:
         self.id = body["user"]["id"]
 
     def login(self, c: Client):
-        return c.post("/login", json={"username": self.username, "password": self.password})
+        return c.post("/auth/login", json={"username": self.username, "password": self.password})
 
     def must_login(self, c: Client):
         resp = self.login(c)

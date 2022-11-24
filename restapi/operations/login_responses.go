@@ -15,7 +15,7 @@ import (
 const LoginOKCode int = 200
 
 /*
-LoginOK Login result
+LoginOK Login result. If any part of credentials is wrong, ok=false is returned without revealing the exact reason.
 
 swagger:response loginOK
 */

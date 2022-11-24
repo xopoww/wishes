@@ -2,7 +2,7 @@ swagger: '2.0'
 
 info:
   title: Wishes API
-  version: 0.0.8
+  version: 0.0.9
 
 basePath: /api
 
@@ -32,10 +32,29 @@ tags:
 
 
 paths:
-  /login:
+
+  /auth/register:
     post:
       tags: [Auth]
-      summary: Return api token for authorized User
+      summary: Register new user via password auth
+      operationId: Register
+      security: []
+      parameters:
+      - name: credentials
+        in: body
+        required: true
+        schema:
+          $ref: "#/definitions/UserCredentials"
+      responses:
+        200:
+          $ref: "#/responses/RegisterResult"
+        500:
+          $ref: "#/responses/ServerError"
+
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: Log in via password auth
       operationId: Login
       security: []
       parameters:
@@ -46,7 +65,7 @@ paths:
           $ref: '#/definitions/UserCredentials'
       responses:
         200:
-          description: Login result
+          description: Login result. If any part of credentials is wrong, ok=false is returned without revealing the exact reason.
           schema:
             type: object
             required: [ok]
@@ -58,31 +77,55 @@ paths:
         500:
           $ref: "#/responses/ServerError"
 
-  /users:
+  /oauth/register:
     post:
-      tags: [Users]
-      summary: Register new user
-      operationId: Register
+      tags: [Auth]
+      summary: Register new OAuth user
+      operationId: OAuthRegister
       security: []
       parameters:
-      - name: credentials
+      - name: body
         in: body
         required: true
         schema:
-          $ref: "#/definitions/UserCredentials"
+          allOf:
+          - type: object
+            properties:
+              username:
+                $ref: "#/definitions/UserName"
+            required: [username]
+          - $ref: "#/definitions/OAuthCredentials"
       responses:
         200:
-          description: Registration result
+          $ref: "#/responses/RegisterResult"
+        500:
+          $ref: "#/responses/ServerError"
+
+  /oauth/login:
+    post:
+      tags: [Auth]
+      summary: Log in using OAuth token
+      operationId: OAuthLogin
+      security: []
+      parameters:
+      - name: body
+        in: body
+        required: true
+        schema:
+          $ref: "#/definitions/OAuthCredentials"
+      responses:
+        200:
+          description: Success
           schema:
             type: object
-            required: [ok]
             properties:
-              ok:
-                type: boolean
-              error:
+              token:
                 type: string
-              user:
-                $ref: "#/definitions/ID"
+            required: [token]
+        404:
+          description: User for OAuth token not found
+        400:
+          description: Invalid credentials
         500:
           $ref: "#/responses/ServerError"
 
@@ -418,6 +461,21 @@ parameters:
 responses:
   ServerError:
     description: Server error
+  
+  RegisterResult:
+    description: Registration result
+    schema:
+      type: object
+      required: [ok]
+      properties:
+        ok:
+          type: boolean
+        error:
+          type: string
+        user:
+          $ref: "#/definitions/ID"
+        token:
+          type: string
 
 definitions:
 
@@ -505,3 +563,14 @@ definitions:
         type: integer
         x-nullable: true
     required: [title]
+
+  OAuthCredentials:
+    type: object
+    properties:
+      provider_id:
+        type: string
+        description: Textual ID of OAuth provider
+      token:
+        type: string
+        description: OAuth bearer token
+    required: [provider_id, token]
