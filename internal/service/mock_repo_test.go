@@ -66,6 +66,20 @@ func (mr *MockRepositoryMockRecorder) AddListItems(arg0, arg1, arg2 interface{})
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddListItems", reflect.TypeOf((*MockRepository)(nil).AddListItems), arg0, arg1, arg2)
 }
 
+// AddOAuth mocks base method.
+func (m *MockRepository) AddOAuth(arg0 context.Context, arg1, arg2 string, arg3 *models.User) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "AddOAuth", arg0, arg1, arg2, arg3)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// AddOAuth indicates an expected call of AddOAuth.
+func (mr *MockRepositoryMockRecorder) AddOAuth(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddOAuth", reflect.TypeOf((*MockRepository)(nil).AddOAuth), arg0, arg1, arg2, arg3)
+}
+
 // AddUser mocks base method.
 func (m *MockRepository) AddUser(arg0 context.Context, arg1 *models.User) (*models.User, error) {
 	m.ctrl.T.Helper()
@@ -94,6 +108,21 @@ func (m *MockRepository) Begin() (repository.Transaction, error) {
 func (mr *MockRepositoryMockRecorder) Begin() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Begin", reflect.TypeOf((*MockRepository)(nil).Begin))
+}
+
+// CheckOAuth mocks base method.
+func (m *MockRepository) CheckOAuth(arg0 context.Context, arg1, arg2 string) (int64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CheckOAuth", arg0, arg1, arg2)
+	ret0, _ := ret[0].(int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CheckOAuth indicates an expected call of CheckOAuth.
+func (mr *MockRepositoryMockRecorder) CheckOAuth(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckOAuth", reflect.TypeOf((*MockRepository)(nil).CheckOAuth), arg0, arg1, arg2)
 }
 
 // CheckUsername mocks base method.
@@ -324,6 +353,20 @@ func (mr *MockTransactionMockRecorder) AddListItems(arg0, arg1, arg2 interface{}
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddListItems", reflect.TypeOf((*MockTransaction)(nil).AddListItems), arg0, arg1, arg2)
 }
 
+// AddOAuth mocks base method.
+func (m *MockTransaction) AddOAuth(arg0 context.Context, arg1, arg2 string, arg3 *models.User) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "AddOAuth", arg0, arg1, arg2, arg3)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// AddOAuth indicates an expected call of AddOAuth.
+func (mr *MockTransactionMockRecorder) AddOAuth(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddOAuth", reflect.TypeOf((*MockTransaction)(nil).AddOAuth), arg0, arg1, arg2, arg3)
+}
+
 // AddUser mocks base method.
 func (m *MockTransaction) AddUser(arg0 context.Context, arg1 *models.User) (*models.User, error) {
 	m.ctrl.T.Helper()
@@ -337,6 +380,21 @@ func (m *MockTransaction) AddUser(arg0 context.Context, arg1 *models.User) (*mod
 func (mr *MockTransactionMockRecorder) AddUser(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddUser", reflect.TypeOf((*MockTransaction)(nil).AddUser), arg0, arg1)
+}
+
+// CheckOAuth mocks base method.
+func (m *MockTransaction) CheckOAuth(arg0 context.Context, arg1, arg2 string) (int64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CheckOAuth", arg0, arg1, arg2)
+	ret0, _ := ret[0].(int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CheckOAuth indicates an expected call of CheckOAuth.
+func (mr *MockTransactionMockRecorder) CheckOAuth(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckOAuth", reflect.TypeOf((*MockTransaction)(nil).CheckOAuth), arg0, arg1, arg2)
 }
 
 // CheckUsername mocks base method.

@@ -53,5 +53,5 @@ The server can be built via `make build`. The resulting application needs some e
 
  - switch from SQLite to another DBMS
  - create web SPA for the app and integrate it with API
- - add OAuth2 authentication
+ - ~~add OAuth2 authentication~~
  - implement SSE to notify front-end about changes to opened lists and other events

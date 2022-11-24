@@ -370,5 +370,36 @@ func Handlers(l zerolog.Logger) (t handlers.Trace) {
 		}
 	}
 
+	t.OnOAuthRegister = func(si handlers.OnOAuthRegisterStartInfo) func(handlers.OnOAuthRegisterDoneInfo) {
+		return func(di handlers.OnOAuthRegisterDoneInfo) {
+			if di.Error != nil {
+				l.Error().
+					Str("username", si.Username).
+					Str("provider", si.Provider).
+					Err(di.Error).
+					Msg("oauth register error")
+			} else {
+				l.Debug().
+					Str("username", si.Username).
+					Str("provider", si.Provider).
+					Msg("oauth register done")
+			}
+		}
+	}
+	t.OnOAuthLogin = func(si handlers.OnOAuthLoginStartInfo) func(handlers.OnOAuthLoginDoneInfo) {
+		return func(di handlers.OnOAuthLoginDoneInfo) {
+			if di.Error != nil {
+				l.Error().
+					Str("provider", si.Provider).
+					Err(di.Error).
+					Msg("oauth login error")
+			} else {
+				l.Debug().
+					Str("provider", si.Provider).
+					Msg("oauth login done")
+			}
+		}
+	}
+
 	return t
 }

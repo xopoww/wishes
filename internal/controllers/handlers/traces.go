@@ -24,4 +24,7 @@ type Trace struct {
 	OnDeleteItemTaken func(OnDeleteItemTakenStartInfo) func(OnDeleteItemTakenDoneInfo)
 
 	OnKeySecurityAuth func(OnKeySecurityAuthStartInfo) func(OnKeySecurityAuthDoneInfo)
+
+	OnOAuthRegister func(OnOAuthRegisterStartInfo) func(OnOAuthRegisterDoneInfo)
+	OnOAuthLogin    func(OnOAuthLoginStartInfo) func(OnOAuthLoginDoneInfo)
 }

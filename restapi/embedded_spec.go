@@ -27,10 +27,80 @@ func init() {
   "swagger": "2.0",
   "info": {
     "title": "Wishes API",
-    "version": "0.0.8"
+    "version": "0.0.9"
   },
   "basePath": "/api",
   "paths": {
+    "/auth/login": {
+      "post": {
+        "security": [],
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Log in via password auth",
+        "operationId": "Login",
+        "parameters": [
+          {
+            "name": "credentials",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/UserCredentials"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Login result. If any part of credentials is wrong, ok=false is returned without revealing the exact reason.",
+            "schema": {
+              "type": "object",
+              "required": [
+                "ok"
+              ],
+              "properties": {
+                "ok": {
+                  "type": "boolean"
+                },
+                "token": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/responses/ServerError"
+          }
+        }
+      }
+    },
+    "/auth/register": {
+      "post": {
+        "security": [],
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Register new user via password auth",
+        "operationId": "Register",
+        "parameters": [
+          {
+            "name": "credentials",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/UserCredentials"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/RegisterResult"
+          },
+          "500": {
+            "$ref": "#/responses/ServerError"
+          }
+        }
+      }
+    },
     "/lists": {
       "get": {
         "tags": [
@@ -516,41 +586,44 @@ func init() {
         }
       ]
     },
-    "/login": {
+    "/oauth/login": {
       "post": {
         "security": [],
         "tags": [
           "Auth"
         ],
-        "summary": "Return api token for authorized User",
-        "operationId": "Login",
+        "summary": "Log in using OAuth token",
+        "operationId": "OAuthLogin",
         "parameters": [
           {
-            "name": "credentials",
+            "name": "body",
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/UserCredentials"
+              "$ref": "#/definitions/OAuthCredentials"
             }
           }
         ],
         "responses": {
           "200": {
-            "description": "Login result",
+            "description": "Success",
             "schema": {
               "type": "object",
               "required": [
-                "ok"
+                "token"
               ],
               "properties": {
-                "ok": {
-                  "type": "boolean"
-                },
                 "token": {
                   "type": "string"
                 }
               }
             }
+          },
+          "400": {
+            "description": "Invalid credentials"
+          },
+          "404": {
+            "description": "User for OAuth token not found"
           },
           "500": {
             "$ref": "#/responses/ServerError"
@@ -558,44 +631,42 @@ func init() {
         }
       }
     },
-    "/users": {
+    "/oauth/register": {
       "post": {
         "security": [],
         "tags": [
-          "Users"
+          "Auth"
         ],
-        "summary": "Register new user",
-        "operationId": "Register",
+        "summary": "Register new OAuth user",
+        "operationId": "OAuthRegister",
         "parameters": [
           {
-            "name": "credentials",
+            "name": "body",
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/UserCredentials"
+              "allOf": [
+                {
+                  "type": "object",
+                  "required": [
+                    "username"
+                  ],
+                  "properties": {
+                    "username": {
+                      "$ref": "#/definitions/UserName"
+                    }
+                  }
+                },
+                {
+                  "$ref": "#/definitions/OAuthCredentials"
+                }
+              ]
             }
           }
         ],
         "responses": {
           "200": {
-            "description": "Registration result",
-            "schema": {
-              "type": "object",
-              "required": [
-                "ok"
-              ],
-              "properties": {
-                "error": {
-                  "type": "string"
-                },
-                "ok": {
-                  "type": "boolean"
-                },
-                "user": {
-                  "$ref": "#/definitions/ID"
-                }
-              }
-            }
+            "$ref": "#/responses/RegisterResult"
           },
           "500": {
             "$ref": "#/responses/ServerError"
@@ -715,6 +786,23 @@ func init() {
         }
       }
     },
+    "OAuthCredentials": {
+      "type": "object",
+      "required": [
+        "provider_id",
+        "token"
+      ],
+      "properties": {
+        "provider_id": {
+          "description": "Textual ID of OAuth provider",
+          "type": "string"
+        },
+        "token": {
+          "description": "OAuth bearer token",
+          "type": "string"
+        }
+      }
+    },
     "Revision": {
       "type": "object",
       "required": [
@@ -806,6 +894,26 @@ func init() {
     }
   },
   "responses": {
+    "RegisterResult": {
+      "description": "Registration result",
+      "schema": {
+        "type": "object",
+        "required": [
+          "ok"
+        ],
+        "properties": {
+          "error": {
+            "type": "string"
+          },
+          "ok": {
+            "type": "boolean"
+          },
+          "user": {
+            "$ref": "#/definitions/ID"
+          }
+        }
+      }
+    },
     "ServerError": {
       "description": "Server error"
     }
@@ -851,10 +959,97 @@ func init() {
   "swagger": "2.0",
   "info": {
     "title": "Wishes API",
-    "version": "0.0.8"
+    "version": "0.0.9"
   },
   "basePath": "/api",
   "paths": {
+    "/auth/login": {
+      "post": {
+        "security": [],
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Log in via password auth",
+        "operationId": "Login",
+        "parameters": [
+          {
+            "name": "credentials",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/UserCredentials"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Login result. If any part of credentials is wrong, ok=false is returned without revealing the exact reason.",
+            "schema": {
+              "type": "object",
+              "required": [
+                "ok"
+              ],
+              "properties": {
+                "ok": {
+                  "type": "boolean"
+                },
+                "token": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/auth/register": {
+      "post": {
+        "security": [],
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Register new user via password auth",
+        "operationId": "Register",
+        "parameters": [
+          {
+            "name": "credentials",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/UserCredentials"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Registration result",
+            "schema": {
+              "type": "object",
+              "required": [
+                "ok"
+              ],
+              "properties": {
+                "error": {
+                  "type": "string"
+                },
+                "ok": {
+                  "type": "boolean"
+                },
+                "user": {
+                  "$ref": "#/definitions/ID"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
     "/lists": {
       "get": {
         "tags": [
@@ -1354,41 +1549,44 @@ func init() {
         }
       ]
     },
-    "/login": {
+    "/oauth/login": {
       "post": {
         "security": [],
         "tags": [
           "Auth"
         ],
-        "summary": "Return api token for authorized User",
-        "operationId": "Login",
+        "summary": "Log in using OAuth token",
+        "operationId": "OAuthLogin",
         "parameters": [
           {
-            "name": "credentials",
+            "name": "body",
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/UserCredentials"
+              "$ref": "#/definitions/OAuthCredentials"
             }
           }
         ],
         "responses": {
           "200": {
-            "description": "Login result",
+            "description": "Success",
             "schema": {
               "type": "object",
               "required": [
-                "ok"
+                "token"
               ],
               "properties": {
-                "ok": {
-                  "type": "boolean"
-                },
                 "token": {
                   "type": "string"
                 }
               }
             }
+          },
+          "400": {
+            "description": "Invalid credentials"
+          },
+          "404": {
+            "description": "User for OAuth token not found"
           },
           "500": {
             "description": "Server error"
@@ -1396,21 +1594,36 @@ func init() {
         }
       }
     },
-    "/users": {
+    "/oauth/register": {
       "post": {
         "security": [],
         "tags": [
-          "Users"
+          "Auth"
         ],
-        "summary": "Register new user",
-        "operationId": "Register",
+        "summary": "Register new OAuth user",
+        "operationId": "OAuthRegister",
         "parameters": [
           {
-            "name": "credentials",
+            "name": "body",
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/UserCredentials"
+              "allOf": [
+                {
+                  "type": "object",
+                  "required": [
+                    "username"
+                  ],
+                  "properties": {
+                    "username": {
+                      "$ref": "#/definitions/UserName"
+                    }
+                  }
+                },
+                {
+                  "$ref": "#/definitions/OAuthCredentials"
+                }
+              ]
             }
           }
         ],
@@ -1566,6 +1779,23 @@ func init() {
         }
       }
     },
+    "OAuthCredentials": {
+      "type": "object",
+      "required": [
+        "provider_id",
+        "token"
+      ],
+      "properties": {
+        "provider_id": {
+          "description": "Textual ID of OAuth provider",
+          "type": "string"
+        },
+        "token": {
+          "description": "OAuth bearer token",
+          "type": "string"
+        }
+      }
+    },
     "Revision": {
       "type": "object",
       "required": [
@@ -1657,6 +1887,26 @@ func init() {
     }
   },
   "responses": {
+    "RegisterResult": {
+      "description": "Registration result",
+      "schema": {
+        "type": "object",
+        "required": [
+          "ok"
+        ],
+        "properties": {
+          "error": {
+            "type": "string"
+          },
+          "ok": {
+            "type": "boolean"
+          },
+          "user": {
+            "$ref": "#/definitions/ID"
+          }
+        }
+      }
+    },
     "ServerError": {
       "description": "Server error"
     }

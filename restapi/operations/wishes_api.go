@@ -71,6 +71,12 @@ func NewWishesAPI(spec *loads.Document) *WishesAPI {
 		LoginHandler: LoginHandlerFunc(func(params LoginParams) middleware.Responder {
 			return middleware.NotImplemented("operation Login has not yet been implemented")
 		}),
+		OAuthLoginHandler: OAuthLoginHandlerFunc(func(params OAuthLoginParams) middleware.Responder {
+			return middleware.NotImplemented("operation OAuthLogin has not yet been implemented")
+		}),
+		OAuthRegisterHandler: OAuthRegisterHandlerFunc(func(params OAuthRegisterParams) middleware.Responder {
+			return middleware.NotImplemented("operation OAuthRegister has not yet been implemented")
+		}),
 		PatchListHandler: PatchListHandlerFunc(func(params PatchListParams, principal *apimodels.Principal) middleware.Responder {
 			return middleware.NotImplemented("operation PatchList has not yet been implemented")
 		}),
@@ -157,6 +163,10 @@ type WishesAPI struct {
 	GetUserListsHandler GetUserListsHandler
 	// LoginHandler sets the operation handler for the login operation
 	LoginHandler LoginHandler
+	// OAuthLoginHandler sets the operation handler for the o auth login operation
+	OAuthLoginHandler OAuthLoginHandler
+	// OAuthRegisterHandler sets the operation handler for the o auth register operation
+	OAuthRegisterHandler OAuthRegisterHandler
 	// PatchListHandler sets the operation handler for the patch list operation
 	PatchListHandler PatchListHandler
 	// PatchUserHandler sets the operation handler for the patch user operation
@@ -276,6 +286,12 @@ func (o *WishesAPI) Validate() error {
 	}
 	if o.LoginHandler == nil {
 		unregistered = append(unregistered, "LoginHandler")
+	}
+	if o.OAuthLoginHandler == nil {
+		unregistered = append(unregistered, "OAuthLoginHandler")
+	}
+	if o.OAuthRegisterHandler == nil {
+		unregistered = append(unregistered, "OAuthRegisterHandler")
 	}
 	if o.PatchListHandler == nil {
 		unregistered = append(unregistered, "PatchListHandler")
@@ -429,7 +445,15 @@ func (o *WishesAPI) initHandlerCache() {
 	if o.handlers["POST"] == nil {
 		o.handlers["POST"] = make(map[string]http.Handler)
 	}
-	o.handlers["POST"]["/login"] = NewLogin(o.context, o.LoginHandler)
+	o.handlers["POST"]["/auth/login"] = NewLogin(o.context, o.LoginHandler)
+	if o.handlers["POST"] == nil {
+		o.handlers["POST"] = make(map[string]http.Handler)
+	}
+	o.handlers["POST"]["/oauth/login"] = NewOAuthLogin(o.context, o.OAuthLoginHandler)
+	if o.handlers["POST"] == nil {
+		o.handlers["POST"] = make(map[string]http.Handler)
+	}
+	o.handlers["POST"]["/oauth/register"] = NewOAuthRegister(o.context, o.OAuthRegisterHandler)
 	if o.handlers["PATCH"] == nil {
 		o.handlers["PATCH"] = make(map[string]http.Handler)
 	}
@@ -453,7 +477,7 @@ func (o *WishesAPI) initHandlerCache() {
 	if o.handlers["POST"] == nil {
 		o.handlers["POST"] = make(map[string]http.Handler)
 	}
-	o.handlers["POST"]["/users"] = NewRegister(o.context, o.RegisterHandler)
+	o.handlers["POST"]["/auth/register"] = NewRegister(o.context, o.RegisterHandler)
 }
 
 // Serve creates a http handler to serve the API over HTTP
