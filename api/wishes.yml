@@ -474,8 +474,6 @@ responses:
           type: string
         user:
           $ref: "#/definitions/ID"
-        token:
-          type: string
 
 definitions:
 

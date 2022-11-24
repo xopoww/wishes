@@ -74,9 +74,6 @@ type RegisterOKBody struct {
 	// Required: true
 	Ok *bool `json:"ok"`
 
-	// token
-	Token string `json:"token,omitempty"`
-
 	// user
 	User *apimodels.ID `json:"user,omitempty"`
 }

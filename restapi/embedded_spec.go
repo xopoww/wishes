@@ -908,9 +908,6 @@ func init() {
           "ok": {
             "type": "boolean"
           },
-          "token": {
-            "type": "string"
-          },
           "user": {
             "$ref": "#/definitions/ID"
           }
@@ -1040,9 +1037,6 @@ func init() {
                 },
                 "ok": {
                   "type": "boolean"
-                },
-                "token": {
-                  "type": "string"
                 },
                 "user": {
                   "$ref": "#/definitions/ID"
@@ -1648,9 +1642,6 @@ func init() {
                 "ok": {
                   "type": "boolean"
                 },
-                "token": {
-                  "type": "string"
-                },
                 "user": {
                   "$ref": "#/definitions/ID"
                 }
@@ -1909,9 +1900,6 @@ func init() {
           },
           "ok": {
             "type": "boolean"
-          },
-          "token": {
-            "type": "string"
           },
           "user": {
             "$ref": "#/definitions/ID"
